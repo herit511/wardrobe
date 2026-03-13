@@ -7,6 +7,74 @@ const categories = ['All', 'Tops', 'Bottoms', 'Footwear', 'Outerwear']
 const seasons = ['All', 'Summer', 'Winter', 'Monsoon', 'All Season']
 const occasions = ['All', 'Casual', 'Office', 'Party', 'Streetwear']
 
+const colorMap = [
+  { name: 'Black', hex: '#000000' },
+  { name: 'White', hex: '#ffffff' },
+  { name: 'Gray', hex: '#808080' },
+  { name: 'Silver', hex: '#c0c0c0' },
+  { name: 'Red', hex: '#ff0000' },
+  { name: 'Maroon', hex: '#800000' },
+  { name: 'Blue', hex: '#0000ff' },
+  { name: 'Navy', hex: '#000080' },
+  { name: 'Dark Blue', hex: '#00008b' },
+  { name: 'Light Blue', hex: '#add8e6' },
+  { name: 'Cyan', hex: '#00ffff' },
+  { name: 'Teal', hex: '#008080' },
+  { name: 'Green', hex: '#008000' },
+  { name: 'Dark Green', hex: '#006400' },
+  { name: 'Olive', hex: '#808000' },
+  { name: 'Yellow', hex: '#ffff00' },
+  { name: 'Orange', hex: '#ffa500' },
+  { name: 'Purple', hex: '#800080' },
+  { name: 'Magenta', hex: '#ff00ff' },
+  { name: 'Pink', hex: '#ffc0cb' },
+  { name: 'Brown', hex: '#a52a2a' },
+  { name: 'Beige', hex: '#f5f5dc' }
+];
+
+function hexToRgb(hex) {
+  let r = 0, g = 0, b = 0;
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else if (hex.length === 7) {
+    r = parseInt(hex[1] + hex[2], 16);
+    g = parseInt(hex[3] + hex[4], 16);
+    b = parseInt(hex[5] + hex[6], 16);
+  }
+  return { r, g, b };
+}
+
+function getColorName(hexColor) {
+  if (!hexColor || !hexColor.startsWith('#')) return hexColor;
+  
+  const { r, g, b } = hexToRgb(hexColor);
+  let closestColor = hexColor;
+  let minDistance = Infinity;
+  
+  for (const color of colorMap) {
+    const rgb = hexToRgb(color.hex);
+    // Use redmean approximation for better perceptual color distance
+    const rmean = (r + rgb.r) / 2;
+    const rDist = r - rgb.r;
+    const gDist = g - rgb.g;
+    const bDist = b - rgb.b;
+    
+    const weightR = 2 + rmean / 256;
+    const weightG = 4.0;
+    const weightB = 2 + (255 - rmean) / 256;
+    
+    const distance = weightR * rDist * rDist + weightG * gDist * gDist + weightB * bDist * bDist;
+    
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestColor = color.name;
+    }
+  }
+  return closestColor;
+}
+
 function Closet() {
   const navigate = useNavigate()
   const [items, setItems] = useState([])
@@ -114,15 +182,15 @@ function Closet() {
                     {item.userPreferenceScore > 0 ? '❤️' : '🤍'}
                   </button>
                   <div className="item-overlay">
-                    <button className="btn btn-primary btn-sm">Edit</button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => handleDelete(item._id)}>Delete</button>
+                    <button className="btn btn-light btn-sm" onClick={() => alert('Edit page coming soon!')}>Edit</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item._id)}>Delete</button>
                   </div>
                 </div>
                 <div className="item-info">
                   <div className="item-category-badge">
                     <span className="badge badge-orange">{item.category}</span>
                   </div>
-                  <h3 className="item-name" style={{ textTransform: 'capitalize' }}>{item.color} {item.subCategory.replace('_', ' ')}</h3>
+                  <h3 className="item-name" style={{ textTransform: 'capitalize' }}>{getColorName(item.color)} {item.subCategory.replace('_', ' ')}</h3>
                   <p className="item-brand">{item.condition} condition</p>
                 </div>
               </div>
@@ -139,10 +207,6 @@ function Closet() {
           </div>
         )}
 
-        {/* FAB */}
-        <button className="fab" onClick={() => navigate('/add-item')} id="add-item-fab">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
       </div>
     </div>
   )

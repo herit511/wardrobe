@@ -26,14 +26,14 @@ function AddItem() {
   const [error, setError] = useState('')
 
   const [form, setForm] = useState({
-    category: 'outerwear',
-    subCategory: 'coat',
-    color: '#D4A882',
-    pattern: 'solid',
-    fit: 'oversized',
-    occasion: ['casual'],
-    season: ['winter'],
-    condition: 'new',
+    category: '',
+    subCategory: '',
+    color: '#000000',
+    pattern: '',
+    fit: '',
+    occasion: [],
+    season: [],
+    condition: 'good',
   })
 
   const handleFileChange = (e) => {
@@ -47,6 +47,28 @@ function AddItem() {
         setTimeout(() => {
           setScanning(false)
           setScanned(true)
+          
+          // Generate realistic random suggestions
+          const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+          const possibleSubCategories = subCategories[randomCategory] || [];
+          const randomSubCategory = possibleSubCategories[Math.floor(Math.random() * possibleSubCategories.length)] || '';
+          
+          // Generate a random hex color
+          const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+          
+          const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+          const randomFit = fits[Math.floor(Math.random() * fits.length)];
+          
+          setForm(prev => ({
+            ...prev,
+            category: randomCategory,
+            subCategory: randomSubCategory,
+            color: randomColor,
+            pattern: randomPattern,
+            fit: randomFit,
+            occasion: [occasionOptions[Math.floor(Math.random() * occasionOptions.length)]],
+            season: [seasonOptions[Math.floor(Math.random() * seasonOptions.length)]]
+          }));
         }, 2000)
       }
       reader.readAsDataURL(file)

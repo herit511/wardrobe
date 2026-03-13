@@ -181,6 +181,34 @@ input, select, textarea {
   background: var(--color-orange-light);
 }
 
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-text-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger:hover {
+  background: #C0392B;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.25);
+  transform: translateY(-2px);
+}
+
+.btn-light {
+  background: var(--color-text-white);
+  color: var(--color-navy);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-light:hover {
+  background: var(--color-bg-warm);
+  transform: translateY(-2px);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
 .card {
   background: var(--color-bg-card);
   border-radius: var(--radius-md);
