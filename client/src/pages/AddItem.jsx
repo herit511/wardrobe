@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { api } from '../api'
 import './AddItem.css'
 
 const categories = ['top', 'bottom', 'footwear', 'outerwear']
@@ -21,6 +22,8 @@ function AddItem() {
   const [preview, setPreview] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [scanned, setScanned] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   const [form, setForm] = useState({
     category: 'outerwear',
@@ -59,10 +62,40 @@ function AddItem() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: integrate with backend POST /api/items
-    navigate('/closet')
+    
+    if (!fileRef.current?.files?.[0]) {
+      setError('Please upload an image of the item')
+      return
+    }
+
+    setSubmitting(true)
+    setError('')
+
+    const formData = new FormData()
+    formData.append('image', fileRef.current.files[0])
+    formData.append('category', form.category)
+    formData.append('subCategory', form.subCategory)
+    formData.append('color', form.color)
+    formData.append('pattern', form.pattern)
+    formData.append('fit', form.fit)
+    formData.append('condition', form.condition)
+    form.occasion.forEach(o => formData.append('occasion', o))
+    form.season.forEach(s => formData.append('season', s))
+
+    try {
+      const res = await api.post('/items', formData)
+      if (res.success) {
+        navigate('/closet')
+      } else {
+        setError(res.message || 'Failed to save item')
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to save item')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -120,6 +153,7 @@ function AddItem() {
                 <h2><span className="sparkle">✨</span> AI-Detected Details</h2>
                 {scanned && <span className="badge badge-orange">AI Analyzed</span>}
               </div>
+              {error && <div className="error-message" style={{ color: '#E87040', marginBottom: '1rem', padding: '0 20px', fontSize: '0.9rem' }}>{error}</div>}
 
               <div className="details-grid">
                 <div className="form-group">
@@ -259,8 +293,8 @@ function AddItem() {
               </div>
 
               <div className="details-actions">
-                <button type="submit" className="btn btn-primary" id="save-item-btn">
-                  Save to Closet
+                <button type="submit" className="btn btn-primary" id="save-item-btn" disabled={submitting}>
+                  {submitting ? 'Saving...' : 'Save to Closet'}
                 </button>
                 <button type="button" className="btn btn-ghost" onClick={() => navigate('/closet')}>
                   Cancel

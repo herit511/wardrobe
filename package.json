@@ -4,19 +4,28 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "dev:all": "concurrently \"npm run dev\" \"cd client && npm run dev\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
+    "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.0",
     "mongoose": "^9.2.3",
     "multer": "^2.1.0",
     "multer-storage-cloudinary": "^2.2.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "form-data": "^4.0.5",
+    "nodemon": "^3.1.14"
   }
 }

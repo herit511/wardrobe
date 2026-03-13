@@ -1,15 +1,30 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './Auth.css'
 
 function Signup() {
   const navigate = useNavigate()
+  const { register } = useAuth()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: integrate with backend auth API
-    navigate('/style-profile')
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+    setError('')
+    setLoading(true)
+    const res = await register(form.name, form.email, form.password)
+    setLoading(false)
+    if (res.success) {
+      navigate('/style-profile')
+    } else {
+      setError(res.error || 'Failed to sign up')
+    }
   }
 
   return (
@@ -58,6 +73,7 @@ function Signup() {
           <p className="auth-subtitle">Build your digital closet</p>
 
           <form className="auth-form" onSubmit={handleSubmit} id="signup-form">
+            {error && <div className="error-message" style={{ color: '#E87040', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
             <div className="form-group">
               <label htmlFor="signup-name">Full Name</label>
               <input
@@ -110,7 +126,9 @@ function Signup() {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary auth-btn" id="signup-submit">Sign up</button>
+            <button type="submit" className="btn btn-primary auth-btn" id="signup-submit" disabled={loading}>
+              {loading ? 'Signing up...' : 'Sign up'}
+            </button>
 
             <p className="auth-toggle">
               Already have an account? <Link to="/login" id="login-link">Sign in</Link>

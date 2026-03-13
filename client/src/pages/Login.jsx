@@ -1,15 +1,26 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './Auth.css'
 
 function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: integrate with backend auth API
-    navigate('/dashboard')
+    setError('')
+    setLoading(true)
+    const res = await login(form.email, form.password)
+    setLoading(false)
+    if (res.success) {
+      navigate('/dashboard')
+    } else {
+      setError(res.error || 'Failed to sign in')
+    }
   }
 
   return (
@@ -52,6 +63,7 @@ function Login() {
           <p className="auth-subtitle">Your Digital Closet</p>
 
           <form className="auth-form" onSubmit={handleSubmit} id="login-form">
+            {error && <div className="error-message" style={{ color: '#E87040', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
             <div className="form-group">
               <label htmlFor="login-email">Email</label>
               <input
@@ -80,7 +92,9 @@ function Login() {
 
             <Link to="/forgot-password" className="forgot-link" id="forgot-password-link">Forgot password?</Link>
 
-            <button type="submit" className="btn btn-primary auth-btn" id="login-submit">Sign in</button>
+            <button type="submit" className="btn btn-primary auth-btn" id="login-submit" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
 
             <p className="auth-toggle">
               New here? <Link to="/signup" id="signup-link">Create an account</Link>

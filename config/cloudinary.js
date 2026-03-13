@@ -1,4 +1,5 @@
-const cloudinary = require("cloudinary").v2;
+const cloudinaryLib = require("cloudinary");
+const cloudinary = cloudinaryLib.v2;
 const CloudinaryStorage = require("multer-storage-cloudinary");
 
 cloudinary.config({
@@ -8,7 +9,7 @@ cloudinary.config({
 });
 
 const storage = new CloudinaryStorage({
-   cloudinary: cloudinary,
+   cloudinary: cloudinaryLib,
    params: {
       folder: "wardrobe_items",
       allowed_formats: ["jpg", "png", "jpeg"],

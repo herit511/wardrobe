@@ -6,6 +6,7 @@ const errorHandler = require("./middleware/errorHandler");
 const app = express();
 
 const itemRoutes = require("./routes/itemRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 // Middleware
 app.use(express.json());
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/items", itemRoutes);
+app.use("/api/auth", authRoutes);
 
 // Health check
 app.get("/", (req, res) => {

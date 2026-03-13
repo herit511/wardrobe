@@ -9,6 +9,7 @@ import Outfits from './pages/Outfits'
 import AddItem from './pages/AddItem'
 import StyleProfile from './pages/StyleProfile'
 import Profile from './pages/Profile'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
@@ -20,12 +21,14 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* App Routes (with navbar) */}
-        <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
-        <Route path="/closet" element={<><Navbar /><Closet /></>} />
-        <Route path="/outfits" element={<><Navbar /><Outfits /></>} />
-        <Route path="/add-item" element={<><Navbar /><AddItem /></>} />
-        <Route path="/style-profile" element={<><Navbar /><StyleProfile /></>} />
-        <Route path="/profile" element={<><Navbar /><Profile /></>} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
+          <Route path="/closet" element={<><Navbar /><Closet /></>} />
+          <Route path="/outfits" element={<><Navbar /><Outfits /></>} />
+          <Route path="/add-item" element={<><Navbar /><AddItem /></>} />
+          <Route path="/style-profile" element={<><Navbar /><StyleProfile /></>} />
+          <Route path="/profile" element={<><Navbar /><Profile /></>} />
+        </Route>
 
         {/* Default redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />

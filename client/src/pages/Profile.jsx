@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './Profile.css'
 
 function Profile() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
 
   return (
     <div className="profile-page" id="profile-page">
@@ -13,9 +15,9 @@ function Profile() {
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
           <div className="profile-info">
-            <h1 className="profile-name heading-italic">Alex Rivera</h1>
-            <p className="profile-email">alex.rivera@example.com</p>
-            <p className="profile-member">Member since 2024</p>
+            <h1 className="profile-name heading-italic">{user?.name || 'User'}</h1>
+            <p className="profile-email">{user?.email}</p>
+            <p className="profile-member">Member since {user?.createdAt ? new Date(user.createdAt).getFullYear() : '2024'}</p>
           </div>
           <button className="btn btn-secondary" id="edit-profile-btn">Edit Profile</button>
         </section>
@@ -79,7 +81,7 @@ function Profile() {
             <div className="settings-list">
               <div className="settings-row">
                 <span className="settings-label">Email</span>
-                <span className="settings-value">alex.rivera@example.com</span>
+                <span className="settings-value">{user?.email}</span>
               </div>
               <div className="settings-row">
                 <span className="settings-label">Password</span>
@@ -177,7 +179,7 @@ function Profile() {
 
         {/* Danger Zone */}
         <div className="danger-zone animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-          <button className="btn btn-ghost logout-btn" id="logout-btn">Log Out</button>
+          <button className="btn btn-ghost logout-btn" id="logout-btn" onClick={() => { logout(); navigate('/login'); }}>Log Out</button>
           <button className="btn btn-ghost danger-btn" id="delete-account-btn">Delete Account</button>
         </div>
       </div>

@@ -166,10 +166,26 @@ const listQueryRules = [
   query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be between 1 and 100"),
 ];
 
+// Validation rules for user registration
+const registerRules = [
+  body("name").trim().notEmpty().withMessage("Name is required"),
+  body("email").trim().isEmail().withMessage("Valid email is required"),
+  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
+];
+
+// Validation rules for user login
+const loginRules = [
+  body("email").trim().isEmail().withMessage("Valid email is required"),
+  body("password").notEmpty().withMessage("Password is required")
+];
+
+
 module.exports = {
   validate,
   createItemRules,
   updateItemRules,
   idParamRule,
   listQueryRules,
+  registerRules,
+  loginRules,
 };

@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Item = require("../models/items");
 const upload = require("../middleware/upload");
+const auth = require("../middleware/auth");
 const { cloudinary } = require("../config/cloudinary");
 const {
   validate,
@@ -15,7 +16,7 @@ const {
 // ============================================
 // GET /api/items — List all items with filters
 // ============================================
-router.get("/", listQueryRules, validate, async (req, res, next) => {
+router.get("/", auth, listQueryRules, validate, async (req, res, next) => {
   try {
     const {
       category, subCategory, color, occasion, season, condition,
@@ -24,8 +25,8 @@ router.get("/", listQueryRules, validate, async (req, res, next) => {
       limit = 20,
     } = req.query;
 
-    // Build filter object
-    const filter = {};
+    // Build filter object scoped to user
+    const filter = { userId: req.user.id };
     if (category) filter.category = category;
     if (subCategory) filter.subCategory = subCategory;
     if (color) filter.color = { $regex: color, $options: "i" };
@@ -63,9 +64,9 @@ router.get("/", listQueryRules, validate, async (req, res, next) => {
 // ============================================
 // GET /api/items/:id — Get single item
 // ============================================
-router.get("/:id", idParamRule, validate, async (req, res, next) => {
+router.get("/:id", auth, idParamRule, validate, async (req, res, next) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findOne({ _id: req.params.id, userId: req.user.id });
 
     if (!item) {
       return res.status(404).json({
@@ -83,7 +84,7 @@ router.get("/:id", idParamRule, validate, async (req, res, next) => {
 // ============================================
 // POST /api/items — Create new item
 // ============================================
-router.post("/", upload.single("image"), createItemRules, validate, async (req, res, next) => {
+router.post("/", auth, upload.single("image"), createItemRules, validate, async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -92,7 +93,7 @@ router.post("/", upload.single("image"), createItemRules, validate, async (req, 
       });
     }
 
-    const imageUrl = req.file.path;
+    const imageUrl = req.file.path || req.file.secure_url || req.file.url;
 
     const {
       category, subCategory, fit, color,
@@ -104,6 +105,7 @@ router.post("/", upload.single("image"), createItemRules, validate, async (req, 
     const seasonArr = Array.isArray(season) ? season : [season];
 
     const newItem = new Item({
+      userId: req.user.id,
       category,
       subCategory,
       fit,
@@ -130,9 +132,9 @@ router.post("/", upload.single("image"), createItemRules, validate, async (req, 
 // ============================================
 // PUT /api/items/:id — Update item
 // ============================================
-router.put("/:id", idParamRule, upload.single("image"), updateItemRules, validate, async (req, res, next) => {
+router.put("/:id", auth, idParamRule, upload.single("image"), updateItemRules, validate, async (req, res, next) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findOne({ _id: req.params.id, userId: req.user.id });
 
     if (!item) {
       return res.status(404).json({
@@ -174,8 +176,8 @@ router.put("/:id", idParamRule, upload.single("image"), updateItemRules, validat
       updates.imageUrl = req.file.path;
     }
 
-    const updatedItem = await Item.findByIdAndUpdate(
-      req.params.id,
+    const updatedItem = await Item.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
       { $set: updates },
       { new: true, runValidators: true }
     );
@@ -193,9 +195,9 @@ router.put("/:id", idParamRule, upload.single("image"), updateItemRules, validat
 // ============================================
 // DELETE /api/items/:id — Delete item
 // ============================================
-router.delete("/:id", idParamRule, validate, async (req, res, next) => {
+router.delete("/:id", auth, idParamRule, validate, async (req, res, next) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findOne({ _id: req.params.id, userId: req.user.id });
 
     if (!item) {
       return res.status(404).json({
@@ -212,7 +214,7 @@ router.delete("/:id", idParamRule, validate, async (req, res, next) => {
       }
     }
 
-    await Item.findByIdAndDelete(req.params.id);
+    await Item.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
 
     res.json({
       success: true,
