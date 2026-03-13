@@ -1,0 +1,38 @@
+import { Routes, Route, Navigate } from 'react-router-dom'
+import Navbar from './components/Navbar'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import ForgotPassword from './pages/ForgotPassword'
+import Dashboard from './pages/Dashboard'
+import Closet from './pages/Closet'
+import Outfits from './pages/Outfits'
+import AddItem from './pages/AddItem'
+import StyleProfile from './pages/StyleProfile'
+import Profile from './pages/Profile'
+
+function App() {
+  return (
+    <div className="app">
+      <Routes>
+        {/* Auth Routes (no navbar) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        {/* App Routes (with navbar) */}
+        <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
+        <Route path="/closet" element={<><Navbar /><Closet /></>} />
+        <Route path="/outfits" element={<><Navbar /><Outfits /></>} />
+        <Route path="/add-item" element={<><Navbar /><AddItem /></>} />
+        <Route path="/style-profile" element={<><Navbar /><StyleProfile /></>} />
+        <Route path="/profile" element={<><Navbar /><Profile /></>} />
+
+        {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </div>
+  )
+}
+
+export default App

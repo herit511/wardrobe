@@ -1,0 +1,188 @@
+import { useNavigate } from 'react-router-dom'
+import './Profile.css'
+
+function Profile() {
+  const navigate = useNavigate()
+
+  return (
+    <div className="profile-page" id="profile-page">
+      <div className="container">
+        {/* Profile Header */}
+        <section className="profile-header-section animate-fade-in-up">
+          <div className="profile-avatar-lg">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div className="profile-info">
+            <h1 className="profile-name heading-italic">Alex Rivera</h1>
+            <p className="profile-email">alex.rivera@example.com</p>
+            <p className="profile-member">Member since 2024</p>
+          </div>
+          <button className="btn btn-secondary" id="edit-profile-btn">Edit Profile</button>
+        </section>
+
+        {/* Stats */}
+        <section className="profile-stats animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <div className="profile-stat">
+            <div className="stat-value">128</div>
+            <div className="stat-label">Total Items</div>
+          </div>
+          <div className="profile-stat">
+            <div className="stat-value">45</div>
+            <div className="stat-label">Outfits Worn</div>
+          </div>
+          <div className="profile-stat">
+            <div className="stat-value-text">Modern Minimalist</div>
+            <div className="stat-label">Style Archetype</div>
+          </div>
+        </section>
+
+        <div className="profile-grid">
+          {/* Wardrobe Insights */}
+          <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <div className="card-header">
+              <h3>📊 Wardrobe Insights</h3>
+            </div>
+            <div className="insights-content">
+              <div className="insight-chart">
+                <h4>Category Distribution</h4>
+                <div className="distribution-bars">
+                  <div className="dist-row">
+                    <span className="dist-label">Tops</span>
+                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '65%', background: 'var(--color-orange)' }}></div></div>
+                    <span className="dist-percent">65%</span>
+                  </div>
+                  <div className="dist-row">
+                    <span className="dist-label">Bottoms</span>
+                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '20%', background: 'var(--color-amber)' }}></div></div>
+                    <span className="dist-percent">20%</span>
+                  </div>
+                  <div className="dist-row">
+                    <span className="dist-label">Footwear</span>
+                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '10%', background: 'var(--color-navy)' }}></div></div>
+                    <span className="dist-percent">10%</span>
+                  </div>
+                  <div className="dist-row">
+                    <span className="dist-label">Outerwear</span>
+                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '5%', background: 'var(--color-text-muted)' }}></div></div>
+                    <span className="dist-percent">5%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Account Settings */}
+          <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
+            <div className="card-header">
+              <h3>⚙️ Account Settings</h3>
+            </div>
+            <div className="settings-list">
+              <div className="settings-row">
+                <span className="settings-label">Email</span>
+                <span className="settings-value">alex.rivera@example.com</span>
+              </div>
+              <div className="settings-row">
+                <span className="settings-label">Password</span>
+                <span className="settings-value">••••••••••••</span>
+                <button className="btn btn-ghost btn-xs">Change</button>
+              </div>
+            </div>
+          </div>
+
+          {/* Style DNA */}
+          <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <div className="card-header">
+              <h3>🧬 Style DNA</h3>
+              <button className="btn btn-ghost btn-xs" onClick={() => navigate('/style-profile')}>Edit</button>
+            </div>
+            <div className="style-dna-content">
+              <div className="dna-row">
+                <span className="dna-label">Archetypes</span>
+                <div className="dna-tags">
+                  <span className="badge badge-orange">Minimalist</span>
+                  <span className="badge badge-orange">Classic</span>
+                </div>
+              </div>
+              <div className="dna-row">
+                <span className="dna-label">Preferred Colors</span>
+                <div className="dna-colors">
+                  {['#1A1A1A', '#F5F5F5', '#1B2A4A', '#D4C4A8', '#6B7F4A'].map(c => (
+                    <div key={c} className="dna-color-dot" style={{ backgroundColor: c }}></div>
+                  ))}
+                </div>
+              </div>
+              <div className="dna-row">
+                <span className="dna-label">Preferred Fit</span>
+                <span className="badge badge-amber">Regular</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Outfit History */}
+          <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+            <div className="card-header">
+              <h3>📅 Recent Outfit History</h3>
+            </div>
+            <div className="outfit-history">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
+                <div key={day} className="history-day">
+                  <div className="history-outfit-thumb" style={{ background: ['#E8D5C0', '#1B2A4A', '#C4A882', '#F5F0EB', '#2C3E50'][i] }}>
+                    <span>{['👔', '👕', '🧥', '👗', '👖'][i]}</span>
+                  </div>
+                  <span className="history-day-label">{day}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Preferences / Notifications */}
+          <div className="card profile-card full-width animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <div className="card-header">
+              <h3>🔔 Preferences</h3>
+            </div>
+            <div className="preferences-list">
+              <div className="pref-row">
+                <div>
+                  <div className="pref-title">Daily Outfit Suggestion</div>
+                  <div className="pref-desc">Get a fresh outfit idea every morning</div>
+                </div>
+                <label className="toggle">
+                  <input type="checkbox" defaultChecked />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              <div className="pref-row">
+                <div>
+                  <div className="pref-title">Weekly Wardrobe Tips</div>
+                  <div className="pref-desc">Style tips based on your wardrobe analysis</div>
+                </div>
+                <label className="toggle">
+                  <input type="checkbox" defaultChecked />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+              <div className="pref-row">
+                <div>
+                  <div className="pref-title">Trend Alerts</div>
+                  <div className="pref-desc">Get notified about new fashion trends</div>
+                </div>
+                <label className="toggle">
+                  <input type="checkbox" />
+                  <span className="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="danger-zone animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+          <button className="btn btn-ghost logout-btn" id="logout-btn">Log Out</button>
+          <button className="btn btn-ghost danger-btn" id="delete-account-btn">Delete Account</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Profile

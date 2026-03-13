@@ -1,0 +1,367 @@
+/* ============================================
+   Profile Page
+   ============================================ */
+
+.profile-page {
+  padding: var(--space-xl) 0 var(--space-3xl);
+}
+
+/* Profile Header */
+.profile-header-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+  padding: var(--space-xl);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-bg-warm), var(--color-orange-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-navy);
+  flex-shrink: 0;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 1.8rem;
+  margin-bottom: 2px;
+}
+
+.profile-email {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.profile-member {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+/* Stats */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
+}
+
+.profile-stat {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-stat .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  font-family: var(--font-heading);
+}
+
+.stat-value-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-orange);
+}
+
+/* Profile Grid */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.profile-card {
+  padding: var(--space-lg);
+}
+
+.profile-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.card-header h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.btn-xs {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+}
+
+/* Insights */
+.distribution-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.dist-label {
+  width: 80px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.dist-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--color-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dist-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+.dist-percent {
+  width: 36px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* Settings */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.settings-label {
+  width: 80px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.settings-value {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+/* Style DNA */
+.style-dna-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.dna-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.dna-label {
+  width: 120px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.dna-tags {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.dna-colors {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.dna-color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--color-bg-card);
+}
+
+/* Outfit History */
+.outfit-history {
+  display: flex;
+  gap: var(--space-md);
+  overflow-x: auto;
+}
+
+.history-day {
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.history-outfit-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.history-day-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* Preferences */
+.preferences-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.pref-row:last-child {
+  border-bottom: none;
+}
+
+.pref-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.pref-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* Toggle Switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--color-border);
+  border-radius: 26px;
+  transition: all var(--transition-fast);
+}
+
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.toggle input:checked + .toggle-slider {
+  background: var(--color-orange);
+}
+
+.toggle input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+/* Danger Zone */
+.danger-zone {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.logout-btn {
+  color: var(--color-text-secondary);
+}
+
+.danger-btn {
+  color: var(--color-danger);
+}
+
+.danger-btn:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--color-danger);
+}
+
+@media (max-width: 768px) {
+  .profile-header-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}

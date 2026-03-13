@@ -1,0 +1,227 @@
+/* ============================================
+   Style Profile / DNA Page
+   ============================================ */
+
+.style-page {
+  padding: var(--space-xl) 0 var(--space-3xl);
+}
+
+/* Progress Bar */
+.profile-progress {
+  margin-bottom: var(--space-xl);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border-light);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: var(--space-sm);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-orange), var(--color-amber));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.progress-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* Sections */
+.style-section {
+  margin-bottom: var(--space-2xl);
+}
+
+.section-desc {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin-top: -var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+/* Archetype Grid */
+.archetype-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+.archetype-card {
+  text-align: center;
+  padding: var(--space-xl);
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent;
+  transition: all var(--transition-normal);
+}
+
+.archetype-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.archetype-card.selected {
+  border-color: var(--color-orange);
+  box-shadow: var(--shadow-glow-orange);
+  background: var(--color-orange-light);
+}
+
+.archetype-emoji {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: var(--space-md);
+}
+
+.archetype-name {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.archetype-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.selected-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-orange);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Color Grid */
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.color-swatch {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  border: 3px solid transparent;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.color-swatch:hover {
+  transform: scale(1.15);
+  box-shadow: var(--shadow-md);
+}
+
+.color-swatch.selected {
+  border-color: var(--color-orange);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.swatch-check {
+  color: white;
+  font-weight: 700;
+  font-size: 1.2rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Fit Options */
+.fit-options {
+  display: flex;
+  gap: var(--space-lg);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.fit-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background: var(--color-bg-card);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  color: var(--color-text-secondary);
+  min-width: 100px;
+}
+
+.fit-option:hover {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  transform: translateY(-2px);
+}
+
+.fit-option.active {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+  background: var(--color-orange-light);
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.fit-icon svg {
+  height: 50px;
+}
+
+.fit-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Occasion Chips */
+.occasion-chips {
+  gap: var(--space-md);
+}
+
+.chip-lg {
+  padding: 10px 24px;
+  font-size: 0.95rem;
+}
+
+/* Submit */
+.style-submit {
+  text-align: center;
+  padding-top: var(--space-xl);
+}
+
+.btn-lg {
+  padding: 16px 48px;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 768px) {
+  .archetype-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fit-options {
+    gap: var(--space-md);
+  }
+
+  .fit-option {
+    min-width: 80px;
+    padding: var(--space-md);
+  }
+}

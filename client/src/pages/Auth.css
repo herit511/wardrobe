@@ -1,0 +1,216 @@
+/* ============================================
+   Auth Pages (Login, Signup, Forgot Password)
+   ============================================ */
+
+.auth-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.auth-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-warm);
+  padding: var(--space-2xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-left::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 112, 64, 0.08), transparent 70%);
+}
+
+.auth-illustration {
+  max-width: 350px;
+  width: 100%;
+  animation: fadeInUp 0.8s ease;
+}
+
+.wardrobe-sketch svg {
+  width: 100%;
+  height: auto;
+}
+
+.auth-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl);
+}
+
+.auth-form-wrapper {
+  max-width: 400px;
+  width: 100%;
+  animation: fadeInUp 0.6s ease;
+}
+
+.auth-title {
+  font-size: 2rem;
+  margin-bottom: var(--space-sm);
+  color: var(--color-navy);
+}
+
+.text-navy {
+  color: var(--color-navy);
+}
+
+.auth-subtitle {
+  font-size: 1.05rem;
+  color: var(--color-orange);
+  font-weight: 500;
+  margin-bottom: var(--space-xl);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.forgot-link {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: right;
+  margin-top: -8px;
+}
+
+.forgot-link:hover {
+  color: var(--color-orange);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  margin-top: var(--space-sm);
+}
+
+.auth-toggle {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-top: var(--space-sm);
+}
+
+.auth-toggle a {
+  font-weight: 600;
+}
+
+/* Forgot Password Circles */
+.auth-circles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl);
+  background: var(--color-bg);
+}
+
+.circle-decoration {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.circle-lg {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-amber), var(--color-orange));
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.circle-sm {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--color-bg-warm);
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+/* OTP Input */
+.otp-group {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  margin: var(--space-lg) 0;
+}
+
+.otp-input {
+  width: 56px;
+  height: 56px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  color: var(--color-navy);
+  transition: border-color var(--transition-fast);
+}
+
+.otp-input:focus {
+  border-color: var(--color-orange);
+}
+
+/* Steps indicator */
+.steps-indicator {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: all var(--transition-fast);
+}
+
+.step-dot.active {
+  background: var(--color-orange);
+  width: 24px;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-left {
+    display: none;
+  }
+
+  .auth-right {
+    padding: var(--space-lg);
+  }
+}

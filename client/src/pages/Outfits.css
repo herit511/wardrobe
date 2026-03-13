@@ -1,0 +1,316 @@
+/* ============================================
+   Outfits / AI Suggestions Page
+   ============================================ */
+
+.outfits-page {
+  padding: var(--space-xl) 0 var(--space-3xl);
+}
+
+.outfits-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+/* Sidebar */
+.outfits-sidebar {
+  position: sticky;
+  top: 88px;
+}
+
+.sidebar-card {
+  padding: var(--space-xl);
+}
+
+.sidebar-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+
+.sidebar-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.sidebar-section {
+  margin-bottom: var(--space-lg);
+}
+
+.sidebar-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+  display: block;
+}
+
+.occasion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.weather-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.weather-big-icon {
+  font-size: 2.5rem;
+}
+
+.weather-temp {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  font-family: var(--font-heading);
+}
+
+.weather-desc {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.sidebar-generate {
+  width: 100%;
+  margin-bottom: var(--space-lg);
+}
+
+.trending-mini {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.trending-mini-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.trending-mini-card:hover {
+  background: var(--color-orange-light);
+  color: var(--color-orange);
+}
+
+/* Main Content */
+.outfits-header {
+  margin-bottom: var(--space-xl);
+}
+
+.outfits-header .page-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Outfit Cards */
+.outfit-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.outfit-card {
+  padding: var(--space-xl);
+  border: 1px solid var(--color-border-light);
+}
+
+.outfit-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: transparent;
+}
+
+.outfit-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+.outfit-card-title {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-sm);
+}
+
+.sparkle-sm {
+  font-size: 0.9em;
+}
+
+.outfit-tags {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.match-score {
+  text-align: center;
+}
+
+.match-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-orange), var(--color-amber));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.match-value {
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.match-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.outfit-card-items {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xl);
+  padding: var(--space-xl) 0;
+}
+
+.outfit-card-item {
+  text-align: center;
+}
+
+.outfit-card-item-img {
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-normal);
+}
+
+.outfit-card:hover .outfit-card-item-img {
+  transform: scale(1.05);
+}
+
+.outfit-card-item-type {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.outfit-card-item-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-navy);
+}
+
+.outfit-card-reason {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-left: 3px solid var(--color-amber);
+}
+
+.outfit-card-reason p {
+  font-style: italic;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.outfit-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.outfit-wear-btn {
+  flex: 0 0 auto;
+}
+
+/* Trending Section */
+.trending-section {
+  margin-top: var(--space-xl);
+}
+
+.trending-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.trending-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl) var(--space-lg);
+  cursor: pointer;
+  text-align: center;
+}
+
+.trending-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.trending-emoji {
+  font-size: 2rem;
+}
+
+.trending-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-navy);
+}
+
+.sparkle {
+  display: inline-block;
+  animation: sparkle 2s infinite;
+}
+
+@media (max-width: 1024px) {
+  .outfits-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .outfits-sidebar {
+    position: static;
+  }
+
+  .trending-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .outfit-card-items {
+    flex-direction: column;
+    gap: var(--space-lg);
+  }
+}
