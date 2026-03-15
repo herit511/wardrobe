@@ -6,6 +6,21 @@ const auth = require('../middleware/auth');
 const { getColorName } = require('../utils/colors');
 
 // ============================================
+// GET /api/outfits — List saved outfits
+// ============================================
+router.get('/', auth, async (req, res, next) => {
+    try {
+        const outfits = await Outfit.find({ userId: req.user.id })
+            .populate('items')
+            .sort('-createdAt');
+
+        res.json({ success: true, count: outfits.length, data: outfits });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ============================================
 // GET /api/outfits/generate — Generate outfits based on wardrobe
 // ============================================
 router.get('/generate', auth, async (req, res, next) => {

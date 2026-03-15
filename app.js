@@ -8,6 +8,7 @@ const app = express();
 const itemRoutes = require("./routes/itemRoutes");
 const authRoutes = require("./routes/authRoutes");
 const outfitRoutes = require("./routes/outfitRoutes");
+const statsRoutes = require("./routes/statsRoutes");
 
 // Middleware
 app.use(express.json());
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 app.use("/api/items", itemRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/outfits", outfitRoutes);
+app.use("/api/stats", statsRoutes);
 
 // Health check
 app.get("/", (req, res) => {

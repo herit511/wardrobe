@@ -1,10 +1,46 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../api'
+import { getColorName } from '../utils'
 import './Profile.css'
 
 function Profile() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      const res = await api.get('/stats')
+      if (res.success) setStats(res.data)
+    } catch (err) {
+      console.error('Failed to load stats:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const categoryLabels = {
+    top: 'Tops',
+    bottom: 'Bottoms',
+    footwear: 'Footwear',
+    outerwear: 'Outerwear'
+  }
+  const categoryColors = {
+    top: 'var(--color-orange)',
+    bottom: 'var(--color-amber)',
+    footwear: 'var(--color-navy)',
+    outerwear: 'var(--color-text-muted)'
+  }
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dayEmojis = ['👔', '👕', '🧥', '👗', '👖', '👟', '🎽']
 
   return (
     <div className="profile-page" id="profile-page">
@@ -25,16 +61,16 @@ function Profile() {
         {/* Stats */}
         <section className="profile-stats animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="profile-stat">
-            <div className="stat-value">128</div>
+            <div className="stat-value">{loading ? '-' : (stats?.totalItems || 0)}</div>
             <div className="stat-label">Total Items</div>
           </div>
           <div className="profile-stat">
-            <div className="stat-value">45</div>
+            <div className="stat-value">{loading ? '-' : (stats?.totalTimesWorn || 0)}</div>
             <div className="stat-label">Outfits Worn</div>
           </div>
           <div className="profile-stat">
-            <div className="stat-value-text">Modern Minimalist</div>
-            <div className="stat-label">Style Archetype</div>
+            <div className="stat-value-text">{loading ? '-' : (stats?.totalOutfits || 0)} Saved</div>
+            <div className="stat-label">Outfits</div>
           </div>
         </section>
 
@@ -48,26 +84,19 @@ function Profile() {
               <div className="insight-chart">
                 <h4>Category Distribution</h4>
                 <div className="distribution-bars">
-                  <div className="dist-row">
-                    <span className="dist-label">Tops</span>
-                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '65%', background: 'var(--color-orange)' }}></div></div>
-                    <span className="dist-percent">65%</span>
-                  </div>
-                  <div className="dist-row">
-                    <span className="dist-label">Bottoms</span>
-                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '20%', background: 'var(--color-amber)' }}></div></div>
-                    <span className="dist-percent">20%</span>
-                  </div>
-                  <div className="dist-row">
-                    <span className="dist-label">Footwear</span>
-                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '10%', background: 'var(--color-navy)' }}></div></div>
-                    <span className="dist-percent">10%</span>
-                  </div>
-                  <div className="dist-row">
-                    <span className="dist-label">Outerwear</span>
-                    <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: '5%', background: 'var(--color-text-muted)' }}></div></div>
-                    <span className="dist-percent">5%</span>
-                  </div>
+                  {stats && Object.entries(stats.categoryDistribution).length > 0 ? (
+                    Object.entries(stats.categoryDistribution).map(([cat, pct]) => (
+                      <div className="dist-row" key={cat}>
+                        <span className="dist-label">{categoryLabels[cat] || cat}</span>
+                        <div className="dist-bar-track"><div className="dist-bar-fill" style={{ width: `${pct}%`, background: categoryColors[cat] || 'var(--color-orange)' }}></div></div>
+                        <span className="dist-percent">{pct}%</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: '#6B7B8D', padding: '10px 0' }}>
+                      {loading ? 'Loading...' : 'Add items to see your distribution'}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -126,14 +155,27 @@ function Profile() {
               <h3>📅 Recent Outfit History</h3>
             </div>
             <div className="outfit-history">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, i) => (
-                <div key={day} className="history-day">
-                  <div className="history-outfit-thumb" style={{ background: ['#E8D5C0', '#1B2A4A', '#C4A882', '#F5F0EB', '#2C3E50'][i] }}>
-                    <span>{['👔', '👕', '🧥', '👗', '👖'][i]}</span>
-                  </div>
-                  <span className="history-day-label">{day}</span>
+              {stats && stats.recentWornHistory.length > 0 ? (
+                stats.recentWornHistory.map((entry, i) => {
+                  const d = new Date(entry.date)
+                  return (
+                    <div key={i} className="history-day">
+                      <div className="history-outfit-thumb" style={{ background: ['#E8D5C0', '#1B2A4A', '#C4A882', '#F5F0EB', '#2C3E50'][i % 5] }}>
+                        {entry.items && entry.items[0]?.imageUrl ? (
+                          <img src={entry.items[0].imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                        ) : (
+                          <span>{dayEmojis[i % 7]}</span>
+                        )}
+                      </div>
+                      <span className="history-day-label">{dayNames[d.getDay()]}</span>
+                    </div>
+                  )
+                })
+              ) : (
+                <div style={{ color: '#6B7B8D', padding: '10px', width: '100%', textAlign: 'center' }}>
+                  {loading ? 'Loading...' : 'No outfits worn yet. Wear your first outfit!'}
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

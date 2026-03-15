@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Closet from './pages/Closet'
 import Outfits from './pages/Outfits'
 import AddItem from './pages/AddItem'
+import EditItem from './pages/EditItem'
 import StyleProfile from './pages/StyleProfile'
 import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -26,6 +27,7 @@ function App() {
           <Route path="/closet" element={<><Navbar /><Closet /></>} />
           <Route path="/outfits" element={<><Navbar /><Outfits /></>} />
           <Route path="/add-item" element={<><Navbar /><AddItem /></>} />
+          <Route path="/edit-item/:id" element={<><Navbar /><EditItem /></>} />
           <Route path="/style-profile" element={<><Navbar /><StyleProfile /></>} />
           <Route path="/profile" element={<><Navbar /><Profile /></>} />
         </Route>

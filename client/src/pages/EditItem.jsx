@@ -1,0 +1,342 @@
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { api } from '../api'
+import { colorMap } from '../utils'
+import './AddItem.css'
+
+const categories = ['top', 'bottom', 'footwear', 'outerwear']
+const subCategories = {
+  top: ['shirt', 'tshirt', 'vest'],
+  bottom: ['jeans', 'trousers', 'cargo', 'shorts'],
+  footwear: ['sneakers', 'formal_shoes', 'boots', 'slides', 'sport'],
+  outerwear: ['coat', 'blazer', 'hoodie', 'jacket', 'sweater'],
+}
+const fits = ['slim', 'regular', 'relaxed', 'oversized', 'boxy']
+const patterns = ['solid', 'striped', 'checked', 'graphic', 'printed']
+const occasionOptions = ['casual', 'party', 'office', 'streetwear', 'gym', 'ethnic']
+const seasonOptions = ['summer', 'monsoon', 'winter', 'all_season']
+const conditions = ['new', 'good', 'worn']
+
+function EditItem() {
+  const navigate = useNavigate()
+  const { id } = useParams()
+  const fileRef = useRef(null)
+  const [preview, setPreview] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [newImageSelected, setNewImageSelected] = useState(false)
+
+  const [form, setForm] = useState({
+    category: 'top',
+    subCategory: '',
+    color: '#000000',
+    pattern: 'solid',
+    fit: 'regular',
+    occasion: [],
+    season: [],
+    condition: 'good',
+  })
+
+  useEffect(() => {
+    fetchItem()
+  }, [id])
+
+  const fetchItem = async () => {
+    try {
+      const res = await api.get(`/items/${id}`)
+      if (res.success) {
+        const item = res.data
+        setForm({
+          category: item.category || 'top',
+          subCategory: item.subCategory || '',
+          color: item.color || '#000000',
+          pattern: item.pattern || 'solid',
+          fit: item.fit || 'regular',
+          occasion: item.occasion || [],
+          season: item.season || [],
+          condition: item.condition || 'good',
+        })
+        setPreview(item.imageUrl)
+      }
+    } catch (err) {
+      setError('Failed to load item details')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setNewImageSelected(true)
+      const reader = new FileReader()
+      reader.onload = () => setPreview(reader.result)
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const toggleMultiSelect = (field, value) => {
+    setForm(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter(v => v !== value)
+        : [...prev[field], value],
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitting(true)
+    setError('')
+
+    try {
+      let res
+      if (newImageSelected && fileRef.current?.files?.[0]) {
+        // If a new image was uploaded, send as FormData
+        const formData = new FormData()
+        formData.append('image', fileRef.current.files[0])
+        formData.append('category', form.category)
+        formData.append('subCategory', form.subCategory)
+        formData.append('color', form.color)
+        formData.append('pattern', form.pattern)
+        formData.append('fit', form.fit)
+        formData.append('condition', form.condition)
+        form.occasion.forEach(o => formData.append('occasion', o))
+        form.season.forEach(s => formData.append('season', s))
+        res = await api.put(`/items/${id}`, formData)
+      } else {
+        // No new image, send JSON
+        res = await api.put(`/items/${id}`, {
+          category: form.category,
+          subCategory: form.subCategory,
+          color: form.color,
+          pattern: form.pattern,
+          fit: form.fit,
+          condition: form.condition,
+          occasion: form.occasion,
+          season: form.season,
+        })
+      }
+
+      if (res.success) {
+        navigate('/closet')
+      } else {
+        setError(res.message || 'Failed to update item')
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to update item')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="additem-page" id="edit-item-page">
+        <div className="container" style={{ textAlign: 'center', padding: '60px 0', color: '#1B2A4A' }}>
+          Loading item details...
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="additem-page" id="edit-item-page">
+      <div className="container">
+        <div className="page-header animate-fade-in-up">
+          <h1 className="page-title heading-italic">Edit Item</h1>
+          <p className="page-subtitle">Update the details of your clothing item.</p>
+        </div>
+
+        <form className="additem-layout" onSubmit={handleSubmit}>
+          {/* Left: Image Preview */}
+          <div className="upload-area animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <div
+              className={`upload-zone card has-preview`}
+              onClick={() => fileRef.current?.click()}
+              id="edit-upload-zone"
+            >
+              <div className="upload-preview-wrapper">
+                {preview ? (
+                  <img src={preview} alt="Preview" className="upload-preview-img" />
+                ) : (
+                  <div className="upload-placeholder">
+                    <div className="upload-icon">📸</div>
+                    <h3>No image available</h3>
+                  </div>
+                )}
+                <div className="scan-overlay" style={{ background: 'rgba(0,0,0,0.3)', opacity: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px' }}>
+                  <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 500 }}>📷 Click to change photo</span>
+                </div>
+              </div>
+              <input
+                type="file"
+                ref={fileRef}
+                accept="image/jpeg,image/png,image/jpg"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                id="edit-file-input"
+              />
+            </div>
+          </div>
+
+          {/* Right: Details Form */}
+          <div className="details-panel animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <div className="card details-card">
+              <div className="details-header">
+                <h2>✏️ Item Details</h2>
+              </div>
+              {error && <div className="error-message" style={{ color: '#E87040', marginBottom: '1rem', padding: '0 20px', fontSize: '0.9rem' }}>{error}</div>}
+
+              <div className="details-grid">
+                <div className="form-group">
+                  <label>Category</label>
+                  <select
+                    className="input-field"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value, subCategory: subCategories[e.target.value]?.[0] || '' })}
+                    id="edit-category-select"
+                  >
+                    {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Sub-Category</label>
+                  <select
+                    className="input-field"
+                    value={form.subCategory}
+                    onChange={(e) => setForm({ ...form, subCategory: e.target.value })}
+                    id="edit-subcategory-select"
+                  >
+                    {(subCategories[form.category] || []).map(sc => (
+                      <option key={sc} value={sc}>{sc.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Color</label>
+                  <div className="color-picker-row" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+                    <input
+                      type="color"
+                      value={form.color}
+                      onChange={(e) => setForm({ ...form, color: e.target.value })}
+                      className="color-input"
+                      id="edit-color-picker"
+                      title="Pick exact hex color"
+                    />
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginBottom: '4px' }}>Or pick by name:</span>
+                      <select
+                        className="input-field"
+                        value={form.color}
+                        onChange={(e) => setForm({ ...form, color: e.target.value })}
+                        style={{ padding: '8px' }}
+                      >
+                        <option value={form.color}>Current Color</option>
+                        {Array.from(new Set(colorMap.map(c => c.name))).sort().map(name => {
+                          const hex = colorMap.find(c => c.name === name).hex;
+                          return (
+                            <option key={name} value={hex}>{name}</option>
+                          )
+                        })}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Pattern</label>
+                  <select
+                    className="input-field"
+                    value={form.pattern}
+                    onChange={(e) => setForm({ ...form, pattern: e.target.value })}
+                    id="edit-pattern-select"
+                  >
+                    {patterns.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Fit</label>
+                  <select
+                    className="input-field"
+                    value={form.fit}
+                    onChange={(e) => setForm({ ...form, fit: e.target.value })}
+                    id="edit-fit-select"
+                  >
+                    {fits.map(f => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Occasion</label>
+                <div className="multi-chips">
+                  {occasionOptions.map(o => (
+                    <button
+                      key={o}
+                      type="button"
+                      className={`chip ${form.occasion.includes(o) ? 'active' : ''}`}
+                      onClick={() => toggleMultiSelect('occasion', o)}
+                    >
+                      {o.charAt(0).toUpperCase() + o.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Season</label>
+                <div className="multi-chips">
+                  {seasonOptions.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`chip ${form.season.includes(s) ? 'active' : ''}`}
+                      onClick={() => toggleMultiSelect('season', s)}
+                    >
+                      {s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Condition</label>
+                <div className="condition-radios">
+                  {conditions.map(c => (
+                    <label key={c} className={`condition-radio ${form.condition === c ? 'active' : ''}`}>
+                      <input
+                        type="radio"
+                        name="condition"
+                        value={c}
+                        checked={form.condition === c}
+                        onChange={(e) => setForm({ ...form, condition: e.target.value })}
+                      />
+                      {c.charAt(0).toUpperCase() + c.slice(1)}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="details-actions">
+                <button type="submit" className="btn btn-primary" id="update-item-btn" disabled={submitting}>
+                  {submitting ? 'Updating...' : '✓ Update Item'}
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => navigate('/closet')}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default EditItem

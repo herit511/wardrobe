@@ -116,7 +116,7 @@ function Closet() {
                     {item.userPreferenceScore > 0 ? '❤️' : '🤍'}
                   </button>
                   <div className="item-overlay">
-                    <button className="btn btn-light btn-sm" onClick={() => alert('Edit page coming soon!')}>Edit</button>
+                    <button className="btn btn-light btn-sm" onClick={() => navigate(`/edit-item/${item._id}`)}>Edit</button>
                     <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item._id)}>Delete</button>
                   </div>
                 </div>

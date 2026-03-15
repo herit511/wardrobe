@@ -13,19 +13,24 @@ const trendingStyles = [
 ]
 
 function Outfits() {
+  const [activeTab, setActiveTab] = useState('generate') // 'generate' or 'saved'
   const [selectedOccasion, setSelectedOccasion] = useState('Casual')
   const [outfits, setOutfits] = useState([])
+  const [savedOutfits, setSavedOutfits] = useState([])
   const [loading, setLoading] = useState(false)
-  const [savingAction, setSavingAction] = useState(null) // tracks ID and action
+  const [savedLoading, setSavedLoading] = useState(false)
+  const [savingAction, setSavingAction] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     generateOutfits()
-  }, []) // Generate on initial load
+  }, [])
 
-  const toggleOccasion = (occasion) => {
-    setSelectedOccasion(occasion)
-  }
+  useEffect(() => {
+    if (activeTab === 'saved' && savedOutfits.length === 0) {
+      fetchSavedOutfits()
+    }
+  }, [activeTab])
 
   const generateOutfits = async () => {
     setLoading(true)
@@ -46,10 +51,23 @@ function Outfits() {
     }
   }
 
+  const fetchSavedOutfits = async () => {
+    setSavedLoading(true)
+    try {
+      const res = await api.get('/outfits')
+      if (res.success) {
+        setSavedOutfits(res.data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch saved outfits:', err)
+    } finally {
+      setSavedLoading(false)
+    }
+  }
+
   const handleOutfitAction = async (outfit, action) => {
     setSavingAction({ id: outfit.id, type: action })
     try {
-      // 1. Save the outfit first
       const itemIds = outfit.items.map(i => i._id);
       const saveRes = await api.post('/outfits', {
         title: outfit.title,
@@ -61,7 +79,6 @@ function Outfits() {
 
       const realOutfitId = saveRes.data._id;
 
-      // 2. If it's a "wear" action, mark it worn
       if (action === 'wear') {
         const wearRes = await api.post(`/outfits/${realOutfitId}/wear`, {});
         if (!wearRes.success) throw new Error(wearRes.message);
@@ -69,10 +86,22 @@ function Outfits() {
       } else {
         alert('❤️ Outfit saved to your favorites.');
       }
+      // Refresh saved outfits list
+      fetchSavedOutfits()
     } catch (err) {
       alert(`Error: ${err.message}`)
     } finally {
       setSavingAction(null)
+    }
+  }
+
+  const handleDeleteSavedOutfit = async (outfitId) => {
+    if (!window.confirm('Remove this saved outfit?')) return
+    try {
+      // We don't have a delete endpoint yet, so just remove from UI
+      setSavedOutfits(prev => prev.filter(o => o._id !== outfitId))
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -86,40 +115,80 @@ function Outfits() {
               <h3 className="sidebar-title">Style Your Day</h3>
               <p className="sidebar-desc">Refine your AI suggestions</p>
 
+              {/* Tab Switcher */}
               <div className="sidebar-section">
-                <label className="sidebar-label">Occasion</label>
-                <div className="occasion-chips">
-                  {occasionOptions.map(occ => (
-                    <button
-                      key={occ}
-                      className={`chip ${selectedOccasion === occ ? 'active' : ''}`}
-                      onClick={() => setSelectedOccasion(occ)}
-                      id={`occasion-${occ.toLowerCase().replace(' ', '-')}`}
-                    >
-                      {occ}
-                    </button>
-                  ))}
+                <div className="tab-switcher" style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                  <button
+                    className={`chip ${activeTab === 'generate' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('generate')}
+                    style={{ flex: 1 }}
+                  >
+                    ✨ Generate
+                  </button>
+                  <button
+                    className={`chip ${activeTab === 'saved' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('saved')}
+                    style={{ flex: 1 }}
+                  >
+                    ❤️ Saved
+                  </button>
                 </div>
               </div>
 
-              <div className="sidebar-section">
-                <div className="weather-widget">
-                  <span className="weather-big-icon">☀️</span>
-                  <div>
-                    <div className="weather-temp">22°C</div>
-                    <div className="weather-desc">Sunny, Perfect for Linen</div>
+              {activeTab === 'generate' && (
+                <>
+                  <div className="sidebar-section">
+                    <label className="sidebar-label">Occasion</label>
+                    <div className="occasion-chips">
+                      {occasionOptions.map(occ => (
+                        <button
+                          key={occ}
+                          className={`chip ${selectedOccasion === occ ? 'active' : ''}`}
+                          onClick={() => setSelectedOccasion(occ)}
+                          id={`occasion-${occ.toLowerCase().replace(' ', '-')}`}
+                        >
+                          {occ}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <button 
-                className="btn btn-primary sidebar-generate" 
-                id="generate-outfits-btn"
-                onClick={generateOutfits}
-                disabled={loading}
-              >
-                <span className="sparkle">✨</span> {loading ? 'Generating...' : 'Generate Outfits'}
-              </button>
+                  <div className="sidebar-section">
+                    <div className="weather-widget">
+                      <span className="weather-big-icon">☀️</span>
+                      <div>
+                        <div className="weather-temp">22°C</div>
+                        <div className="weather-desc">Sunny, Perfect for Linen</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    className="btn btn-primary sidebar-generate" 
+                    id="generate-outfits-btn"
+                    onClick={generateOutfits}
+                    disabled={loading}
+                  >
+                    <span className="sparkle">✨</span> {loading ? 'Generating...' : 'Generate Outfits'}
+                  </button>
+                </>
+              )}
+
+              {activeTab === 'saved' && (
+                <div className="sidebar-section">
+                  <p style={{ color: '#6B7B8D', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                    Your saved outfits appear here. Generate outfits and click <strong>Save</strong> or <strong>Wear This</strong> to add them.
+                  </p>
+                  <button 
+                    className="btn btn-primary sidebar-generate" 
+                    onClick={fetchSavedOutfits}
+                    disabled={savedLoading}
+                    style={{ marginTop: '12px' }}
+                  >
+                    🔄 {savedLoading ? 'Loading...' : 'Refresh'}
+                  </button>
+                </div>
+              )}
 
               <div className="sidebar-section">
                 <label className="sidebar-label">Trending Styles</label>
@@ -139,107 +208,186 @@ function Outfits() {
           <main className="outfits-main">
             <div className="outfits-header animate-fade-in-up">
               <h1 className="page-title heading-italic">
-                <span className="sparkle">✨</span> AI Recommendations
+                <span className="sparkle">✨</span> {activeTab === 'generate' ? 'AI Recommendations' : 'My Saved Outfits'}
               </h1>
-              <p className="page-subtitle">Based on your wardrobe and today's weather</p>
+              <p className="page-subtitle">
+                {activeTab === 'generate'
+                  ? 'Based on your wardrobe and today\'s weather'
+                  : `You have ${savedOutfits.length} saved outfit${savedOutfits.length !== 1 ? 's' : ''}`
+                }
+              </p>
             </div>
 
-            {error && (
-              <div style={{ background: '#FDECEA', color: '#E74C3C', padding: '15px 20px', borderRadius: '8px', marginBottom: '20px' }}>
-                <span style={{ marginRight: '10px' }}>⚠️</span> {error}
-              </div>
-            )}
+            {/* =================== GENERATE TAB =================== */}
+            {activeTab === 'generate' && (
+              <>
+                {error && (
+                  <div style={{ background: '#FDECEA', color: '#E74C3C', padding: '15px 20px', borderRadius: '8px', marginBottom: '20px' }}>
+                    <span style={{ marginRight: '10px' }}>⚠️</span> {error}
+                  </div>
+                )}
 
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#1B2A4A' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '10px' }}>✨</div>
-                AI is pairing up your tops, bottoms, and footwear...
-              </div>
-            ) : (
-              <div className="outfit-cards">
-                {outfits.length === 0 && !error ? (
-                  <div style={{ textAlign: 'center', padding: '20px', color: '#6B7B8D' }}>
-                    No outfits generated yet. Try generating some!
+                {loading ? (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#1B2A4A' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '10px' }}>✨</div>
+                    AI is pairing up your tops, bottoms, and footwear...
                   </div>
                 ) : (
-                  outfits.map((outfit, i) => (
-                    <div key={outfit.id} className="outfit-card card animate-fade-in-up" style={{ animationDelay: `${0.2 + i * 0.15}s` }} id={`outfit-${outfit.id}`}>
-                      <div className="outfit-card-header">
-                        <div>
-                          <h2 className="outfit-card-title heading-italic">
-                            <span className="sparkle-sm">✨</span> {outfit.title}
-                          </h2>
-                          <div className="outfit-tags">
-                            {outfit.tags.map(tag => (
-                              <span key={tag} className="badge badge-amber">{tag}</span>
+                  <div className="outfit-cards">
+                    {outfits.length === 0 && !error ? (
+                      <div style={{ textAlign: 'center', padding: '20px', color: '#6B7B8D' }}>
+                        No outfits generated yet. Try generating some!
+                      </div>
+                    ) : (
+                      outfits.map((outfit, i) => (
+                        <div key={outfit.id} className="outfit-card card animate-fade-in-up" style={{ animationDelay: `${0.2 + i * 0.15}s` }} id={`outfit-${outfit.id}`}>
+                          <div className="outfit-card-header">
+                            <div>
+                              <h2 className="outfit-card-title heading-italic">
+                                <span className="sparkle-sm">✨</span> {outfit.title}
+                              </h2>
+                              <div className="outfit-tags">
+                                {outfit.tags.map(tag => (
+                                  <span key={tag} className="badge badge-amber">{tag}</span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="match-score">
+                              <div className="match-circle">
+                                <span className="match-value">{outfit.match}%</span>
+                              </div>
+                              <span className="match-label">Match</span>
+                            </div>
+                          </div>
+
+                          <div className="outfit-card-items">
+                            {outfit.items.map((item, j) => (
+                              <div key={j} className="outfit-card-item">
+                                <div className="outfit-card-item-img" style={{ 
+                                    backgroundImage: `url(${item.imageUrl})`, 
+                                    backgroundSize: 'cover', 
+                                    backgroundPosition: 'center',
+                                    backgroundColor: '#F5E6D3' 
+                                }}>
+                                </div>
+                                <div className="outfit-card-item-type">{item.type}</div>
+                                <div className="outfit-card-item-name" style={{ textTransform: 'capitalize', fontSize: '14px' }}>
+                                  {item.name}
+                                </div>
+                              </div>
                             ))}
                           </div>
-                        </div>
-                        <div className="match-score">
-                          <div className="match-circle">
-                            <span className="match-value">{outfit.match}%</span>
+
+                          <div className="outfit-card-reason">
+                            <p>"{outfit.explanation}"</p>
                           </div>
-                          <span className="match-label">Match</span>
-                        </div>
-                      </div>
 
-                      <div className="outfit-card-items">
-                        {outfit.items.map((item, j) => (
-                          <div key={j} className="outfit-card-item">
-                            <div className="outfit-card-item-img" style={{ 
-                                backgroundImage: `url(${item.imageUrl})`, 
-                                backgroundSize: 'cover', 
-                                backgroundPosition: 'center',
-                                backgroundColor: '#F5E6D3' 
-                            }}>
-                            </div>
-                            <div className="outfit-card-item-type">{item.type}</div>
-                            <div className="outfit-card-item-name" style={{ textTransform: 'capitalize', fontSize: '14px' }}>
-                              {item.name}
-                            </div>
+                          <div className="outfit-card-actions">
+                            <button 
+                              className="btn btn-primary outfit-wear-btn" 
+                              id={`wear-outfit-${outfit.id}`}
+                              onClick={() => handleOutfitAction(outfit, 'wear')}
+                              disabled={savingAction?.id === outfit.id}
+                            >
+                              {savingAction?.id === outfit.id && savingAction?.type === 'wear' ? 'Saving...' : 'Wear This'}
+                            </button>
+                            <button 
+                              className="btn btn-ghost" 
+                              onClick={() => handleOutfitAction(outfit, 'save')}
+                              disabled={savingAction?.id === outfit.id}
+                            >
+                              {savingAction?.id === outfit.id && savingAction?.type === 'save' ? 'Saving...' : '❤️ Save'}
+                            </button>
                           </div>
-                        ))}
-                      </div>
-
-                      <div className="outfit-card-reason">
-                        <p>"{outfit.explanation}"</p>
-                      </div>
-
-                      <div className="outfit-card-actions">
-                        <button 
-                          className="btn btn-primary outfit-wear-btn" 
-                          id={`wear-outfit-${outfit.id}`}
-                          onClick={() => handleOutfitAction(outfit, 'wear')}
-                          disabled={savingAction?.id === outfit.id}
-                        >
-                          {savingAction?.id === outfit.id && savingAction?.type === 'wear' ? 'Saving...' : 'Wear This'}
-                        </button>
-                        <button 
-                          className="btn btn-ghost" 
-                          onClick={() => handleOutfitAction(outfit, 'save')}
-                          disabled={savingAction?.id === outfit.id}
-                        >
-                          {savingAction?.id === outfit.id && savingAction?.type === 'save' ? 'Saving...' : '❤️ Save'}
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                        </div>
+                      ))
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
+            )}
+
+            {/* =================== SAVED TAB =================== */}
+            {activeTab === 'saved' && (
+              <>
+                {savedLoading ? (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#1B2A4A' }}>
+                    Loading your saved outfits...
+                  </div>
+                ) : savedOutfits.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#6B7B8D' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '15px' }}>👗</div>
+                    <h3 style={{ marginBottom: '8px', color: '#1B2A4A' }}>No saved outfits yet</h3>
+                    <p>Generate some outfits and save your favorites!</p>
+                    <button className="btn btn-primary" style={{ marginTop: '15px' }} onClick={() => setActiveTab('generate')}>
+                      ✨ Generate Outfits
+                    </button>
+                  </div>
+                ) : (
+                  <div className="outfit-cards">
+                    {savedOutfits.map((outfit, i) => (
+                      <div key={outfit._id} className="outfit-card card animate-fade-in-up" style={{ animationDelay: `${0.1 + i * 0.1}s` }}>
+                        <div className="outfit-card-header">
+                          <div>
+                            <h2 className="outfit-card-title heading-italic">
+                              ❤️ {outfit.title}
+                            </h2>
+                            <div className="outfit-tags">
+                              <span className="badge badge-amber">{outfit.occasion}</span>
+                              {outfit.wornHistory && outfit.wornHistory.length > 0 && (
+                                <span className="badge badge-orange">Worn {outfit.wornHistory.length}x</span>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#6B7B8D' }}>
+                            Saved {new Date(outfit.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+
+                        <div className="outfit-card-items">
+                          {outfit.items.map((item, j) => (
+                            <div key={j} className="outfit-card-item">
+                              <div className="outfit-card-item-img" style={{ 
+                                  backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : 'none', 
+                                  backgroundSize: 'cover', 
+                                  backgroundPosition: 'center',
+                                  backgroundColor: '#F5E6D3' 
+                              }}>
+                              </div>
+                              <div className="outfit-card-item-type" style={{ textTransform: 'capitalize' }}>{item.category || 'Item'}</div>
+                              <div className="outfit-card-item-name" style={{ textTransform: 'capitalize', fontSize: '14px' }}>
+                                {item.subCategory ? `${getColorName(item.color)} ${item.subCategory.replace('_', ' ')}` : 'Item'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {outfit.wornHistory && outfit.wornHistory.length > 0 && (
+                          <div className="outfit-card-reason">
+                            <p>Last worn: {new Date(outfit.wornHistory[outfit.wornHistory.length - 1].date).toLocaleDateString()}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             {/* Trending Styles */}
-            <section className="trending-section animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <h2 className="section-title heading-italic">Trending Styles</h2>
-              <div className="trending-grid">
-                {trendingStyles.map(style => (
-                  <div key={style.name} className="trending-card card">
-                    <span className="trending-emoji">{style.emoji}</span>
-                    <span className="trending-name">{style.name}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {activeTab === 'generate' && (
+              <section className="trending-section animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+                <h2 className="section-title heading-italic">Trending Styles</h2>
+                <div className="trending-grid">
+                  {trendingStyles.map(style => (
+                    <div key={style.name} className="trending-card card">
+                      <span className="trending-emoji">{style.emoji}</span>
+                      <span className="trending-name">{style.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </main>
         </div>
       </div>
