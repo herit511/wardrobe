@@ -150,29 +150,46 @@ function Profile() {
           </div>
 
           {/* Recent Outfit History */}
-          <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+          <div className="card profile-card full-width animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
             <div className="card-header">
               <h3>📅 Recent Outfit History</h3>
             </div>
-            <div className="outfit-history">
+            <div style={{ padding: '0 20px 20px' }}>
               {stats && stats.recentWornHistory.length > 0 ? (
                 stats.recentWornHistory.map((entry, i) => {
                   const d = new Date(entry.date)
                   return (
-                    <div key={i} className="history-day">
-                      <div className="history-outfit-thumb" style={{ background: ['#E8D5C0', '#1B2A4A', '#C4A882', '#F5F0EB', '#2C3E50'][i % 5] }}>
-                        {entry.items && entry.items[0]?.imageUrl ? (
-                          <img src={entry.items[0].imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
-                        ) : (
-                          <span>{dayEmojis[i % 7]}</span>
-                        )}
+                    <div key={i} style={{ 
+                      display: 'flex', alignItems: 'center', gap: '15px', 
+                      padding: '12px 0', 
+                      borderBottom: i < stats.recentWornHistory.length - 1 ? '1px solid #eee' : 'none' 
+                    }}>
+                      {/* All outfit item thumbnails */}
+                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                        {entry.items && entry.items.map((item, j) => (
+                          <div key={j} style={{ 
+                            width: '50px', height: '50px', borderRadius: '8px', 
+                            backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : 'none',
+                            backgroundSize: 'cover', backgroundPosition: 'center',
+                            backgroundColor: '#F5E6D3', border: '2px solid #fff',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                          }} title={`${item.category} - ${item.subCategory}`}></div>
+                        ))}
                       </div>
-                      <span className="history-day-label">{dayNames[d.getDay()]}</span>
+                      {/* Outfit info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1B2A4A' }}>{entry.title}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#6B7B8D' }}>{entry.occasion}</div>
+                      </div>
+                      {/* Date */}
+                      <div style={{ fontSize: '0.8rem', color: '#6B7B8D', flexShrink: 0 }}>
+                        {dayNames[d.getDay()]}, {d.toLocaleDateString()}
+                      </div>
                     </div>
                   )
                 })
               ) : (
-                <div style={{ color: '#6B7B8D', padding: '10px', width: '100%', textAlign: 'center' }}>
+                <div style={{ color: '#6B7B8D', padding: '20px 0', textAlign: 'center' }}>
                   {loading ? 'Loading...' : 'No outfits worn yet. Wear your first outfit!'}
                 </div>
               )}

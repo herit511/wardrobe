@@ -5,13 +5,6 @@ import './Outfits.css'
 
 const occasionOptions = ['Casual', 'Office', 'Party', 'Date Night', 'Gym', 'Streetwear']
 
-const trendingStyles = [
-  { name: 'Modern Classic', emoji: '🎩' },
-  { name: 'Earth Tones', emoji: '🌿' },
-  { name: 'Urban Active', emoji: '🏙️' },
-  { name: 'Resort Wear', emoji: '🏖️' },
-]
-
 function Outfits() {
   const [activeTab, setActiveTab] = useState('generate') // 'generate' or 'saved'
   const [selectedOccasion, setSelectedOccasion] = useState('Casual')
@@ -65,8 +58,8 @@ function Outfits() {
     }
   }
 
-  const handleOutfitAction = async (outfit, action) => {
-    setSavingAction({ id: outfit.id, type: action })
+  const handleWearThis = async (outfit) => {
+    setSavingAction({ id: outfit.id, type: 'wear' })
     try {
       const itemIds = outfit.items.map(i => i._id);
       const saveRes = await api.post('/outfits', {
@@ -74,19 +67,13 @@ function Outfits() {
         occasion: selectedOccasion,
         items: itemIds
       });
-
       if (!saveRes.success) throw new Error(saveRes.message || 'Failed to save');
 
       const realOutfitId = saveRes.data._id;
-
-      if (action === 'wear') {
-        const wearRes = await api.post(`/outfits/${realOutfitId}/wear`, {});
-        if (!wearRes.success) throw new Error(wearRes.message);
-        alert('🎉 Awesome choice! Outfit marked as worn today and saved to your favorites.');
-      } else {
-        alert('❤️ Outfit saved to your favorites.');
-      }
-      // Refresh saved outfits list
+      const wearRes = await api.post(`/outfits/${realOutfitId}/wear`, {});
+      if (!wearRes.success) throw new Error(wearRes.message);
+      
+      alert('🎉 Outfit logged as worn today! You can find it in your Saved outfits.');
       fetchSavedOutfits()
     } catch (err) {
       alert(`Error: ${err.message}`)
@@ -95,13 +82,23 @@ function Outfits() {
     }
   }
 
-  const handleDeleteSavedOutfit = async (outfitId) => {
-    if (!window.confirm('Remove this saved outfit?')) return
+  const handleSaveOutfit = async (outfit) => {
+    setSavingAction({ id: outfit.id, type: 'save' })
     try {
-      // We don't have a delete endpoint yet, so just remove from UI
-      setSavedOutfits(prev => prev.filter(o => o._id !== outfitId))
+      const itemIds = outfit.items.map(i => i._id);
+      const saveRes = await api.post('/outfits', {
+        title: outfit.title,
+        occasion: selectedOccasion,
+        items: itemIds
+      });
+      if (!saveRes.success) throw new Error(saveRes.message || 'Failed to save');
+      
+      alert('💾 Outfit saved! Find it in the Saved tab.');
+      fetchSavedOutfits()
     } catch (err) {
-      console.error(err)
+      alert(`Error: ${err.message}`)
+    } finally {
+      setSavingAction(null)
     }
   }
 
@@ -130,7 +127,7 @@ function Outfits() {
                     onClick={() => setActiveTab('saved')}
                     style={{ flex: 1 }}
                   >
-                    ❤️ Saved
+                    💾 Saved
                   </button>
                 </div>
               </div>
@@ -189,18 +186,6 @@ function Outfits() {
                   </button>
                 </div>
               )}
-
-              <div className="sidebar-section">
-                <label className="sidebar-label">Trending Styles</label>
-                <div className="trending-mini">
-                  {trendingStyles.slice(0, 2).map(t => (
-                    <div key={t.name} className="trending-mini-card">
-                      <span>{t.emoji}</span>
-                      <span>{t.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </aside>
 
@@ -286,17 +271,19 @@ function Outfits() {
                             <button 
                               className="btn btn-primary outfit-wear-btn" 
                               id={`wear-outfit-${outfit.id}`}
-                              onClick={() => handleOutfitAction(outfit, 'wear')}
+                              onClick={() => handleWearThis(outfit)}
                               disabled={savingAction?.id === outfit.id}
+                              title="Log this outfit as worn today and save it"
                             >
-                              {savingAction?.id === outfit.id && savingAction?.type === 'wear' ? 'Saving...' : 'Wear This'}
+                              {savingAction?.id === outfit.id && savingAction?.type === 'wear' ? 'Logging...' : '👕 Wear This'}
                             </button>
                             <button 
                               className="btn btn-ghost" 
-                              onClick={() => handleOutfitAction(outfit, 'save')}
+                              onClick={() => handleSaveOutfit(outfit)}
                               disabled={savingAction?.id === outfit.id}
+                              title="Save this outfit for later without marking as worn"
                             >
-                              {savingAction?.id === outfit.id && savingAction?.type === 'save' ? 'Saving...' : '❤️ Save'}
+                              {savingAction?.id === outfit.id && savingAction?.type === 'save' ? 'Saving...' : '💾 Save for Later'}
                             </button>
                           </div>
                         </div>
@@ -330,7 +317,7 @@ function Outfits() {
                         <div className="outfit-card-header">
                           <div>
                             <h2 className="outfit-card-title heading-italic">
-                              ❤️ {outfit.title}
+                              💾 {outfit.title}
                             </h2>
                             <div className="outfit-tags">
                               <span className="badge badge-amber">{outfit.occasion}</span>
@@ -372,21 +359,6 @@ function Outfits() {
                   </div>
                 )}
               </>
-            )}
-
-            {/* Trending Styles */}
-            {activeTab === 'generate' && (
-              <section className="trending-section animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-                <h2 className="section-title heading-italic">Trending Styles</h2>
-                <div className="trending-grid">
-                  {trendingStyles.map(style => (
-                    <div key={style.name} className="trending-card card">
-                      <span className="trending-emoji">{style.emoji}</span>
-                      <span className="trending-name">{style.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
             )}
           </main>
         </div>

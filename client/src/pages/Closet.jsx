@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { getColorName } from '../utils'
 import './Closet.css'
 
 const categories = ['All', 'Tops', 'Bottoms', 'Footwear', 'Outerwear']
 const seasons = ['All', 'Summer', 'Winter', 'Monsoon', 'All Season']
-const occasions = ['All', 'Casual', 'Office', 'Party', 'Streetwear']
-
-import { getColorName } from '../utils'
 
 function Closet() {
   const navigate = useNavigate()
@@ -42,8 +40,21 @@ function Closet() {
     }
   }
 
+  const toggleFavorite = async (item) => {
+    const newScore = item.userPreferenceScore > 0 ? 0 : 1
+    // Update UI immediately for snappy feel
+    setItems(prev => prev.map(i => i._id === item._id ? { ...i, userPreferenceScore: newScore } : i))
+    try {
+      await api.put(`/items/${item._id}`, { userPreferenceScore: newScore })
+    } catch (err) {
+      // Revert if API fails
+      setItems(prev => prev.map(i => i._id === item._id ? { ...i, userPreferenceScore: item.userPreferenceScore } : i))
+      console.error('Failed to toggle favorite:', err)
+    }
+  }
+
   const filteredItems = items.filter(item => {
-    const matchCategory = activeCategory === 'All' || item.category.toLowerCase() === activeCategory.toLowerCase() || item.category === activeCategory.replace(/s$/, '').toLowerCase() // Handle 'Tops' vs 'top'
+    const matchCategory = activeCategory === 'All' || item.category.toLowerCase() === activeCategory.toLowerCase() || item.category === activeCategory.replace(/s$/, '').toLowerCase()
     const matchSeason = activeSeason === 'All' || item.season.includes(activeSeason.toLowerCase()) || item.season.includes(activeSeason.toLowerCase().replace(' ', '_'))
     const searchString = `${item.category} ${item.subCategory} ${item.color}`.toLowerCase()
     const matchSearch = !searchQuery || searchString.includes(searchQuery.toLowerCase())
@@ -112,7 +123,11 @@ function Closet() {
                 id={`item-${item._id}`}
               >
                 <div className="item-img" style={{ backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}>
-                  <button className={`fav-btn ${item.userPreferenceScore > 0 ? 'fav-active' : ''}`}>
+                  <button 
+                    className={`fav-btn ${item.userPreferenceScore > 0 ? 'fav-active' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(item); }}
+                    title={item.userPreferenceScore > 0 ? 'Remove from favorites' : 'Add to favorites'}
+                  >
                     {item.userPreferenceScore > 0 ? '❤️' : '🤍'}
                   </button>
                   <div className="item-overlay">
@@ -140,7 +155,6 @@ function Closet() {
             <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add First Item</button>
           </div>
         )}
-
       </div>
     </div>
   )
