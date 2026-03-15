@@ -1,13 +1,14 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { colorMap } from '../utils'
 import './AddItem.css'
 
 const categories = ['top', 'bottom', 'footwear', 'outerwear']
 const subCategories = {
   top: ['shirt', 'tshirt', 'vest'],
   bottom: ['jeans', 'trousers', 'cargo', 'shorts'],
-  footwear: ['sneakers', 'formal_shoes', 'boots', 'slides'],
+  footwear: ['sneakers', 'formal_shoes', 'boots', 'slides', 'sport'],
   outerwear: ['coat', 'blazer', 'hoodie', 'jacket', 'sweater'],
 }
 const fits = ['slim', 'regular', 'relaxed', 'oversized', 'boxy']
@@ -215,21 +216,32 @@ function AddItem() {
                     Color
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <div className="color-picker-row">
+                  <div className="color-picker-row" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
                     <input
                       type="color"
                       value={form.color}
                       onChange={(e) => setForm({ ...form, color: e.target.value })}
                       className="color-input"
                       id="color-picker"
+                      title="Pick exact hex color"
                     />
-                    <input
-                      type="text"
-                      className="input-field"
-                      value={form.color}
-                      onChange={(e) => setForm({ ...form, color: e.target.value })}
-                      style={{ flex: 1 }}
-                    />
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginBottom: '4px' }}>Or pick by name:</span>
+                      <select
+                        className="input-field"
+                        value={form.color}
+                        onChange={(e) => setForm({ ...form, color: e.target.value })}
+                        style={{ padding: '8px' }}
+                      >
+                        <option value={form.color}>Custom / AI Matched</option>
+                        {Array.from(new Set(colorMap.map(c => c.name))).sort().map(name => {
+                          const hex = colorMap.find(c => c.name === name).hex;
+                          return (
+                            <option key={name} value={hex}>{name}</option>
+                          )
+                        })}
+                      </select>
+                    </div>
                   </div>
                 </div>
 

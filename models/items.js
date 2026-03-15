@@ -27,6 +27,7 @@ const itemSchema = new mongoose.Schema({
             "formal_shoes",
             "boots",
             "slides",
+            "sport",
             "coat",
             "blazer",
             "hoodie",

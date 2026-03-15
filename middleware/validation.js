@@ -21,7 +21,7 @@ const CATEGORIES = ["top", "bottom", "footwear", "outerwear"];
 const SUB_CATEGORIES = [
   "shirt", "tshirt", "vest",
   "jeans", "trousers", "cargo", "shorts",
-  "sneakers", "formal_shoes", "boots", "slides",
+  "sneakers", "formal_shoes", "boots", "slides", "sport",
   "coat", "blazer", "hoodie", "jacket", "sweater",
 ];
 const FITS = ["slim", "regular", "relaxed", "oversized", "boxy"];

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { getColorName } from '../utils'
 import './Dashboard.css'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [items, setItems] = useState([])
+  const [todaysOutfit, setTodaysOutfit] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -14,8 +16,13 @@ function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const res = await api.get('/items')
-      if (res.success) setItems(res.data)
+      const [itemsRes, outfitRes] = await Promise.all([
+        api.get('/items'),
+        api.get('/outfits/generate?occasion=Casual')
+      ])
+      
+      if (itemsRes.success) setItems(itemsRes.data)
+      if (outfitRes.success && outfitRes.data.length > 0) setTodaysOutfit(outfitRes.data[0])
     } catch (err) {
       console.error(err)
     } finally {
@@ -77,41 +84,41 @@ function Dashboard() {
         <section className="suggestion-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <h2 className="section-title heading-italic">Today's Suggestion</h2>
           <div className="outfit-preview card">
-            <div className="outfit-items">
-              <div className="outfit-item">
-                <div className="outfit-item-img" style={{ background: 'linear-gradient(135deg, #1B2A4A, #2D4A7A)' }}>
-                  <span className="item-emoji">👔</span>
+            {loading ? (
+               <div style={{ padding: '40px', textAlign: 'center', color: '#6B7B8D' }}>Loading suggestion...</div>
+            ) : todaysOutfit ? (
+              <>
+                <div className="outfit-items">
+                  {todaysOutfit.items.map((item, index) => (
+                    <div key={item._id || index} style={{ display: 'flex', alignItems: 'center' }}>
+                      <div className="outfit-item">
+                        <div className="outfit-item-img" style={{ 
+                            backgroundImage: `url(${item.imageUrl})`, 
+                            backgroundSize: 'cover', 
+                            backgroundPosition: 'center',
+                            backgroundColor: '#F5E6D3' 
+                        }}>
+                        </div>
+                        <div className="outfit-item-info">
+                          <h3 style={{ textTransform: 'capitalize' }}>{item.name}</h3>
+                          <span className="badge badge-amber">{item.type}</span>
+                        </div>
+                      </div>
+                      {index < todaysOutfit.items.length - 1 && <div className="outfit-connector">+</div>}
+                    </div>
+                  ))}
                 </div>
-                <div className="outfit-item-info">
-                  <h3>Navy Silk Shirt</h3>
-                  <span className="badge badge-amber">Light & Breathable</span>
+                <div className="outfit-actions">
+                  <button className="btn btn-primary" id="wear-this-btn" onClick={() => alert('Outfit saved! (In-progress)')}>Wear This</button>
+                  <button className="btn btn-secondary" onClick={fetchDashboardData}>🔄 Shuffle</button>
                 </div>
+              </>
+            ) : (
+              <div style={{ padding: '30px', textAlign: 'center', color: '#6B7B8D' }}>
+                <p>Add at least 1 Top, 1 Bottom, and 1 Footwear to see daily suggestions!</p>
+                <button className="btn btn-primary" style={{ marginTop: '15px' }} onClick={() => navigate('/add-item')}>Add Items</button>
               </div>
-              <div className="outfit-connector">+</div>
-              <div className="outfit-item">
-                <div className="outfit-item-img" style={{ background: 'linear-gradient(135deg, #D4A882, #E8D5C0)' }}>
-                  <span className="item-emoji">👖</span>
-                </div>
-                <div className="outfit-item-info">
-                  <h3>Classic Beige Trousers</h3>
-                  <span className="badge badge-amber">Relaxed Fit</span>
-                </div>
-              </div>
-              <div className="outfit-connector">+</div>
-              <div className="outfit-item">
-                <div className="outfit-item-img" style={{ background: 'linear-gradient(135deg, #C4956A, #D4A882)' }}>
-                  <span className="item-emoji">👞</span>
-                </div>
-                <div className="outfit-item-info">
-                  <h3>Tan Leather Loafers</h3>
-                  <span className="badge badge-amber">Handcrafted Italian</span>
-                </div>
-              </div>
-            </div>
-            <div className="outfit-actions">
-              <button className="btn btn-primary" id="wear-this-btn">Wear This</button>
-              <button className="btn btn-secondary">🔄 Shuffle</button>
-            </div>
+            )}
           </div>
         </section>
 
@@ -128,7 +135,7 @@ function Dashboard() {
                 <div className="recent-img" style={{ backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}>
                 </div>
                 <div className="recent-info">
-                  <h4 style={{ textTransform: 'capitalize' }}>{item.color} {item.subCategory.replace('_', ' ')}</h4>
+                  <h4 style={{ textTransform: 'capitalize' }}>{getColorName(item.color)} {item.subCategory.replace('_', ' ')}</h4>
                   <span className="recent-time">{new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
