@@ -30,8 +30,8 @@ function Login() {
           <div className="wardrobe-sketch">
               <img 
                 src="/logo.png"
-                alt="logo"
-                style={{ width: "500px", height: "500px" }}
+                alt="Wardrobe illustration"
+                className="auth-logo-img"
               />
           </div>
         </div>

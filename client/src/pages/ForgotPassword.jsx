@@ -35,10 +35,15 @@ function ForgotPassword() {
 
   return (
     <div className="auth-page" id="forgot-password-page">
-      <div className="auth-left auth-circles">
-        <div className="circle-decoration">
-          <div className="circle-lg" style={{ opacity: step === 1 ? 1 : 0.6 }}></div>
-          <div className="circle-sm"></div>
+      <div className="auth-left">
+        <div className="auth-illustration">
+          <div className="wardrobe-sketch">
+            <img 
+              src="/logo.png"
+              alt="Wardrobe illustration"
+              className="auth-logo-img"
+            />
+          </div>
         </div>
       </div>
 

@@ -31,7 +31,7 @@
 }
 
 .auth-illustration {
-  max-width: 350px;
+  max-width: 450px;
   width: 100%;
   animation: fadeInUp 0.8s ease;
 }
@@ -39,6 +39,14 @@
 .wardrobe-sketch svg {
   width: 100%;
   height: auto;
+}
+
+.auth-logo-img {
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+  display: block;
 }
 
 .auth-right {
