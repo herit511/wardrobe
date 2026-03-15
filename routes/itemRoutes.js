@@ -130,6 +130,28 @@ router.post("/", auth, upload.single("image"), createItemRules, validate, async 
 });
 
 // ============================================
+// PUT /api/items/:id/favorite — Toggle favorite (lightweight, no multer)
+// ============================================
+router.put("/:id/favorite", auth, idParamRule, validate, async (req, res, next) => {
+  try {
+    const item = await Item.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    item.userPreferenceScore = item.userPreferenceScore > 0 ? 0 : 1;
+    await item.save();
+
+    res.json({
+      success: true,
+      data: item,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ============================================
 // PUT /api/items/:id — Update item
 // ============================================
 router.put("/:id", auth, idParamRule, upload.single("image"), updateItemRules, validate, async (req, res, next) => {

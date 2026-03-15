@@ -4,7 +4,7 @@ import { api } from '../api'
 import { getColorName } from '../utils'
 import './Closet.css'
 
-const categories = ['All', 'Tops', 'Bottoms', 'Footwear', 'Outerwear']
+const categories = ['All', 'Favorites', 'Tops', 'Bottoms', 'Footwear', 'Outerwear']
 const seasons = ['All', 'Summer', 'Winter', 'Monsoon', 'All Season']
 
 function Closet() {
@@ -15,51 +15,52 @@ function Closet() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchItems()
-  }, [])
+  useEffect(() => { fetchItems() }, [])
 
   const fetchItems = async () => {
     try {
       const res = await api.get('/items')
       if (res.success) setItems(res.data)
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { console.error(err) }
+    finally { setLoading(false) }
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this item?')) return;
+    if (!window.confirm('Delete this item?')) return
     try {
       await api.del(`/items/${id}`)
       setItems(items.filter(item => item._id !== id))
-    } catch (err) {
-      console.error(err)
-    }
+    } catch (err) { console.error(err) }
   }
 
   const toggleFavorite = async (item) => {
+    // Optimistic update
     const newScore = item.userPreferenceScore > 0 ? 0 : 1
-    // Update UI immediately for snappy feel
     setItems(prev => prev.map(i => i._id === item._id ? { ...i, userPreferenceScore: newScore } : i))
     try {
-      await api.put(`/items/${item._id}`, { userPreferenceScore: newScore })
+      const res = await api.put(`/items/${item._id}/favorite`, {})
+      if (!res.success) throw new Error('Failed')
     } catch (err) {
-      // Revert if API fails
+      // Revert on failure
       setItems(prev => prev.map(i => i._id === item._id ? { ...i, userPreferenceScore: item.userPreferenceScore } : i))
       console.error('Failed to toggle favorite:', err)
     }
   }
 
   const filteredItems = items.filter(item => {
-    const matchCategory = activeCategory === 'All' || item.category.toLowerCase() === activeCategory.toLowerCase() || item.category === activeCategory.replace(/s$/, '').toLowerCase()
+    if (activeCategory === 'Favorites') {
+      if (item.userPreferenceScore <= 0) return false
+    } else if (activeCategory !== 'All') {
+      const matchCategory = item.category.toLowerCase() === activeCategory.toLowerCase() || item.category === activeCategory.replace(/s$/, '').toLowerCase()
+      if (!matchCategory) return false
+    }
     const matchSeason = activeSeason === 'All' || item.season.includes(activeSeason.toLowerCase()) || item.season.includes(activeSeason.toLowerCase().replace(' ', '_'))
     const searchString = `${item.category} ${item.subCategory} ${item.color}`.toLowerCase()
     const matchSearch = !searchQuery || searchString.includes(searchQuery.toLowerCase())
-    return matchCategory && matchSeason && matchSearch
+    return matchSeason && matchSearch
   })
+
+  const favCount = items.filter(i => i.userPreferenceScore > 0).length
 
   return (
     <div className="closet-page" id="closet-page">
@@ -71,6 +72,7 @@ function Closet() {
           </div>
           <div className="header-stats">
             <span className="badge badge-amber">{items.length} Items</span>
+            {favCount > 0 && <span className="badge badge-orange">❤️ {favCount} Favorites</span>}
           </div>
         </div>
 
@@ -84,28 +86,17 @@ function Closet() {
                 onClick={() => setActiveCategory(cat)}
                 id={`filter-${cat.toLowerCase()}`}
               >
-                {cat}
+                {cat === 'Favorites' ? `❤️ ${cat}` : cat}
               </button>
             ))}
           </div>
           <div className="filter-right">
-            <select
-              className="filter-select"
-              value={activeSeason}
-              onChange={(e) => setActiveSeason(e.target.value)}
-              id="season-filter"
-            >
+            <select className="filter-select" value={activeSeason} onChange={(e) => setActiveSeason(e.target.value)} id="season-filter">
               {seasons.map(s => <option key={s} value={s}>{s === 'All' ? 'All Seasons' : s}</option>)}
             </select>
             <div className="search-box">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input
-                type="text"
-                placeholder="Search items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                id="closet-search"
-              />
+              <input type="text" placeholder="Search items..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} id="closet-search" />
             </div>
           </div>
         </div>
@@ -116,12 +107,7 @@ function Closet() {
         ) : (
           <div className="items-grid">
             {filteredItems.map((item, i) => (
-              <div
-                key={item._id}
-                className="item-card card animate-fade-in-up"
-                style={{ animationDelay: `${0.15 + i * 0.05}s` }}
-                id={`item-${item._id}`}
-              >
+              <div key={item._id} className="item-card card animate-fade-in-up" style={{ animationDelay: `${0.15 + i * 0.05}s` }} id={`item-${item._id}`}>
                 <div className="item-img" style={{ backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}>
                   <button 
                     className={`fav-btn ${item.userPreferenceScore > 0 ? 'fav-active' : ''}`}
@@ -138,6 +124,7 @@ function Closet() {
                 <div className="item-info">
                   <div className="item-category-badge">
                     <span className="badge badge-orange">{item.category}</span>
+                    {item.userPreferenceScore > 0 && <span className="badge badge-orange" style={{ marginLeft: '4px' }}>❤️</span>}
                   </div>
                   <h3 className="item-name" style={{ textTransform: 'capitalize' }}>{getColorName(item.color)} {item.subCategory.replace('_', ' ')}</h3>
                   <p className="item-brand">{item.condition} condition</p>
@@ -149,10 +136,12 @@ function Closet() {
 
         {!loading && filteredItems.length === 0 && (
           <div className="empty-state animate-fade-in">
-            <div className="empty-icon">👗</div>
-            <h2>No items found</h2>
-            <p>Try changing your filters or add new items to your closet.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add First Item</button>
+            <div className="empty-icon">{activeCategory === 'Favorites' ? '❤️' : '👗'}</div>
+            <h2>{activeCategory === 'Favorites' ? 'No favorite items yet' : 'No items found'}</h2>
+            <p>{activeCategory === 'Favorites' ? 'Tap the heart on any item to add it to your favorites.' : 'Try changing your filters or add new items to your closet.'}</p>
+            {activeCategory !== 'Favorites' && (
+              <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add First Item</button>
+            )}
           </div>
         )}
       </div>
