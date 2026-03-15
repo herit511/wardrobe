@@ -153,4 +153,41 @@ router.post('/:id/wear', auth, async (req, res, next) => {
     }
 });
 
+// ============================================
+// PUT /api/outfits/:id/favorite — Toggle favorite status
+// ============================================
+router.put('/:id/favorite', auth, async (req, res, next) => {
+    try {
+        const outfit = await Outfit.findOne({ _id: req.params.id, userId: req.user.id });
+
+        if (!outfit) {
+            return res.status(404).json({ success: false, message: 'Outfit not found.' });
+        }
+
+        outfit.isFavorite = !outfit.isFavorite;
+        await outfit.save();
+
+        res.json({ success: true, data: outfit });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ============================================
+// DELETE /api/outfits/:id — Delete a saved outfit
+// ============================================
+router.delete('/:id', auth, async (req, res, next) => {
+    try {
+        const outfit = await Outfit.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+
+        if (!outfit) {
+            return res.status(404).json({ success: false, message: 'Outfit not found.' });
+        }
+
+        res.json({ success: true, message: 'Outfit removed.' });
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router;
