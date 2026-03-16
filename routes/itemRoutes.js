@@ -141,7 +141,7 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
       CRITICAL: For the "color" field, you MUST return a valid 6-character hex code starting with #. Do NOT return color names like "red", "black", or "navy". Only return the hex code. For "season", return an array containing one or more valid constraints based on the weather the item is suited for.
     `;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const result = await model.generateContent([prompt, imagePart]);
     const responseText = result.response.text();
 
@@ -167,7 +167,7 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
 
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
-    res.status(500).json({ success: false, message: "AI Analysis Failed." });
+    res.status(500).json({ success: false, message: `AI Analysis Failed: ${error.message}` });
   }
 });
 

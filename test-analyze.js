@@ -6,10 +6,10 @@ const path = require('path');
 async function testAnalyze() {
     try {
         // Create a dummy image
-        const imgPath = path.join(__dirname, 'dummy.jpg');
+        const imgPath = path.join(__dirname, 'dummy.png');
         if (!fs.existsSync(imgPath)) {
-            // Write a tiny valid base64 1x1 jpeg
-            const base64Data = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
+            // Write a tiny valid base64 1x1 png
+            const base64Data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
             fs.writeFileSync(imgPath, Buffer.from(base64Data, 'base64'));
         }
 

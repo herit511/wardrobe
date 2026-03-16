@@ -43,6 +43,7 @@ const errorHandler = (err, req, res, next) => {
     return res.status(502).json({
       success: false,
       message: "Image upload service error. Please try again.",
+      fullError: err.message
     });
   }
 

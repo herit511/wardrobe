@@ -299,15 +299,16 @@ function AddItem() {
 
               <div className="form-group">
                 <label>Occasion</label>
-                <div className="multi-chips">
-                  {occasionOptions.map(o => (
+                <div className="occasion-chips">
+                  {occasionOptions.map(occ => (
                     <button
-                      key={o}
                       type="button"
-                      className={`chip ${form.occasion.includes(o) ? 'active' : ''}`}
-                      onClick={() => toggleMultiSelect('occasion', o)}
+                      key={occ}
+                      className={`chip ${form.occasion.includes(occ.toLowerCase()) ? 'active' : ''}`}
+                      onClick={() => toggleMultiSelect('occasion', occ.toLowerCase())}
+                      id={`additem-occ-${occ.toLowerCase().replace(' ', '-')}`}
                     >
-                      {o.charAt(0).toUpperCase() + o.slice(1)}
+                      {occ}
                     </button>
                   ))}
                 </div>
