@@ -17,12 +17,13 @@ const validate = (req, res, next) => {
 };
 
 // Valid enum values (matching the Item schema)
-const CATEGORIES = ["top", "bottom", "footwear", "outerwear"];
+const CATEGORIES = ["top", "bottom", "footwear", "outerwear", "accessories"];
 const SUB_CATEGORIES = [
   "shirt", "tshirt", "vest",
   "jeans", "trousers", "cargo", "shorts",
   "sneakers", "formal_shoes", "boots", "slides", "sport",
   "coat", "blazer", "hoodie", "jacket", "sweater",
+  "ring", "chain", "watch", "belt", "cap"
 ];
 const FITS = ["slim", "regular", "relaxed", "oversized", "boxy"];
 const PATTERNS = ["solid", "striped", "checked", "graphic", "printed"];
