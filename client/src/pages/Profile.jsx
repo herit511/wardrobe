@@ -8,10 +8,38 @@ import './Profile.css'
 function Profile() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { fetchStats() }, [])
+  // Edit Profile State
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [profileForm, setProfileForm] = useState({ name: user?.name || '', email: user?.email || '' })
+  
+  // Change Password State
+  const [changingPassword, setChangingPassword] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' })
+
+  // Preferences State
+  const [preferences, setPreferences] = useState({
+    dailySuggestion: true,
+    weeklyTips: true,
+    trendAlerts: false
+  })
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({ name: user.name, email: user.email })
+      if (user.preferences) {
+        setPreferences({
+          dailySuggestion: user.preferences.dailySuggestion ?? true,
+          weeklyTips: user.preferences.weeklyTips ?? true,
+          trendAlerts: user.preferences.trendAlerts ?? false
+        })
+      }
+    }
+    fetchStats()
+  }, [user])
 
   const fetchStats = async () => {
     try {
@@ -19,6 +47,53 @@ function Profile() {
       if (res.success) setStats(res.data)
     } catch (err) { console.error('Failed to load stats:', err) }
     finally { setLoading(false) }
+  }
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault()
+    try {
+      const res = await api.put('/auth/profile', profileForm)
+      if (res.success) {
+        setEditingProfile(false)
+        window.location.reload() // Reload to refresh AuthContext
+      }
+    } catch (err) { alert(err.response?.data?.message || 'Update failed') }
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    if (passwordForm.newPassword.length < 6) return alert("New password must be at least 6 characters.")
+    try {
+      const res = await api.put('/auth/password', passwordForm)
+      if (res.success) {
+        alert('Password updated successfully')
+        setChangingPassword(false)
+        setPasswordForm({ currentPassword: '', newPassword: '' })
+      }
+    } catch (err) { alert(err.response?.data?.message || 'Password update failed') }
+  }
+
+  const handleTogglePreference = async (key) => {
+    const newPrefs = { ...preferences, [key]: !preferences[key] }
+    setPreferences(newPrefs)
+    try {
+      await api.put('/auth/preferences', { preferences: newPrefs })
+    } catch (err) {
+      // revert on failure
+      setPreferences(preferences)
+      console.error('Failed to update preferences:', err)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    const confirm = window.confirm('Are you strictly sure you want to delete your account? This action cannot be undone and all data will be lost.')
+    if (confirm) {
+      try {
+        await api.del('/auth/account')
+        logout()
+        navigate('/login')
+      } catch (err) { alert('Failed to delete account') }
+    }
   }
 
   const categoryLabels = { top: 'Tops', bottom: 'Bottoms', footwear: 'Footwear', outerwear: 'Outerwear' }
@@ -38,7 +113,9 @@ function Profile() {
             <p className="profile-email">{user?.email}</p>
             <p className="profile-member">Member since {user?.createdAt ? new Date(user.createdAt).getFullYear() : '2024'}</p>
           </div>
-          <button className="btn btn-secondary" id="edit-profile-btn">Edit Profile</button>
+          <button className="btn btn-secondary" onClick={() => setEditingProfile(!editingProfile)}>
+            {editingProfile ? 'Cancel Edit' : 'Edit Profile'}
+          </button>
         </section>
 
         {/* Stats */}
@@ -139,21 +216,26 @@ function Profile() {
               <div className="dna-row">
                 <span className="dna-label">Archetypes</span>
                 <div className="dna-tags">
-                  <span className="badge badge-orange">Minimalist</span>
-                  <span className="badge badge-orange">Classic</span>
+                  {user?.styleDna?.archetypes?.length > 0 ? (
+                    user.styleDna.archetypes.map(arc => <span key={arc} className="badge badge-orange">{arc}</span>)
+                  ) : (
+                    <span className="badge badge-orange">Minimalist</span>
+                  )}
                 </div>
               </div>
               <div className="dna-row">
                 <span className="dna-label">Preferred Colors</span>
                 <div className="dna-colors">
-                  {['#1A1A1A', '#F5F5F5', '#1B2A4A', '#D4C4A8', '#6B7F4A'].map(c => (
-                    <div key={c} className="dna-color-dot" style={{ backgroundColor: c }}></div>
-                  ))}
+                  {user?.styleDna?.preferredColors?.length > 0 ? (
+                    user.styleDna.preferredColors.map(c => <div key={c} className="dna-color-dot" style={{ backgroundColor: c }}></div>)
+                  ) : (
+                    ['#1A1A1A', '#F5F5F5', '#1B2A4A', '#D4C4A8', '#6B7F4A'].map(c => <div key={c} className="dna-color-dot" style={{ backgroundColor: c }}></div>)
+                  )}
                 </div>
               </div>
               <div className="dna-row">
                 <span className="dna-label">Preferred Fit</span>
-                <span className="badge badge-amber">Regular</span>
+                <span className="badge badge-amber">{user?.styleDna?.preferredFit || 'Regular'}</span>
               </div>
             </div>
           </div>
@@ -163,16 +245,44 @@ function Profile() {
             <div className="card-header">
               <h3>⚙️ Account Settings</h3>
             </div>
+            
             <div className="settings-list">
-              <div className="settings-row">
-                <span className="settings-label">Email</span>
-                <span className="settings-value">{user?.email}</span>
-              </div>
-              <div className="settings-row">
-                <span className="settings-label">Password</span>
-                <span className="settings-value">••••••••••••</span>
-                <button className="btn btn-ghost btn-xs">Change</button>
-              </div>
+              {editingProfile ? (
+                <form onSubmit={handleUpdateProfile} style={{ padding: '0 20px 20px' }}>
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label>Name</label>
+                    <input type="text" className="form-control" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: '10px' }}>
+                    <label>Email</label>
+                    <input type="email" className="form-control" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} required />
+                  </div>
+                  <button type="submit" className="btn btn-primary btn-sm">Save Profile</button>
+                </form>
+              ) : (
+                <>
+                  <div className="settings-row">
+                    <span className="settings-label">Email</span>
+                    <span className="settings-value">{user?.email}</span>
+                  </div>
+                  <div className="settings-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                      <span className="settings-label">Password</span>
+                      <span className="settings-value">••••••••••••</span>
+                      <button className="btn btn-ghost btn-xs" onClick={() => setChangingPassword(!changingPassword)}>
+                        {changingPassword ? 'Cancel' : 'Change'}
+                      </button>
+                    </div>
+                    {changingPassword && (
+                      <form onSubmit={handleChangePassword} style={{ width: '100%', marginTop: '10px', background: '#F8F9FA', padding: '15px', borderRadius: '8px' }}>
+                        <input type="password" placeholder="Current Password" required value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} style={{ width: '100%', marginBottom: '10px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                        <input type="password" placeholder="New Password" required value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} style={{ width: '100%', marginBottom: '15px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                        <button type="submit" className="btn btn-primary btn-sm">Update Password</button>
+                      </form>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -188,7 +298,7 @@ function Profile() {
                   <div className="pref-desc">Get a fresh outfit idea every morning</div>
                 </div>
                 <label className="toggle">
-                  <input type="checkbox" defaultChecked />
+                  <input type="checkbox" checked={preferences.dailySuggestion} onChange={() => handleTogglePreference('dailySuggestion')} />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
@@ -198,7 +308,7 @@ function Profile() {
                   <div className="pref-desc">Style tips based on your wardrobe analysis</div>
                 </div>
                 <label className="toggle">
-                  <input type="checkbox" defaultChecked />
+                  <input type="checkbox" checked={preferences.weeklyTips} onChange={() => handleTogglePreference('weeklyTips')} />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
@@ -208,7 +318,7 @@ function Profile() {
                   <div className="pref-desc">Get notified about new fashion trends</div>
                 </div>
                 <label className="toggle">
-                  <input type="checkbox" />
+                  <input type="checkbox" checked={preferences.trendAlerts} onChange={() => handleTogglePreference('trendAlerts')} />
                   <span className="toggle-slider"></span>
                 </label>
               </div>
@@ -219,7 +329,7 @@ function Profile() {
         {/* Danger Zone */}
         <div className="danger-zone animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
           <button className="btn btn-ghost logout-btn" id="logout-btn" onClick={() => { logout(); navigate('/login'); }}>Log Out</button>
-          <button className="btn btn-ghost danger-btn" id="delete-account-btn">Delete Account</button>
+          <button className="btn btn-ghost danger-btn" id="delete-account-btn" onClick={handleDeleteAccount}>Delete Account</button>
         </div>
       </div>
     </div>

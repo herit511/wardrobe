@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { api } from '../api'
 import './StyleProfile.css'
 
 const styleArchetypes = [
@@ -31,10 +33,31 @@ const occasionOptions = ['Casual', 'Office', 'Party', 'Date Night', 'Streetwear'
 
 function StyleProfile() {
   const navigate = useNavigate()
-  const [selectedStyles, setSelectedStyles] = useState(['minimalist'])
-  const [selectedColors, setSelectedColors] = useState(['#1A1A1A', '#F5F5F5', '#1B2A4A'])
-  const [selectedFit, setSelectedFit] = useState('Regular')
-  const [selectedOccasions, setSelectedOccasions] = useState(['Casual', 'Office'])
+  const { user, loading } = useAuth()
+  
+  const [selectedStyles, setSelectedStyles] = useState([])
+  const [selectedColors, setSelectedColors] = useState([])
+  const [selectedFit, setSelectedFit] = useState('')
+  const [selectedOccasions, setSelectedOccasions] = useState([])
+  const [saving, setSaving] = useState(false)
+
+  // Pre-fill if editing existing DNA
+  useEffect(() => {
+    if (user && user.styleDna) {
+      if (user.styleDna.archetypes?.length) setSelectedStyles(user.styleDna.archetypes)
+      else setSelectedStyles(['Minimalist'])
+      
+      if (user.styleDna.preferredColors?.length) setSelectedColors(user.styleDna.preferredColors)
+      else setSelectedColors(['#1A1A1A', '#F5F5F5', '#1B2A4A'])
+      
+      if (user.styleDna.preferredFit) setSelectedFit(user.styleDna.preferredFit)
+      else setSelectedFit('Regular')
+    } else {
+      setSelectedStyles(['Minimalist'])
+      setSelectedColors(['#1A1A1A', '#F5F5F5', '#1B2A4A'])
+      setSelectedFit('Regular')
+    }
+  }, [user])
 
   const toggleStyle = (id) => {
     setSelectedStyles(prev =>
@@ -61,10 +84,26 @@ function StyleProfile() {
     (selectedOccasions.length > 0 ? 25 : 0)
   ))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: save style profile to backend
-    navigate('/dashboard')
+    setSaving(true)
+    try {
+      const styleDna = {
+        archetypes: selectedStyles,
+        preferredColors: selectedColors,
+        preferredFit: selectedFit
+      }
+      const res = await api.put('/auth/preferences', { styleDna })
+      if (res.success) {
+        // If they already had styles, they came from Profile edit. Otherwise they are onboarding.
+        const isEditing = user?.styleDna?.archetypes?.length > 0
+        navigate(isEditing ? '/profile' : '/dashboard')
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to save preferences')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -92,14 +131,14 @@ function StyleProfile() {
               {styleArchetypes.map(arch => (
                 <div
                   key={arch.id}
-                  className={`archetype-card card ${selectedStyles.includes(arch.id) ? 'selected' : ''}`}
-                  onClick={() => toggleStyle(arch.id)}
+                  className={`archetype-card card ${selectedStyles.includes(arch.name) ? 'selected' : ''}`}
+                  onClick={() => toggleStyle(arch.name)}
                   id={`style-${arch.id}`}
                 >
                   <span className="archetype-emoji">{arch.emoji}</span>
                   <h3 className="archetype-name">{arch.name}</h3>
                   <p className="archetype-desc">{arch.desc}</p>
-                  {selectedStyles.includes(arch.id) && <div className="selected-check">✓</div>}
+                  {selectedStyles.includes(arch.name) && <div className="selected-check">✓</div>}
                 </div>
               ))}
             </div>

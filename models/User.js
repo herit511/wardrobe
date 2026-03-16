@@ -17,6 +17,16 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    styleDna: {
+        archetypes: [String],
+        preferredColors: [String],
+        preferredFit: String
+    },
+    preferences: {
+        dailySuggestion: { type: Boolean, default: true },
+        weeklyTips: { type: Boolean, default: true },
+        trendAlerts: { type: Boolean, default: false }
     }
 }, { timestamps: true });
 
