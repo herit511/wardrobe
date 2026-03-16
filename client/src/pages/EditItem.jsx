@@ -167,8 +167,18 @@ function EditItem() {
                     <h3>No image available</h3>
                   </div>
                 )}
-                <div className="scan-overlay" style={{ background: 'rgba(0,0,0,0.3)', opacity: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '20px' }}>
-                  <span style={{ color: '#fff', fontSize: '0.9rem', fontWeight: 500 }}>📷 Click to change photo</span>
+                <div className="edit-image-overlay" style={{ 
+                  position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  opacity: 0, transition: 'opacity 0.2s', cursor: 'pointer',
+                  borderRadius: '16px'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
+                >
+                  <span style={{ background: '#fff', color: '#1B2A4A', padding: '10px 20px', borderRadius: '24px', fontWeight: 600, fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                    📷 Change Photo
+                  </span>
                 </div>
               </div>
               <input
