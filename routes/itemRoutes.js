@@ -7,6 +7,9 @@ const auth = require("../middleware/auth");
 const { cloudinary } = require("../config/cloudinary");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fs = require("fs");
+const multer = require("multer");
+
+const tempUpload = multer({ dest: "uploads/" });
 
 const {
   validate,
@@ -90,7 +93,7 @@ router.get("/:id", auth, idParamRule, validate, async (req, res, next) => {
 // ============================================
 // POST /api/items/analyze — Analyze image with Gemini AI
 // ============================================
-router.post("/analyze", auth, upload.single("image"), async (req, res, next) => {
+router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No image provided for analysis." });

@@ -12,7 +12,6 @@ const storage = new CloudinaryStorage({
    cloudinary: cloudinaryLib,
    params: {
       folder: "wardrobe_items",
-      allowed_formats: ["jpg", "png", "jpeg"],
    }
 });
 
