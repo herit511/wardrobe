@@ -4,12 +4,13 @@ import { api } from '../api'
 import { colorMap } from '../utils'
 import './AddItem.css'
 
-const categories = ['top', 'bottom', 'footwear', 'outerwear']
+const categories = ['top', 'bottom', 'footwear', 'outerwear', 'accessories']
 const subCategories = {
   top: ['shirt', 'tshirt', 'vest'],
   bottom: ['jeans', 'trousers', 'cargo', 'shorts'],
   footwear: ['sneakers', 'formal_shoes', 'boots', 'slides', 'sport'],
   outerwear: ['coat', 'blazer', 'hoodie', 'jacket', 'sweater'],
+  accessories: ['ring', 'chain', 'watch', 'belt', 'cap'],
 }
 const fits = ['slim', 'regular', 'relaxed', 'oversized', 'boxy']
 const patterns = ['solid', 'striped', 'checked', 'graphic', 'printed']

@@ -4,7 +4,7 @@ import { api } from '../api'
 import { getColorName } from '../utils'
 import './Closet.css'
 
-const categories = ['All', 'Favorites', 'Tops', 'Bottoms', 'Footwear', 'Outerwear']
+const categories = ['All', 'Favorites', 'Tops', 'Bottoms', 'Footwear', 'Outerwear', 'Accessories']
 const seasons = ['All', 'Summer', 'Winter', 'Monsoon', 'All Season']
 
 function Closet() {

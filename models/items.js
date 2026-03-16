@@ -9,7 +9,7 @@ const itemSchema = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-        enum: ["top", "bottom", "footwear", "outerwear"],
+        enum: ["top", "bottom", "footwear", "outerwear", "accessories"],
         trim: true
     },
     subCategory: {
@@ -32,7 +32,12 @@ const itemSchema = new mongoose.Schema({
             "blazer",
             "hoodie",
             "jacket",
-            "sweater"
+            "sweater",
+            "ring",
+            "chain",
+            "watch",
+            "belt",
+            "cap"
         ],
         trim: true
     },

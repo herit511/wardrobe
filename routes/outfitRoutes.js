@@ -44,6 +44,8 @@ router.get('/generate', auth, async (req, res, next) => {
         const tops = userItems.filter(i => i.category.toLowerCase() === 'top' || i.category.toLowerCase() === 'tops');
         const bottoms = userItems.filter(i => i.category.toLowerCase() === 'bottom' || i.category.toLowerCase() === 'bottoms');
         const footwear = userItems.filter(i => i.category.toLowerCase() === 'footwear');
+        const outerwear = userItems.filter(i => i.category.toLowerCase() === 'outerwear');
+        const accessories = userItems.filter(i => i.category.toLowerCase() === 'accessories');
 
         if (tops.length === 0 || bottoms.length === 0 || footwear.length === 0) {
              return res.status(400).json({ 
@@ -64,10 +66,21 @@ router.get('/generate', auth, async (req, res, next) => {
             const top = tops[Math.floor(Math.random() * tops.length)];
             const bottom = bottoms[Math.floor(Math.random() * bottoms.length)];
             const shoe = footwear[Math.floor(Math.random() * footwear.length)];
-            const comboId = `${top._id}-${bottom._id}-${shoe._id}`;
+            
+            let outer = null;
+            let acc = null;
+            
+            if (outerwear.length > 0 && Math.random() > 0.5) {
+                outer = outerwear[Math.floor(Math.random() * outerwear.length)];
+            }
+            if (accessories.length > 0 && Math.random() > 0.4) {
+                acc = accessories[Math.floor(Math.random() * accessories.length)];
+            }
+            
+            const comboId = `${top._id}-${bottom._id}-${shoe._id}${outer ? '-' + outer._id : ''}${acc ? '-' + acc._id : ''}`;
             
             if (!permutations.find(p => p.comboId === comboId)) {
-                permutations.push({ comboId, top, bottom, shoe });
+                permutations.push({ comboId, top, bottom, shoe, outer, acc });
             }
         }
 
@@ -77,6 +90,8 @@ router.get('/generate', auth, async (req, res, next) => {
             let matchedReasons = [];
 
             const items = [combo.top, combo.bottom, combo.shoe];
+            if (combo.outer) items.push(combo.outer);
+            if (combo.acc) items.push(combo.acc);
 
             // Score Colors
             if (preferredColors.length > 0) {
@@ -139,35 +154,57 @@ router.get('/generate', auth, async (req, res, next) => {
                 explanation = `A perfect ${occasion} look ${combo.matchedReasons.join(' and ')}, right aligned with your ${archStr} DNA.`;
             }
 
+            const outfitItemsDocs = [
+                { 
+                    type: 'Top', 
+                    name: `${topColorName} ${combo.top.subCategory.replace('_', ' ')}`, 
+                    color: combo.top.color,
+                    imageUrl: combo.top.imageUrl,
+                    _id: combo.top._id
+                },
+                { 
+                    type: 'Bottom', 
+                    name: `${bottomColorName} ${combo.bottom.subCategory.replace('_', ' ')}`, 
+                    color: combo.bottom.color,
+                    imageUrl: combo.bottom.imageUrl,
+                    _id: combo.bottom._id
+                },
+                { 
+                    type: 'Shoes', 
+                    name: `${getColorName(combo.shoe.color)} ${combo.shoe.subCategory.replace('_', ' ')}`, 
+                    color: combo.shoe.color,
+                    imageUrl: combo.shoe.imageUrl,
+                    _id: combo.shoe._id
+                }
+            ];
+
+            if (combo.outer) {
+                outfitItemsDocs.push({
+                    type: 'Outerwear',
+                    name: `${getColorName(combo.outer.color)} ${combo.outer.subCategory.replace('_', ' ')}`,
+                    color: combo.outer.color,
+                    imageUrl: combo.outer.imageUrl,
+                    _id: combo.outer._id
+                });
+            }
+
+            if (combo.acc) {
+                outfitItemsDocs.push({
+                    type: 'Accessory',
+                    name: `${getColorName(combo.acc.color)} ${combo.acc.subCategory.replace('_', ' ')}`,
+                    color: combo.acc.color,
+                    imageUrl: combo.acc.imageUrl,
+                    _id: combo.acc._id
+                });
+            }
+
             return {
                 id: `gen-${Date.now()}-${index}`,
                 title: `${occasion} Style ${index + 1}`,
                 match: Math.min(100, 60 + combo.score), 
                 tags: [occasion, archetypes[0] || 'Modern'],
                 explanation: explanation,
-                items: [
-                    { 
-                        type: 'Top', 
-                        name: `${topColorName} ${combo.top.subCategory.replace('_', ' ')}`, 
-                        color: combo.top.color,
-                        imageUrl: combo.top.imageUrl,
-                        _id: combo.top._id
-                    },
-                    { 
-                        type: 'Bottom', 
-                        name: `${bottomColorName} ${combo.bottom.subCategory.replace('_', ' ')}`, 
-                        color: combo.bottom.color,
-                        imageUrl: combo.bottom.imageUrl,
-                        _id: combo.bottom._id
-                    },
-                    { 
-                        type: 'Shoes', 
-                        name: `${getColorName(combo.shoe.color)} ${combo.shoe.subCategory.replace('_', ' ')}`, 
-                        color: combo.shoe.color,
-                        imageUrl: combo.shoe.imageUrl,
-                        _id: combo.shoe._id
-                    }
-                ]
+                items: outfitItemsDocs
             };
         });
 
