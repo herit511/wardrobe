@@ -145,15 +145,30 @@ function AddItem() {
                   <span className="upload-formats">Supports JPG, PNG, JPEG</span>
                 </div>
               ) : (
-                <div className="upload-preview-wrapper">
-                  <img src={preview} alt="Preview" className="upload-preview-img" />
+                <div className="upload-preview-wrapper" style={{ position: 'relative' }}>
+                  <img src={preview} alt="Preview" className="upload-preview-img" style={{ borderRadius: '16px' }} />
                   {scanning && (
-                    <div className="scan-overlay">
+                    <div className="scan-overlay" style={{ borderRadius: '16px' }}>
                       <div className="scan-line"></div>
                       <div className="scan-text">
                         <span className="sparkle">✨</span> AI is Scanning...
                       </div>
                       <p className="scan-desc">Identifying fabric weight, color palette, and silhouette details.</p>
+                    </div>
+                  )}
+                  {!scanning && (
+                    <div className="edit-image-overlay" style={{ 
+                      position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                      opacity: 0, transition: 'opacity 0.2s', cursor: 'pointer',
+                      borderRadius: '16px'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
+                    >
+                      <span style={{ background: '#fff', color: '#1B2A4A', padding: '10px 20px', borderRadius: '24px', fontWeight: 600, fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                        📷 Change Photo
+                      </span>
                     </div>
                   )}
                 </div>

@@ -26,7 +26,7 @@ router.get('/', auth, async (req, res, next) => {
 // ============================================
 router.get('/generate', auth, async (req, res, next) => {
     try {
-        const { occasion = 'Casual' } = req.query;
+        const { occasion = 'Casual', temperature = 'mild' } = req.query;
 
         // Get user and their wardrobe
         const [user, userItems] = await Promise.all([
@@ -95,6 +95,26 @@ router.get('/generate', auth, async (req, res, next) => {
                     score += 20;
                     matchedReasons.push(`a nice ${preferredFit.toLowerCase()} silhouette`);
                 }
+            }
+
+            // Score Weather/Temperature
+            let weatherBonus = 0;
+            items.forEach(item => {
+                if (!item.season || item.season.length === 0) return;
+                
+                if (temperature === 'hot' && (item.season.includes('summer') || item.season.includes('all_season'))) {
+                    weatherBonus += 10;
+                } else if (temperature === 'cold' && (item.season.includes('winter') || item.season.includes('all_season'))) {
+                    weatherBonus += 10;
+                } else if (temperature === 'mild' && (item.season.includes('all_season') || item.season.includes('monsoon') || item.season.includes('summer'))) {
+                    weatherBonus += 10;
+                }
+            });
+
+            if (weatherBonus > 15) {
+                score += 25;
+                if (temperature === 'hot') matchedReasons.push('perfect for the warm weather');
+                if (temperature === 'cold') matchedReasons.push('cozy for the chilly weather');
             }
 
             // Score Occasion Match (if clothing has tags matching occasion)

@@ -8,6 +8,7 @@ const occasionOptions = ['Casual', 'Office', 'Party', 'Date Night', 'Gym', 'Stre
 function Outfits() {
   const [activeTab, setActiveTab] = useState('generate')
   const [selectedOccasion, setSelectedOccasion] = useState('Casual')
+  const [temperature, setTemperature] = useState('mild')
   const [outfits, setOutfits] = useState([])
   const [savedOutfits, setSavedOutfits] = useState([])
   const [loading, setLoading] = useState(false)
@@ -23,7 +24,7 @@ function Outfits() {
   const generateOutfits = async () => {
     setLoading(true); setError('')
     try {
-      const res = await api.get(`/outfits/generate?occasion=${selectedOccasion}`)
+      const res = await api.get(`/outfits/generate?occasion=${selectedOccasion}&temperature=${temperature}`)
       if (res.success) setOutfits(res.data)
       else { setError(res.message); setOutfits([]) }
     } catch (err) {
@@ -124,12 +125,32 @@ function Outfits() {
                     </div>
                   </div>
                   <div className="sidebar-section">
-                    <div className="weather-widget">
-                      <span className="weather-big-icon">☀️</span>
-                      <div>
-                        <div className="weather-temp">22°C</div>
-                        <div className="weather-desc">Sunny, Perfect for Linen</div>
-                      </div>
+                    <label className="sidebar-label" style={{ marginTop: '20px' }}>Simulated Weather</label>
+                    <div className="weather-widget" style={{ padding: '0', background: 'transparent', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', cursor: 'pointer' }}>
+                      <button 
+                        className={`chip ${temperature === 'hot' ? 'active' : ''}`} 
+                        onClick={() => setTemperature('hot')} 
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 8px', fontSize: '1rem', background: temperature === 'hot' ? '#FDECEA' : '#fff' }}
+                      >
+                        <span style={{ fontSize: '1.5rem', marginBottom: '4px' }}>☀️</span>
+                        Hot
+                      </button>
+                      <button 
+                        className={`chip ${temperature === 'mild' ? 'active' : ''}`} 
+                        onClick={() => setTemperature('mild')} 
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 8px', fontSize: '1rem', background: temperature === 'mild' ? '#EBF5FF' : '#fff' }}
+                      >
+                        <span style={{ fontSize: '1.5rem', marginBottom: '4px' }}>⛅</span>
+                        Mild
+                      </button>
+                      <button 
+                        className={`chip ${temperature === 'cold' ? 'active' : ''}`} 
+                        onClick={() => setTemperature('cold')} 
+                        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 8px', fontSize: '1rem', background: temperature === 'cold' ? '#F0F4F8' : '#fff' }}
+                      >
+                        <span style={{ fontSize: '1.5rem', marginBottom: '4px' }}>❄️</span>
+                        Cold
+                      </button>
                     </div>
                   </div>
                   <button className="btn btn-primary sidebar-generate" id="generate-outfits-btn" onClick={generateOutfits} disabled={loading}>
