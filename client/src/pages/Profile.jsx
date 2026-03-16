@@ -113,10 +113,34 @@ function Profile() {
             <p className="profile-email">{user?.email}</p>
             <p className="profile-member">Member since {user?.createdAt ? new Date(user.createdAt).getFullYear() : '2024'}</p>
           </div>
-          <button className="btn btn-secondary" onClick={() => setEditingProfile(!editingProfile)}>
-            {editingProfile ? 'Cancel Edit' : 'Edit Profile'}
+          <button className="btn btn-secondary" onClick={() => setEditingProfile(true)}>
+            Edit Profile
           </button>
         </section>
+
+        {/* Edit Profile Modal */}
+        {editingProfile && (
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+            <div className="modal-content card" style={{ padding: '30px', width: '90%', maxWidth: '400px', position: 'relative' }}>
+              <button 
+                onClick={() => setEditingProfile(false)} 
+                style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}
+              >✕</button>
+              <h3 style={{ marginBottom: '20px', fontFamily: 'var(--font-heading)', fontStyle: 'italic' }}>Edit Profile</h3>
+              <form onSubmit={handleUpdateProfile}>
+                <div className="form-group" style={{ marginBottom: '15px' }}>
+                  <label>Name</label>
+                  <input type="text" className="form-control" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
+                </div>
+                <div className="form-group" style={{ marginBottom: '20px' }}>
+                  <label>Email</label>
+                  <input type="email" className="form-control" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} required />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Save Changes</button>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <section className="profile-stats animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
@@ -247,42 +271,26 @@ function Profile() {
             </div>
             
             <div className="settings-list">
-              {editingProfile ? (
-                <form onSubmit={handleUpdateProfile} style={{ padding: '0 20px 20px' }}>
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label>Name</label>
-                    <input type="text" className="form-control" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label>Email</label>
-                    <input type="email" className="form-control" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} required />
-                  </div>
-                  <button type="submit" className="btn btn-primary btn-sm">Save Profile</button>
-                </form>
-              ) : (
-                <>
-                  <div className="settings-row">
-                    <span className="settings-label">Email</span>
-                    <span className="settings-value">{user?.email}</span>
-                  </div>
-                  <div className="settings-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                      <span className="settings-label">Password</span>
-                      <span className="settings-value">••••••••••••</span>
-                      <button className="btn btn-ghost btn-xs" onClick={() => setChangingPassword(!changingPassword)}>
-                        {changingPassword ? 'Cancel' : 'Change'}
-                      </button>
-                    </div>
-                    {changingPassword && (
-                      <form onSubmit={handleChangePassword} style={{ width: '100%', marginTop: '10px', background: '#F8F9FA', padding: '15px', borderRadius: '8px' }}>
-                        <input type="password" placeholder="Current Password" required value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} style={{ width: '100%', marginBottom: '10px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
-                        <input type="password" placeholder="New Password" required value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} style={{ width: '100%', marginBottom: '15px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
-                        <button type="submit" className="btn btn-primary btn-sm">Update Password</button>
-                      </form>
-                    )}
-                  </div>
-                </>
-              )}
+              <div className="settings-row">
+                <span className="settings-label">Email</span>
+                <span className="settings-value">{user?.email}</span>
+              </div>
+              <div className="settings-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                  <span className="settings-label">Password</span>
+                  <span className="settings-value">••••••••••••</span>
+                  <button className="btn btn-ghost btn-xs" onClick={() => setChangingPassword(!changingPassword)}>
+                    {changingPassword ? 'Cancel' : 'Change'}
+                  </button>
+                </div>
+                {changingPassword && (
+                  <form onSubmit={handleChangePassword} style={{ width: '100%', marginTop: '10px', background: '#F8F9FA', padding: '15px', borderRadius: '8px' }}>
+                    <input type="password" placeholder="Current Password" required value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} style={{ width: '100%', marginBottom: '10px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                    <input type="password" placeholder="New Password" required value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} style={{ width: '100%', marginBottom: '15px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                    <button type="submit" className="btn btn-primary btn-sm">Update Password</button>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
 

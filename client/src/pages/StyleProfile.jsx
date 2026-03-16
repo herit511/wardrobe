@@ -26,6 +26,12 @@ const colorPalette = [
   { name: 'Terracotta', hex: '#CC6B49' },
   { name: 'Charcoal', hex: '#36454F' },
   { name: 'Lavender', hex: '#B8A9C9' },
+  { name: 'Brown', hex: '#8B4513' },
+  { name: 'Mustard', hex: '#E1AD01' },
+  { name: 'Emerald', hex: '#50C878' },
+  { name: 'Rust', hex: '#B7410E' },
+  { name: 'Teal', hex: '#008080' },
+  { name: 'Blush', hex: '#DE5D83' },
 ]
 
 const fitOptions = ['Slim', 'Regular', 'Relaxed', 'Oversized', 'Boxy']
@@ -97,7 +103,8 @@ function StyleProfile() {
       if (res.success) {
         // If they already had styles, they came from Profile edit. Otherwise they are onboarding.
         const isEditing = user?.styleDna?.archetypes?.length > 0
-        navigate(isEditing ? '/profile' : '/dashboard')
+        // Use window.location.href to hard reload and refresh the AuthContext user state
+        window.location.href = isEditing ? '/profile' : '/dashboard'
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to save preferences')
