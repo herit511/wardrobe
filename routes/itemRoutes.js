@@ -5,6 +5,9 @@ const Item = require("../models/items");
 const upload = require("../middleware/upload");
 const auth = require("../middleware/auth");
 const { cloudinary } = require("../config/cloudinary");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const fs = require("fs");
+
 const {
   validate,
   createItemRules,
@@ -12,6 +15,9 @@ const {
   idParamRule,
   listQueryRules,
 } = require("../middleware/validation");
+
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ============================================
 // GET /api/items — List all items with filters
@@ -78,6 +84,72 @@ router.get("/:id", auth, idParamRule, validate, async (req, res, next) => {
     res.json({ success: true, data: item });
   } catch (error) {
     next(error);
+  }
+});
+
+// ============================================
+// POST /api/items/analyze — Analyze image with Gemini AI
+// ============================================
+router.post("/analyze", auth, upload.single("image"), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No image provided for analysis." });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ success: false, message: "Gemini API key is missing on the server." });
+    }
+
+    // Convert local file to generative part
+    const fileToGenerativePart = (path, mimeType) => {
+      return {
+        inlineData: {
+          data: Buffer.from(fs.readFileSync(path)).toString("base64"),
+          mimeType
+        },
+      };
+    };
+
+    const imagePart = fileToGenerativePart(req.file.path, req.file.mimetype);
+
+    const prompt = `
+      You are an expert fashion stylist AI. Look at the attached clothing image.
+      Analyze the image and return a JSON object with the following exact keys, choosing values strictly from the arrays provided below.
+      Return ONLY valid JSON. Do not return markdown, backticks, or other text.
+      
+      Valid constraints:
+      "category": ["top", "bottom", "footwear", "outerwear", "accessories"]
+      "subCategory": ["shirt", "tshirt", "vest", "jeans", "trousers", "cargo", "shorts", "sneakers", "formal_shoes", "boots", "slides", "sport", "coat", "blazer", "hoodie", "jacket", "sweater", "ring", "chain", "watch", "belt", "cap"]
+      "fit": ["slim", "regular", "relaxed", "oversized", "boxy"]
+      "pattern": ["solid", "striped", "checked", "graphic", "printed"]
+      "color": Provide the closest hex code (e.g. #000000) based on the primary color.
+      
+      Expected JSON format:
+      {
+        "category": "top",
+        "subCategory": "tshirt",
+        "color": "#ff0000",
+        "pattern": "solid",
+        "fit": "regular"
+      }
+    `;
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent([prompt, imagePart]);
+    const responseText = result.response.text();
+
+    // Clean any potential markdown from Gemini
+    const cleanedText = responseText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
+    const insights = JSON.parse(cleanedText);
+
+    res.json({ success: true, data: insights });
+
+    // Cleanup local temp file
+    fs.unlinkSync(req.file.path);
+
+  } catch (error) {
+    console.error("Gemini Analysis Error:", error);
+    res.status(500).json({ success: false, message: "AI Analysis Failed." });
   }
 });
 

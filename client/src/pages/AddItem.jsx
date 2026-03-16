@@ -45,33 +45,38 @@ function AddItem() {
       reader.onload = () => {
         setPreview(reader.result)
         setScanning(true)
-        // Simulate AI scanning
-        setTimeout(() => {
-          setScanning(false)
-          setScanned(true)
-          
-          // Generate realistic random suggestions
-          const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-          const possibleSubCategories = subCategories[randomCategory] || [];
-          const randomSubCategory = possibleSubCategories[Math.floor(Math.random() * possibleSubCategories.length)] || '';
-          
-          // Generate a random hex color
-          const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-          
-          const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
-          const randomFit = fits[Math.floor(Math.random() * fits.length)];
-          
-          setForm(prev => ({
-            ...prev,
-            category: randomCategory,
-            subCategory: randomSubCategory,
-            color: randomColor,
-            pattern: randomPattern,
-            fit: randomFit,
-            occasion: [occasionOptions[Math.floor(Math.random() * occasionOptions.length)]],
-            season: [seasonOptions[Math.floor(Math.random() * seasonOptions.length)]]
-          }));
-        }, 2000)
+        // Real AI Scanning with Gemini
+        const analyzeImage = async (imageFile) => {
+          try {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            
+            const res = await api.post('/items/analyze', formData);
+            
+            if (res.success && res.data) {
+              const aiData = res.data;
+              
+              setForm(prev => ({
+                ...prev,
+                category: aiData.category || prev.category,
+                subCategory: aiData.subCategory || prev.subCategory,
+                color: aiData.color || prev.color,
+                pattern: aiData.pattern || prev.pattern,
+                fit: aiData.fit || prev.fit,
+                occasion: [occasionOptions[Math.floor(Math.random() * occasionOptions.length)]], // Keep occasion/season random for now or prompt Gemini for it
+                season: [seasonOptions[Math.floor(Math.random() * seasonOptions.length)]]
+              }));
+            }
+          } catch (err) {
+            console.error("AI Analysis Failed:", err);
+            // Fallback manually if AI fails
+          } finally {
+            setScanning(false);
+            setScanned(true);
+          }
+        };
+
+        analyzeImage(file);
       }
       reader.readAsDataURL(file)
     }
