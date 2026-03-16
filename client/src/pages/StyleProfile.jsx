@@ -14,24 +14,26 @@ const styleArchetypes = [
 ]
 
 const colorPalette = [
+  // Everyday Essentials (Normal / User friendly)
   { name: 'Black', hex: '#1A1A1A' },
   { name: 'White', hex: '#F5F5F5' },
-  { name: 'Navy', hex: '#1B2A4A' },
+  { name: 'Gray', hex: '#808080' },
+  { name: 'Navy Blue', hex: '#000080' },
+  { name: 'Light Blue', hex: '#ADD8E6' },
+  { name: 'Red', hex: '#E32636' },
+  { name: 'Green', hex: '#228B22' },
+  { name: 'Yellow', hex: '#FFD700' },
+  { name: 'Pink', hex: '#FFC0CB' },
+  { name: 'Brown', hex: '#8B4513' },
+  
+  // Premium / Chic Tones
   { name: 'Beige', hex: '#D4C4A8' },
   { name: 'Olive', hex: '#6B7F4A' },
   { name: 'Burgundy', hex: '#722F37' },
-  { name: 'Coral', hex: '#E87040' },
   { name: 'Sage', hex: '#9CAF88' },
-  { name: 'Cream', hex: '#FFF5DC' },
-  { name: 'Terracotta', hex: '#CC6B49' },
-  { name: 'Charcoal', hex: '#36454F' },
+  { name: 'Coral', hex: '#E87040' },
   { name: 'Lavender', hex: '#B8A9C9' },
-  { name: 'Brown', hex: '#8B4513' },
-  { name: 'Mustard', hex: '#E1AD01' },
-  { name: 'Emerald', hex: '#50C878' },
-  { name: 'Rust', hex: '#B7410E' },
-  { name: 'Teal', hex: '#008080' },
-  { name: 'Blush', hex: '#DE5D83' },
+  { name: 'Charcoal', hex: '#36454F' },
 ]
 
 const fitOptions = ['Slim', 'Regular', 'Relaxed', 'Oversized', 'Boxy']
