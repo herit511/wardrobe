@@ -132,15 +132,28 @@ router.post("/analyze", auth, upload.single("image"), async (req, res, next) => 
         "pattern": "solid",
         "fit": "regular"
       }
+      
+      CRITICAL: For the "color" field, you MUST return a valid 6-character hex code starting with #. Do NOT return color names like "red", "black", or "navy". Only return the hex code.
     `;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent([prompt, imagePart]);
     const responseText = result.response.text();
 
-    // Clean any potential markdown from Gemini
-    const cleanedText = responseText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
+    // Clean any potential markdown string wrappers from Gemini
+    let cleanedText = responseText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
     const insights = JSON.parse(cleanedText);
+
+    // Ultimate fallback for color just in case Gemini disobeys the prompt and sends a word
+    if (insights.color && !insights.color.startsWith('#')) {
+      // rough fallback map
+      const colorMap = {
+        'black': '#000000', 'white': '#ffffff', 'red': '#ff0000', 'blue': '#0000ff', 'green': '#008000',
+        'yellow': '#ffff00', 'navy': '#000080', 'grey': '#808080', 'gray': '#808080', 'brown': '#a52a2a',
+        'pink': '#ffc0cb', 'purple': '#800080', 'orange': '#ffa500'
+      };
+      insights.color = colorMap[insights.color.toLowerCase()] || '#000000';
+    }
 
     res.json({ success: true, data: insights });
 

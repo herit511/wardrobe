@@ -39,7 +39,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Cloudinary errors
-  if (err.http_code) {
+  if (err.http_code && err.name !== "ValidationError") {
     return res.status(502).json({
       success: false,
       message: "Image upload service error. Please try again.",
