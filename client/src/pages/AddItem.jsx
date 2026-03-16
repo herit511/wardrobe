@@ -63,8 +63,8 @@ function AddItem() {
                 color: aiData.color || prev.color,
                 pattern: aiData.pattern || prev.pattern,
                 fit: aiData.fit || prev.fit,
-                occasion: [occasionOptions[Math.floor(Math.random() * occasionOptions.length)]], // Keep occasion/season random for now or prompt Gemini for it
-                season: [seasonOptions[Math.floor(Math.random() * seasonOptions.length)]]
+                season: aiData.season || prev.season,
+                occasion: prev.occasion // Let the user select occasion manually
               }));
             }
           } catch (err) {

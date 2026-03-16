@@ -122,6 +122,7 @@ router.post("/analyze", auth, upload.single("image"), async (req, res, next) => 
       "subCategory": ["shirt", "tshirt", "vest", "jeans", "trousers", "cargo", "shorts", "sneakers", "formal_shoes", "boots", "slides", "sport", "coat", "blazer", "hoodie", "jacket", "sweater", "ring", "chain", "watch", "belt", "cap"]
       "fit": ["slim", "regular", "relaxed", "oversized", "boxy"]
       "pattern": ["solid", "striped", "checked", "graphic", "printed"]
+      "season": ["summer", "monsoon", "winter", "all_season"]
       "color": Provide the closest hex code (e.g. #000000) based on the primary color.
       
       Expected JSON format:
@@ -130,10 +131,11 @@ router.post("/analyze", auth, upload.single("image"), async (req, res, next) => 
         "subCategory": "tshirt",
         "color": "#ff0000",
         "pattern": "solid",
-        "fit": "regular"
+        "fit": "regular",
+        "season": ["summer", "all_season"]
       }
       
-      CRITICAL: For the "color" field, you MUST return a valid 6-character hex code starting with #. Do NOT return color names like "red", "black", or "navy". Only return the hex code.
+      CRITICAL: For the "color" field, you MUST return a valid 6-character hex code starting with #. Do NOT return color names like "red", "black", or "navy". Only return the hex code. For "season", return an array containing one or more valid constraints based on the weather the item is suited for.
     `;
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
