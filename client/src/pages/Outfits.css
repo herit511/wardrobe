@@ -7,10 +7,8 @@
 }
 
 .outfits-layout {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: var(--space-xl);
-  align-items: start;
+  display: block;
+  width: 100%;
 }
 
 /* Sidebar */
@@ -303,7 +301,7 @@
 
 @media (max-width: 1024px) {
   .outfits-layout {
-    grid-template-columns: 1fr;
+    display: block;
   }
 
   .outfits-sidebar {
