@@ -186,6 +186,32 @@
   outline-offset: 2px;
 }
 
+.custom-color-picker {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.custom-color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.custom-color-picker::-webkit-color-swatch {
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+}
+
+.custom-color-picker::-moz-color-swatch {
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+}
+
 .multi-chips {
   display: flex;
   flex-wrap: wrap;

@@ -233,7 +233,7 @@ function AddItem() {
                     Color
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <div className="color-picker-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+                  <div className="color-picker-row" style={{ flexWrap: 'wrap' }}>
                     {colorMap.filter(c => ['#000000', '#FFFFFF', '#1B2A4A', '#808080', '#D2B48C', '#E87040'].includes(c.hex)).map(c => (
                       <button
                         key={c.hex}
@@ -250,7 +250,6 @@ function AddItem() {
                       value={form.color}
                       onChange={(e) => setForm({ ...form, color: e.target.value })}
                       className="custom-color-picker"
-                      style={{ width: '32px', height: '32px', cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: '50%', padding: '0', background: 'none' }}
                     />
                     <div style={{ flex: '1 1 200px' }}>
                       <span style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginBottom: '4px' }}>Or pick by name:</span>
