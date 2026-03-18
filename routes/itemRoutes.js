@@ -140,6 +140,7 @@ Only return the JSON. If you cannot identify the item clearly, make your best gu
       return res.status(422).json({ success: false, message: "Could not read this item — try a clearer photo." });
     }
 
+    console.log(`\n[Gemini Analyze] Clean JSON response:`, JSON.stringify(insights, null, 2));
     res.json({ success: true, data: insights });
 
     // Cleanup local temp file

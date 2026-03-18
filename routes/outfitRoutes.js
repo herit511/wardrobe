@@ -105,8 +105,13 @@ router.get('/generate', auth, async (req, res, next) => {
 
         const wardrobeForEngine = userItems.map(item => {
             const rawName = subCatToEngineName[item.subCategory] || item.subCategory.replace('_', ' ');
+            const resolvedName = resolveEngineName(rawName);
+            // Diagnostic: log any item whose name didn't resolve to a known CLOTHING_ITEMS key
+            if (!CLOTHING_ITEMS[resolvedName]) {
+                console.warn(`[fashionEngine] Unresolved item name: "${rawName}" → "${resolvedName}" (subCategory: ${item.subCategory}) — not found in CLOTHING_ITEMS`);
+            }
             return {
-                name: resolveEngineName(rawName),
+                name: resolvedName,
                 color: hexToColorName(item.color),
                 pattern: item.pattern || 'solid',
                 _dbItem: item,
@@ -123,8 +128,16 @@ router.get('/generate', auth, async (req, res, next) => {
             });
         }
 
-        // Call the fashionEngine
+        // Call the fashionEngine (NOT Gemini)
+        console.log(`\n[fashionEngine] Calling suggestOutfits() with ${wardrobeForEngine.length} items, occasion=${engineOccasion}, season=${season}`);
+        console.log(`[fashionEngine] Wardrobe items:`, wardrobeForEngine.map(i => ({ name: i.name, color: i.color, pattern: i.pattern })));
         const engineResults = suggestOutfits(wardrobeForEngine, engineOccasion, season);
+        console.log(`[fashionEngine] suggestOutfits returned ${engineResults?.length || 0} outfit(s)`);
+        if (engineResults?.length > 0) {
+            engineResults.forEach((o, i) => {
+                console.log(`[fashionEngine] Outfit ${i+1}: score=${o.score.totalScore}/10, grade=${o.score.grade}, name="${o.score.outfitName}"`);
+            });
+        }
 
         // Safety check 3: Empty results
         if (!engineResults || engineResults.length === 0) {

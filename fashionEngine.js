@@ -821,10 +821,11 @@ function buildExplanation(items, score) {
   let text = `Score: ${score.totalScore}/10 (${score.grade}). `;
 
   if (goodChecks.length > 0) {
-    text += `Works because: ${goodChecks[0].reason} `;
+    text += `Works because: ${goodChecks[0].reason || goodChecks[0].note || 'great pairing'} `;
   }
   if (badChecks.length > 0) {
-    text += `Watch out: ${badChecks[0].reason} `;
+    const badReason = badChecks[0].reason || badChecks[0].note;
+    if (badReason) text += `Watch out: ${badReason} `;
   }
 
   return text.trim();
