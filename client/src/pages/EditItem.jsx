@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Camera, Pencil } from 'lucide-react'
+import { Camera, Pencil, Pipette } from 'lucide-react'
 import CustomSelect from '../components/CustomSelect'
 import { api } from '../api'
 import { colorMap } from '../utils'
@@ -44,6 +44,20 @@ function EditItem() {
   useEffect(() => {
     fetchItem()
   }, [id])
+
+  const handleEyeDropper = async () => {
+    if (!window.EyeDropper) {
+      alert('Your browser does not support the EyeDropper API');
+      return;
+    }
+    const eyeDropper = new EyeDropper();
+    try {
+      const result = await eyeDropper.open();
+      setForm(prev => ({ ...prev, color: result.sRGBHex }));
+    } catch (e) {
+      console.log('EyeDropper canceled or failed', e);
+    }
+  };
 
   const fetchItem = async () => {
     try {
@@ -244,6 +258,17 @@ function EditItem() {
                       onChange={(e) => setForm({ ...form, color: e.target.value })}
                       className="custom-color-picker"
                     />
+                    {window.EyeDropper && (
+                      <button
+                        type="button"
+                        onClick={handleEyeDropper}
+                        className="btn btn-ghost"
+                        style={{ padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--color-bg-warm)' }}
+                        title="Pick color with eyedropper tool"
+                      >
+                        <Pipette size={18} strokeWidth={1.5} color="var(--color-navy)" />
+                      </button>
+                    )}
                     <div style={{ flex: '1 1 200px' }}>
                       <span style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginBottom: '4px' }}>Or pick by name:</span>
                       <CustomSelect
