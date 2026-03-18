@@ -233,7 +233,7 @@ function AddItem() {
                     Color
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <div className="color-picker-row" style={{ flexWrap: 'wrap' }}>
+                  <div className="color-picker-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
                     {colorMap.filter(c => ['#000000', '#FFFFFF', '#1B2A4A', '#808080', '#D2B48C', '#E87040'].includes(c.hex)).map(c => (
                       <button
                         key={c.hex}
