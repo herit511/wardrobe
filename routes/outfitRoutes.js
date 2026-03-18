@@ -5,7 +5,33 @@ const Outfit = require('../models/Outfit');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { getColorName } = require('../utils/colors');
-const { suggestOutfits, parseCLIPLabel } = require('../fashionEngine');
+const { suggestOutfits, parseCLIPLabel, CLOTHING_ITEMS } = require('../fashionEngine');
+
+// Fuzzy-match mapping for common Gemini mismatches
+const FUZZY_NAME_MAP = {
+    'denim pants': 'jeans',
+    'pants': 'trousers',
+    'tennis shoes': 'sneakers',
+    'dress pants': 'trousers',
+    'button shirt': 'dress shirt',
+    'button up': 'shirt',
+    'pullover': 'sweater',
+    'coat': 'overcoat',
+    'flip-flops': 'flip flops',
+};
+
+/**
+ * Resolve a clothing name to a valid fashionEngine CLOTHING_ITEMS key.
+ * Tries: exact match → fuzzy map → subCat map → raw name.
+ */
+function resolveEngineName(rawName) {
+    if (CLOTHING_ITEMS[rawName]) return rawName;
+    if (FUZZY_NAME_MAP[rawName]) return FUZZY_NAME_MAP[rawName];
+    // Try partial match against CLOTHING_ITEMS keys
+    const lower = rawName.toLowerCase();
+    const partialMatch = Object.keys(CLOTHING_ITEMS).find(key => lower.includes(key) || key.includes(lower));
+    return partialMatch || rawName;
+}
 
 // ============================================
 // GET /api/outfits — List saved outfits
@@ -77,20 +103,34 @@ router.get('/generate', auth, async (req, res, next) => {
             return name ? name.toLowerCase() : 'black';
         };
 
-        const wardrobeForEngine = userItems.map(item => ({
-            name: subCatToEngineName[item.subCategory] || item.subCategory.replace('_', ' '),
-            color: hexToColorName(item.color),
-            pattern: item.pattern || 'solid',
-            _dbItem: item, // Keep reference to the original DB item for rehydration
-        }));
+        const wardrobeForEngine = userItems.map(item => {
+            const rawName = subCatToEngineName[item.subCategory] || item.subCategory.replace('_', ' ');
+            return {
+                name: resolveEngineName(rawName),
+                color: hexToColorName(item.color),
+                pattern: item.pattern || 'solid',
+                _dbItem: item,
+            };
+        });
+
+        // Safety check 1: Must have at least one top and one bottom
+        const hasTops = wardrobeForEngine.some(i => CLOTHING_ITEMS[i.name]?.role === 'top');
+        const hasBottoms = wardrobeForEngine.some(i => CLOTHING_ITEMS[i.name]?.role === 'bottom');
+        if (!hasTops || !hasBottoms) {
+            return res.status(400).json({
+                success: false,
+                message: 'Upload at least one top and one bottom to generate outfit combinations.'
+            });
+        }
 
         // Call the fashionEngine
         const engineResults = suggestOutfits(wardrobeForEngine, engineOccasion, season);
 
+        // Safety check 3: Empty results
         if (!engineResults || engineResults.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'To generate an outfit, you need at least 1 Top, 1 Bottom, and 1 Footwear in your closet.'
+                message: 'No outfit combinations found. Try uploading more items or switching the occasion.'
             });
         }
 
