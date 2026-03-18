@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema({
     styleDna: {
         archetypes: [String],
         preferredColors: [String],
-        preferredFit: String
+        preferredFit: String,
+        brands: [String]
     },
     preferences: {
         dailySuggestion: { type: Boolean, default: true },

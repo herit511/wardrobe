@@ -37,7 +37,7 @@ const colorPalette = [
 ]
 
 const fitOptions = ['Slim', 'Regular', 'Relaxed', 'Oversized', 'Boxy']
-const occasionOptions = ['Casual', 'Office', 'Party', 'Date Night', 'Streetwear', 'Gym', 'Ethnic']
+const brandOptions = ['Zara', 'H&M', 'Nike', 'Uniqlo', 'Gucci', 'Vintage/Thrift', 'Lululemon', 'ASOS']
 
 function StyleProfile() {
   const navigate = useNavigate()
@@ -46,7 +46,7 @@ function StyleProfile() {
   const [selectedStyles, setSelectedStyles] = useState([])
   const [selectedColors, setSelectedColors] = useState([])
   const [selectedFit, setSelectedFit] = useState('')
-  const [selectedOccasions, setSelectedOccasions] = useState([])
+  const [selectedBrands, setSelectedBrands] = useState([])
   const [saving, setSaving] = useState(false)
 
   // Pre-fill if editing existing DNA
@@ -60,10 +60,15 @@ function StyleProfile() {
       
       if (user.styleDna.preferredFit) setSelectedFit(user.styleDna.preferredFit)
       else setSelectedFit('Regular')
+      if (user.styleDna.preferredFit) setSelectedFit(user.styleDna.preferredFit)
+      else setSelectedFit('Regular')
+
+      if (user.styleDna.brands?.length) setSelectedBrands(user.styleDna.brands)
     } else {
       setSelectedStyles(['Minimalist'])
       setSelectedColors(['#1A1A1A', '#F5F5F5', '#1B2A4A'])
       setSelectedFit('Regular')
+      setSelectedBrands([])
     }
   }, [user])
 
@@ -79,9 +84,9 @@ function StyleProfile() {
     )
   }
 
-  const toggleOccasion = (occ) => {
-    setSelectedOccasions(prev =>
-      prev.includes(occ) ? prev.filter(o => o !== occ) : [...prev, occ]
+  const toggleBrand = (brand) => {
+    setSelectedBrands(prev =>
+      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
     )
   }
 
@@ -89,7 +94,7 @@ function StyleProfile() {
     (selectedStyles.length > 0 ? 25 : 0) +
     (selectedColors.length > 0 ? 25 : 0) +
     (selectedFit ? 25 : 0) +
-    (selectedOccasions.length > 0 ? 25 : 0)
+    (selectedBrands.length > 0 ? 25 : 0)
   ))
 
   const handleSubmit = async (e) => {
@@ -99,7 +104,8 @@ function StyleProfile() {
       const styleDna = {
         archetypes: selectedStyles,
         preferredColors: selectedColors,
-        preferredFit: selectedFit
+        preferredFit: selectedFit,
+        brands: selectedBrands
       }
       const res = await api.put('/auth/preferences', { styleDna })
       if (res.success) {
@@ -205,19 +211,19 @@ function StyleProfile() {
             </div>
           </section>
 
-          {/* Occasions */}
+          {/* Brands */}
           <section className="style-section animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <h2 className="section-title heading-italic">Occasions You Dress For</h2>
+            <h2 className="section-title heading-italic">Brands & Stores You Love</h2>
             <div className="multi-chips occasion-chips">
-              {occasionOptions.map(occ => (
+              {brandOptions.map(brand => (
                 <button
-                  key={occ}
+                  key={brand}
                   type="button"
-                  className={`chip chip-lg ${selectedOccasions.includes(occ) ? 'active' : ''}`}
-                  onClick={() => toggleOccasion(occ)}
-                  id={`occ-${occ.toLowerCase().replace(' ', '-')}`}
+                  className={`chip chip-lg ${selectedBrands.includes(brand) ? 'active' : ''}`}
+                  onClick={() => toggleBrand(brand)}
+                  id={`brand-${brand.toLowerCase().replace(/[\/\s]/g, '-')}`}
                 >
-                  {occ}
+                  {brand}
                 </button>
               ))}
             </div>
