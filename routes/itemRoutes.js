@@ -115,31 +115,13 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
 
     const imagePart = fileToGenerativePart(req.file.path, req.file.mimetype);
 
-    const prompt = `
-      You are an expert fashion stylist AI. Look at the attached clothing image.
-      Analyze the image and return a JSON object with the following exact keys, choosing values strictly from the arrays provided below.
-      Return ONLY valid JSON. Do not return markdown, backticks, or other text.
-      
-      Valid constraints:
-      "category": ["top", "bottom", "footwear", "outerwear", "accessories"]
-      "subCategory": ["shirt", "tshirt", "vest", "jeans", "trousers", "cargo", "shorts", "sneakers", "formal_shoes", "boots", "slides", "sport", "coat", "blazer", "hoodie", "jacket", "sweater", "ring", "chain", "watch", "belt", "cap"]
-      "fit": ["slim", "regular", "relaxed", "oversized", "boxy"]
-      "pattern": ["solid", "striped", "checked", "graphic", "printed"]
-      "season": ["summer", "monsoon", "winter", "all_season"]
-      "color": Provide the closest hex code (e.g. #000000) based on the primary color.
-      
-      Expected JSON format:
-      {
-        "category": "top",
-        "subCategory": "tshirt",
-        "color": "#ff0000",
-        "pattern": "solid",
-        "fit": "regular",
-        "season": ["summer", "all_season"]
-      }
-      
-      CRITICAL: For the "color" field, you MUST return a valid 6-character hex code starting with #. Do NOT return color names like "red", "black", or "navy". Only return the hex code. For "season", return an array containing one or more valid constraints based on the weather the item is suited for.
-    `;
+    const prompt = `Analyze this clothing item image. Respond ONLY with a valid JSON object — no markdown, no explanation, no backticks. Use this exact structure:
+{
+  "name": "<closest match from: t-shirt, graphic tee, polo shirt, shirt, dress shirt, blouse, tank top, crop top, sweater, turtleneck, hoodie, sweatshirt, jeans, slim jeans, straight jeans, wide leg jeans, chinos, trousers, shorts, cargo pants, joggers, sweatpants, skirt, mini skirt, midi skirt, maxi skirt, leggings, jacket, blazer, suit jacket, denim jacket, leather jacket, bomber jacket, trench coat, overcoat, parka, cardigan, vest, sneakers, white sneakers, chunky sneakers, loafers, oxford shoes, derby shoes, chelsea boots, ankle boots, boots, sandals, slides, heels, block heels, mules, flip flops>",
+  "color": "<closest match from: white, black, gray, light gray, beige, cream, ivory, off-white, camel, tan, taupe, charcoal, brown, dark brown, navy, blue, light blue, royal blue, sky blue, cobalt, denim, green, olive, khaki, forest green, sage, mint, emerald, red, dark red, crimson, maroon, burgundy, wine, pink, hot pink, blush, mauve, rose, yellow, mustard, gold, orange, coral, peach, rust, terracotta, purple, lavender, violet, plum, lilac>",
+  "pattern": "<closest match from: solid, striped, thin stripe, wide stripe, checkered, plaid, tartan, floral, small floral, graphic, camo, animal, paisley, houndstooth, herringbone, pinstripe, polka, tie_dye, geometric, abstract>"
+}
+Only return the JSON. If you cannot identify the item clearly, make your best guess.`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const result = await model.generateContent([prompt, imagePart]);
@@ -147,26 +129,25 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
 
     // Clean any potential markdown string wrappers from Gemini
     let cleanedText = responseText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
-    const insights = JSON.parse(cleanedText);
 
-    // Ultimate fallback for color just in case Gemini disobeys the prompt and sends a word
-    if (insights.color && !insights.color.startsWith('#')) {
-      // rough fallback map
-      const colorMap = {
-        'black': '#000000', 'white': '#ffffff', 'red': '#ff0000', 'blue': '#0000ff', 'green': '#008000',
-        'yellow': '#ffff00', 'navy': '#000080', 'grey': '#808080', 'gray': '#808080', 'brown': '#a52a2a',
-        'pink': '#ffc0cb', 'purple': '#800080', 'orange': '#ffa500'
-      };
-      insights.color = colorMap[insights.color.toLowerCase()] || '#000000';
+    let insights;
+    try {
+      insights = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error("Gemini returned non-JSON response:", cleanedText);
+      // Cleanup local temp file
+      if (req.file && req.file.path) fs.unlinkSync(req.file.path);
+      return res.status(422).json({ success: false, message: "Could not read this item — try a clearer photo." });
     }
 
     res.json({ success: true, data: insights });
 
     // Cleanup local temp file
-    fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) fs.unlinkSync(req.file.path);
 
   } catch (error) {
     console.error("Gemini Analysis Error:", error);
+    if (req.file && req.file.path) { try { fs.unlinkSync(req.file.path); } catch(e) {} }
     res.status(500).json({ success: false, message: `AI Analysis Failed: ${error.message}` });
   }
 });

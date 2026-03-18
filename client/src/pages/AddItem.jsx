@@ -58,15 +58,71 @@ function AddItem() {
             if (res.success && res.data) {
               const aiData = res.data;
               
+              // Map AI name → category + subCategory
+              const nameToCategory = {
+                't-shirt': ['top', 'tshirt'], 'graphic tee': ['top', 'tshirt'], 'polo shirt': ['top', 'shirt'],
+                'shirt': ['top', 'shirt'], 'dress shirt': ['top', 'shirt'], 'blouse': ['top', 'shirt'],
+                'tank top': ['top', 'vest'], 'crop top': ['top', 'vest'], 'sweater': ['outerwear', 'sweater'],
+                'turtleneck': ['outerwear', 'sweater'], 'hoodie': ['outerwear', 'hoodie'],
+                'sweatshirt': ['outerwear', 'hoodie'], 'jeans': ['bottom', 'jeans'],
+                'slim jeans': ['bottom', 'jeans'], 'straight jeans': ['bottom', 'jeans'],
+                'wide leg jeans': ['bottom', 'jeans'], 'chinos': ['bottom', 'trousers'],
+                'trousers': ['bottom', 'trousers'], 'shorts': ['bottom', 'shorts'],
+                'cargo pants': ['bottom', 'cargo'], 'joggers': ['bottom', 'trousers'],
+                'sweatpants': ['bottom', 'trousers'], 'jacket': ['outerwear', 'jacket'],
+                'blazer': ['outerwear', 'blazer'], 'suit jacket': ['outerwear', 'blazer'],
+                'denim jacket': ['outerwear', 'jacket'], 'leather jacket': ['outerwear', 'jacket'],
+                'bomber jacket': ['outerwear', 'jacket'], 'trench coat': ['outerwear', 'coat'],
+                'overcoat': ['outerwear', 'coat'], 'parka': ['outerwear', 'coat'],
+                'cardigan': ['outerwear', 'sweater'], 'vest': ['top', 'vest'],
+                'sneakers': ['footwear', 'sneakers'], 'white sneakers': ['footwear', 'sneakers'],
+                'chunky sneakers': ['footwear', 'sneakers'], 'loafers': ['footwear', 'formal_shoes'],
+                'oxford shoes': ['footwear', 'formal_shoes'], 'derby shoes': ['footwear', 'formal_shoes'],
+                'chelsea boots': ['footwear', 'boots'], 'ankle boots': ['footwear', 'boots'],
+                'boots': ['footwear', 'boots'], 'sandals': ['footwear', 'slides'],
+                'slides': ['footwear', 'slides'], 'heels': ['footwear', 'formal_shoes'],
+                'block heels': ['footwear', 'formal_shoes'], 'mules': ['footwear', 'slides'],
+                'flip flops': ['footwear', 'slides'],
+              };
+
+              // Map AI color name → hex
+              const colorNameToHex = {
+                'white': '#FFFFFF', 'black': '#000000', 'gray': '#808080', 'light gray': '#D3D3D3',
+                'beige': '#F5F5DC', 'cream': '#FFFDD0', 'ivory': '#FFFFF0', 'off-white': '#FAF9F6',
+                'camel': '#C19A6B', 'tan': '#D2B48C', 'taupe': '#483C32', 'charcoal': '#36454F',
+                'brown': '#8B4513', 'dark brown': '#654321', 'navy': '#1B2A4A', 'blue': '#0000FF',
+                'light blue': '#ADD8E6', 'royal blue': '#4169E1', 'sky blue': '#87CEEB',
+                'cobalt': '#0047AB', 'denim': '#1560BD', 'green': '#008000', 'olive': '#808000',
+                'khaki': '#F0E68C', 'forest green': '#228B22', 'sage': '#BCB88A', 'mint': '#98FF98',
+                'emerald': '#50C878', 'red': '#FF0000', 'dark red': '#8B0000', 'crimson': '#DC143C',
+                'maroon': '#800000', 'burgundy': '#800020', 'wine': '#722F37', 'pink': '#FFC0CB',
+                'hot pink': '#FF69B4', 'blush': '#DE5D83', 'mauve': '#E0B0FF', 'rose': '#FF007F',
+                'yellow': '#FFFF00', 'mustard': '#FFDB58', 'gold': '#FFD700', 'orange': '#FFA500',
+                'coral': '#FF7F50', 'peach': '#FFCBA4', 'rust': '#B7410E', 'terracotta': '#E2725B',
+                'purple': '#800080', 'lavender': '#E6E6FA', 'violet': '#8F00FF', 'plum': '#DDA0DD',
+                'lilac': '#C8A2C8',
+              };
+
+              const matched = nameToCategory[(aiData.name || '').toLowerCase()];
+              const hexColor = colorNameToHex[(aiData.color || '').toLowerCase()] || '#000000';
+              // Map pattern — keep if it matches our enum, else use closest
+              const patternMap = {
+                'solid': 'solid', 'striped': 'striped', 'thin stripe': 'striped', 'wide stripe': 'striped',
+                'checkered': 'checked', 'plaid': 'checked', 'tartan': 'checked', 'floral': 'printed',
+                'small floral': 'printed', 'graphic': 'graphic', 'camo': 'printed',
+                'animal': 'printed', 'paisley': 'printed', 'houndstooth': 'checked',
+                'herringbone': 'checked', 'pinstripe': 'striped', 'polka': 'printed',
+                'tie_dye': 'printed', 'geometric': 'graphic', 'abstract': 'graphic',
+              };
+              const mappedPattern = patternMap[(aiData.pattern || '').toLowerCase()] || 'solid';
+
               setForm(prev => ({
                 ...prev,
-                category: aiData.category || prev.category,
-                subCategory: aiData.subCategory || prev.subCategory,
-                color: aiData.color || prev.color,
-                pattern: aiData.pattern || prev.pattern,
-                fit: aiData.fit || prev.fit,
-                season: aiData.season || prev.season,
-                occasion: prev.occasion // Let the user select occasion manually
+                category: matched ? matched[0] : prev.category,
+                subCategory: matched ? matched[1] : prev.subCategory,
+                color: hexColor,
+                pattern: mappedPattern,
+                occasion: prev.occasion,
               }));
             }
           } catch (err) {
