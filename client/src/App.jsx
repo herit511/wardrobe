@@ -6,6 +6,7 @@ import ForgotPassword from './pages/ForgotPassword'
 import Dashboard from './pages/Dashboard'
 import Closet from './pages/Closet'
 import Outfits from './pages/Outfits'
+import Suggestions from './pages/Suggestions'
 import AddItem from './pages/AddItem'
 import EditItem from './pages/EditItem'
 import StyleProfile from './pages/StyleProfile'
@@ -26,6 +27,7 @@ function App() {
           <Route path="/dashboard" element={<><Navbar /><Dashboard /></>} />
           <Route path="/closet" element={<><Navbar /><Closet /></>} />
           <Route path="/outfits" element={<><Navbar /><Outfits /></>} />
+          <Route path="/suggestions" element={<><Navbar /><Suggestions /></>} />
           <Route path="/add-item" element={<><Navbar /><AddItem /></>} />
           <Route path="/edit-item/:id" element={<><Navbar /><EditItem /></>} />
           <Route path="/style-profile" element={<><Navbar /><StyleProfile /></>} />
