@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Heart, Search, Shirt, MoreVertical, Edit2, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import { getColorName } from '../utils'
 import './Closet.css'
@@ -14,8 +15,14 @@ function Closet() {
   const [activeSeason, setActiveSeason] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
+  const [activeDropdown, setActiveDropdown] = useState(null)
 
-  useEffect(() => { fetchItems() }, [])
+  useEffect(() => { 
+    fetchItems() 
+    const handleClickOutside = () => setActiveDropdown(null)
+    window.addEventListener('click', handleClickOutside)
+    return () => window.removeEventListener('click', handleClickOutside)
+  }, [])
 
   const fetchItems = async () => {
     try {
@@ -72,7 +79,7 @@ function Closet() {
           </div>
           <div className="header-stats">
             <span className="badge badge-amber">{items.length} Items</span>
-            {favCount > 0 && <span className="badge badge-orange">❤️ {favCount} Favorites</span>}
+            {favCount > 0 && <span className="badge badge-orange"><Heart size={14} fill="currentColor" strokeWidth={1.5} style={{ verticalAlign: 'text-bottom' }} /> {favCount} Favorites</span>}
           </div>
         </div>
 
@@ -86,7 +93,7 @@ function Closet() {
                 onClick={() => setActiveCategory(cat)}
                 id={`filter-${cat.toLowerCase()}`}
               >
-                {cat === 'Favorites' ? `❤️ ${cat}` : cat}
+                {cat === 'Favorites' ? <><Heart size={14} fill="currentColor" strokeWidth={1.5} style={{ verticalAlign: 'text-bottom' }} /> {cat}</> : cat}
               </button>
             ))}
           </div>
@@ -95,7 +102,7 @@ function Closet() {
               {seasons.map(s => <option key={s} value={s}>{s === 'All' ? 'All Seasons' : s}</option>)}
             </select>
             <div className="search-box">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <Search size={16} strokeWidth={2} />
               <input type="text" placeholder="Search items..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} id="closet-search" />
             </div>
           </div>
@@ -107,24 +114,40 @@ function Closet() {
         ) : (
           <div className="items-grid">
             {filteredItems.map((item, i) => (
-              <div key={item._id} className="item-card card animate-fade-in-up" style={{ animationDelay: `${0.15 + i * 0.05}s` }} id={`item-${item._id}`}>
+              <div key={item._id} className={`item-card card animate-fade-in-up ${activeDropdown === item._id ? 'has-dropdown' : ''}`} style={{ animationDelay: `${0.15 + i * 0.05}s` }} id={`item-${item._id}`}>
                 <div className="item-img" style={{ backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}>
                   <button 
                     className={`fav-btn ${item.userPreferenceScore > 0 ? 'fav-active' : ''}`}
                     onClick={(e) => { e.stopPropagation(); toggleFavorite(item); }}
                     title={item.userPreferenceScore > 0 ? 'Remove from favorites' : 'Add to favorites'}
                   >
-                    {item.userPreferenceScore > 0 ? '❤️' : '🤍'}
+                    {item.userPreferenceScore > 0 ? <Heart size={20} fill="currentColor" strokeWidth={0} /> : <Heart size={20} strokeWidth={2} />}
                   </button>
-                  <div className="item-overlay">
-                    <button className="btn btn-light btn-sm" onClick={() => navigate(`/edit-item/${item._id}`)}>Edit</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item._id)}>Delete</button>
+
+                  <div className="item-actions-wrapper">
+                    <button 
+                      className={`more-actions-btn ${activeDropdown === item._id ? 'active' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === item._id ? null : item._id); }}
+                    >
+                      <MoreVertical size={18} strokeWidth={2} />
+                    </button>
+                    
+                    {activeDropdown === item._id && (
+                      <div className="actions-dropdown animate-fade-in">
+                        <button onClick={(e) => { e.stopPropagation(); navigate(`/edit-item/${item._id}`); }}>
+                          <Edit2 size={14} /> Edit
+                        </button>
+                        <button className="delete-option" onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleDelete(item._id); }}>
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="item-info">
                   <div className="item-category-badge">
                     <span className="badge badge-orange">{item.category}</span>
-                    {item.userPreferenceScore > 0 && <span className="badge badge-orange" style={{ marginLeft: '4px' }}>❤️</span>}
+                    {item.userPreferenceScore > 0 && <span className="badge badge-orange" style={{ marginLeft: '4px' }}><Heart size={12} fill="currentColor" strokeWidth={0} /></span>}
                   </div>
                   <h3 className="item-name" style={{ textTransform: 'capitalize' }}>{getColorName(item.color)} {item.subCategory.replace('_', ' ')}</h3>
                   <p className="item-brand">{item.condition} condition</p>
@@ -136,8 +159,10 @@ function Closet() {
 
         {!loading && filteredItems.length === 0 && (
           <div className="empty-state animate-fade-in">
-            <div className="empty-icon">{activeCategory === 'Favorites' ? '❤️' : '👗'}</div>
-            <h2>{activeCategory === 'Favorites' ? 'No favorite items yet' : 'No items found'}</h2>
+            <div className="empty-icon">
+              {activeCategory === 'Favorites' ? <Heart size={48} fill="currentColor" strokeWidth={1} style={{ color: '#E87040' }} /> : <Shirt size={48} strokeWidth={1.5} style={{ color: '#1B2A4A' }} />}
+            </div>
+            <h2 className="heading-italic">{activeCategory === 'Favorites' ? 'No favorite items yet' : 'No items found'}</h2>
             <p>{activeCategory === 'Favorites' ? 'Tap the heart on any item to add it to your favorites.' : 'Try changing your filters or add new items to your closet.'}</p>
             {activeCategory !== 'Favorites' && (
               <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add First Item</button>

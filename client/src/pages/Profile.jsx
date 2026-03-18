@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Calendar, BarChart2, Dna, Settings, Bell } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
 import { getColorName } from '../utils'
@@ -19,6 +20,9 @@ function Profile() {
   // Change Password State
   const [changingPassword, setChangingPassword] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' })
+
+  // Delete Account State
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Preferences State
   const [preferences, setPreferences] = useState({
@@ -86,14 +90,11 @@ function Profile() {
   }
 
   const handleDeleteAccount = async () => {
-    const confirm = window.confirm('Are you strictly sure you want to delete your account? This action cannot be undone and all data will be lost.')
-    if (confirm) {
-      try {
-        await api.del('/auth/account')
-        logout()
-        navigate('/login')
-      } catch (err) { alert('Failed to delete account') }
-    }
+    try {
+      await api.del('/auth/account')
+      logout()
+      navigate('/login')
+    } catch (err) { alert('Failed to delete account') }
   }
 
   const categoryLabels = { top: 'Tops', bottom: 'Bottoms', footwear: 'Footwear', outerwear: 'Outerwear' }
@@ -162,7 +163,7 @@ function Profile() {
           {/* 1. Recent Outfit History — FULL WIDTH ON TOP */}
           <div className="card profile-card full-width animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="card-header">
-              <h3>📅 Recent Outfit History</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={20} strokeWidth={1.5} /> Recent Outfit History</h3>
             </div>
             <div style={{ padding: '0 20px 20px' }}>
               {stats && stats.recentWornHistory.length > 0 ? (
@@ -206,7 +207,7 @@ function Profile() {
           {/* 2. Wardrobe Insights — LEFT side */}
           <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
             <div className="card-header">
-              <h3>📊 Wardrobe Insights</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><BarChart2 size={20} strokeWidth={1.5} /> Wardrobe Insights</h3>
             </div>
             <div className="insights-content">
               <div className="insight-chart">
@@ -233,7 +234,7 @@ function Profile() {
           {/* 2. Style DNA — RIGHT side */}
           <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <div className="card-header">
-              <h3>🧬 Style DNA</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Dna size={20} strokeWidth={1.5} /> Style DNA</h3>
               <button className="btn btn-ghost btn-xs" onClick={() => navigate('/style-profile')}>Edit</button>
             </div>
             <div className="style-dna-content">
@@ -267,7 +268,7 @@ function Profile() {
           {/* 3. Account Settings — LEFT bottom */}
           <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
             <div className="card-header">
-              <h3>⚙️ Account Settings</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Settings size={20} strokeWidth={1.5} /> Account Settings</h3>
             </div>
             
             <div className="settings-list">
@@ -297,39 +298,39 @@ function Profile() {
           {/* 3. Preferences — RIGHT bottom */}
           <div className="card profile-card animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             <div className="card-header">
-              <h3>🔔 Preferences</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Bell size={20} strokeWidth={1.5} /> Preferences</h3>
             </div>
             <div className="preferences-list">
-              <div className="pref-row">
+              <label className="pref-row" style={{ cursor: 'pointer' }}>
                 <div>
                   <div className="pref-title">Daily Outfit Suggestion</div>
                   <div className="pref-desc">Get a fresh outfit idea every morning</div>
                 </div>
-                <label className="toggle">
+                <div className="toggle">
                   <input type="checkbox" checked={preferences.dailySuggestion} onChange={() => handleTogglePreference('dailySuggestion')} />
                   <span className="toggle-slider"></span>
-                </label>
-              </div>
-              <div className="pref-row">
+                </div>
+              </label>
+              <label className="pref-row" style={{ cursor: 'pointer' }}>
                 <div>
                   <div className="pref-title">Weekly Wardrobe Tips</div>
                   <div className="pref-desc">Style tips based on your wardrobe analysis</div>
                 </div>
-                <label className="toggle">
+                <div className="toggle">
                   <input type="checkbox" checked={preferences.weeklyTips} onChange={() => handleTogglePreference('weeklyTips')} />
                   <span className="toggle-slider"></span>
-                </label>
-              </div>
-              <div className="pref-row">
+                </div>
+              </label>
+              <label className="pref-row" style={{ cursor: 'pointer' }}>
                 <div>
                   <div className="pref-title">Trend Alerts</div>
                   <div className="pref-desc">Get notified about new fashion trends</div>
                 </div>
-                <label className="toggle">
+                <div className="toggle">
                   <input type="checkbox" checked={preferences.trendAlerts} onChange={() => handleTogglePreference('trendAlerts')} />
                   <span className="toggle-slider"></span>
-                </label>
-              </div>
+                </div>
+              </label>
             </div>
           </div>
         </div>
@@ -337,8 +338,24 @@ function Profile() {
         {/* Danger Zone */}
         <div className="danger-zone animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
           <button className="btn btn-ghost logout-btn" id="logout-btn" onClick={() => { logout(); navigate('/login'); }}>Log Out</button>
-          <button className="btn btn-ghost danger-btn" id="delete-account-btn" onClick={handleDeleteAccount}>Delete Account</button>
+          <button className="outline-danger" id="delete-account-btn" onClick={() => setShowDeleteModal(true)}>Danger: Delete Account</button>
         </div>
+
+        {/* Delete Account Modal */}
+        {showDeleteModal && (
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+            <div className="modal-content card animate-fade-in-up" style={{ padding: '30px', width: '90%', maxWidth: '400px', textAlign: 'center' }}>
+              <h3 style={{ marginBottom: '15px', color: '#E74C3C', fontFamily: 'var(--font-heading)', fontStyle: 'italic', fontSize: '1.4rem' }}>Delete Account</h3>
+              <p style={{ color: '#6B7B8D', marginBottom: '25px', lineHeight: '1.5' }}>
+                Are you strictly sure you want to delete your account? This action cannot be undone and all your data, including saved outfits and closet items, will be permanently lost.
+              </p>
+              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                <button className="btn btn-ghost" onClick={() => setShowDeleteModal(false)} style={{ flex: 1 }}>Cancel</button>
+                <button className="btn" onClick={handleDeleteAccount} style={{ flex: 1, background: '#E74C3C', color: 'white', border: 'none' }}>Yes, Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

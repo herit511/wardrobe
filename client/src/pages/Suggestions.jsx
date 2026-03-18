@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { Sparkles, AlertTriangle, Shirt, Save } from 'lucide-react'
 import { api } from '../api'
 import './Outfits.css'
 
@@ -38,7 +39,7 @@ function Suggestions() {
       if (!saveRes.success) throw new Error(saveRes.message || 'Failed to save')
       const wearRes = await api.post(`/outfits/${saveRes.data._id}/wear`, {})
       if (!wearRes.success) throw new Error(wearRes.message)
-      alert('🎉 Outfit logged as worn today! You can find it in your Saved outfits.')
+      alert('Outfit logged as worn today! You can find it in your Saved outfits.')
       navigate('/outfits')
     } catch (err) { alert(`Error: ${err.message}`) }
     finally { setSavingAction(null) }
@@ -50,7 +51,7 @@ function Suggestions() {
       const itemIds = outfit.items.map(i => i._id)
       const saveRes = await api.post('/outfits', { title: outfit.title, occasion, items: itemIds })
       if (!saveRes.success) throw new Error(saveRes.message || 'Failed to save')
-      alert('💾 Outfit saved!')
+      alert('Outfit saved!')
       navigate('/outfits')
     } catch (err) { alert(`Error: ${err.message}`) }
     finally { setSavingAction(null) }
@@ -64,8 +65,8 @@ function Suggestions() {
         </button>
         
         <div className="outfits-header animate-fade-in-up">
-          <h1 className="page-title heading-italic">
-            <span className="sparkle">✨</span> AI Outfit Suggestions
+          <h1 className="page-title heading-italic" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={24} strokeWidth={1.5} className="sparkle" /> AI Outfit Suggestions
           </h1>
           <p className="page-subtitle">
             Perfectly styled for a {temperature} {occasion.toLowerCase()} day.
@@ -73,15 +74,15 @@ function Suggestions() {
         </div>
 
         {error && (
-          <div style={{ background: '#FDECEA', color: '#E74C3C', padding: '15px 20px', borderRadius: '8px', marginBottom: '20px' }}>
-            ⚠️ {error}
+          <div style={{ background: '#FDECEA', color: '#E74C3C', padding: '15px 20px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={18} strokeWidth={1.5} /> {error}
           </div>
         )}
         
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#1B2A4A' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '15px' }} className="sparkle-lg">✨</div>
-            <h2>Curating your perfect looks...</h2>
+            <div style={{ marginBottom: '15px', color: '#1B2A4A' }}><Sparkles size={48} strokeWidth={1.5} className="sparkle-lg sparkle" /></div>
+            <h2 className="heading-italic">Curating your perfect looks...</h2>
             <p style={{color: '#6B7B8D', marginTop: '10px'}}>AI is pairing up your tops, bottoms, and footwear</p>
           </div>
         ) : (
@@ -92,8 +93,8 @@ function Suggestions() {
               <div key={outfit.id} className="outfit-card card animate-fade-in-up" style={{ animationDelay: `${0.2 + i * 0.15}s` }}>
                 <div className="outfit-card-header">
                   <div>
-                    <h2 className="outfit-card-title heading-italic">
-                      <span className="sparkle-sm">✨</span> {outfit.title}
+                    <h2 className="outfit-card-title heading-italic" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Sparkles size={16} strokeWidth={1.5} className="sparkle-sm sparkle" /> {outfit.title}
                     </h2>
                     <div className="outfit-tags">
                       {outfit.tags.map(tag => <span key={tag} className="badge badge-amber">{tag}</span>)}
@@ -119,10 +120,10 @@ function Suggestions() {
 
                 <div className="outfit-card-actions">
                   <button className="btn btn-primary outfit-wear-btn" onClick={() => handleWearThis(outfit)} disabled={savingAction?.id === outfit.id} title="Log as worn today and save">
-                    {savingAction?.id === outfit.id && savingAction?.type === 'wear' ? 'Logging...' : '👕 Wear This'}
+                    {savingAction?.id === outfit.id && savingAction?.type === 'wear' ? 'Logging...' : <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Shirt size={16} strokeWidth={1.5} /> Wear This</div>}
                   </button>
                   <button className="btn btn-ghost" onClick={() => handleSaveOutfit(outfit)} disabled={savingAction?.id === outfit.id} title="Save for later without marking worn">
-                    {savingAction?.id === outfit.id && savingAction?.type === 'save' ? 'Saving...' : '💾 Save for Later'}
+                    {savingAction?.id === outfit.id && savingAction?.type === 'save' ? 'Saving...' : <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Save size={16} strokeWidth={1.5} /> Save for Later</div>}
                   </button>
                 </div>
               </div>

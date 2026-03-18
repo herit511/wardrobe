@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Sparkles, Sun, CloudSun, CloudSnow, Save, RefreshCw, Shirt, Heart, Trash2 } from 'lucide-react'
 import { api } from '../api'
 import { getColorName } from '../utils'
 import './Outfits.css'
@@ -64,8 +65,8 @@ function Outfits() {
             {/* GENERATE SECTION */}
             <div className="card" style={{ padding: '30px', marginBottom: '40px', background: 'linear-gradient(145deg, #ffffff, #fdfbf7)', border: '1px solid #EBE4DD' }}>
               <div className="outfits-header animate-fade-in-up" style={{ marginBottom: '20px' }}>
-                <h1 className="page-title heading-italic" style={{ fontSize: '1.8rem' }}>
-                  <span className="sparkle">✨</span> Get Outfit Suggestions
+                <h1 className="page-title heading-italic" style={{ fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={24} strokeWidth={1.5} className="sparkle" /> Get Outfit Suggestions
                 </h1>
                 <p className="page-subtitle">
                   Tell AI your plans and we'll curate the perfect looks from your wardrobe.
@@ -91,7 +92,7 @@ function Outfits() {
                     onClick={() => setTemperature('hot')} 
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 10px', fontSize: '1rem', background: temperature === 'hot' ? '#FDECEA' : '#fff' }}
                   >
-                    <span style={{ fontSize: '1.8rem', marginBottom: '8px' }}>☀️</span>
+                    <Sun size={24} strokeWidth={1.5} style={{ marginBottom: '8px' }} />
                     Hot
                   </button>
                   <button 
@@ -99,7 +100,7 @@ function Outfits() {
                     onClick={() => setTemperature('mild')} 
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 10px', fontSize: '1rem', background: temperature === 'mild' ? '#EBF5FF' : '#fff' }}
                   >
-                    <span style={{ fontSize: '1.8rem', marginBottom: '8px' }}>⛅</span>
+                    <CloudSun size={24} strokeWidth={1.5} style={{ marginBottom: '8px' }} />
                     Mild
                   </button>
                   <button 
@@ -107,7 +108,7 @@ function Outfits() {
                     onClick={() => setTemperature('cold')} 
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 10px', fontSize: '1rem', background: temperature === 'cold' ? '#F0F4F8' : '#fff' }}
                   >
-                    <span style={{ fontSize: '1.8rem', marginBottom: '8px' }}>❄️</span>
+                    <CloudSnow size={24} strokeWidth={1.5} style={{ marginBottom: '8px' }} />
                     Cold
                   </button>
                 </div>
@@ -118,7 +119,9 @@ function Outfits() {
                 style={{ width: '100%', marginTop: '25px', padding: '15px', fontSize: '1.1rem' }} 
                 onClick={handleGenerateClick}
               >
-                <span className="sparkle">✨</span> Generate My Outfits
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Sparkles size={16} strokeWidth={1.5} className="sparkle" /> Generate My Outfits
+                </div>
               </button>
             </div>
 
@@ -126,15 +129,15 @@ function Outfits() {
             <div className="outfits-header animate-fade-in-up">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h1 className="page-title heading-italic">
-                    💾 My Saved Outfits
+                  <h1 className="page-title heading-italic" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Save size={20} strokeWidth={1.5} /> My Saved Outfits
                   </h1>
                   <p className="page-subtitle">
                     {savedOutfits.length} saved · {savedOutfits.filter(o => o.isFavorite).length} favorited
                   </p>
                 </div>
-                <button className="btn btn-secondary" onClick={fetchSavedOutfits} disabled={savedLoading}>
-                  🔄 Refresh
+                <button className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={fetchSavedOutfits} disabled={savedLoading}>
+                  <RefreshCw size={16} strokeWidth={1.5} /> Refresh
                 </button>
               </div>
             </div>
@@ -142,7 +145,7 @@ function Outfits() {
                   <div style={{ textAlign: 'center', padding: '40px', color: '#1B2A4A' }}>Loading your saved outfits...</div>
                 ) : sortedSavedOutfits.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#6B7B8D' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '15px' }}>👗</div>
+                    <div style={{ marginBottom: '15px', color: '#1B2A4A' }}><Shirt size={48} strokeWidth={1.5} /></div>
                     <h3 style={{ marginBottom: '8px', color: '#1B2A4A' }}>No saved outfits yet</h3>
                     <p>Use the box above to generate some outfits and save your favorites!</p>
                   </div>
@@ -153,7 +156,7 @@ function Outfits() {
                         <div className="outfit-card-header">
                           <div>
                             <h2 className="outfit-card-title heading-italic">
-                              {outfit.isFavorite ? '❤️' : '💾'} {outfit.title}
+                              {outfit.isFavorite ? <Heart size={20} fill="currentColor" strokeWidth={0} /> : <Save size={20} strokeWidth={1.5} />} {outfit.title}
                             </h2>
                             <div className="outfit-tags">
                               <span className="badge badge-amber">{outfit.occasion}</span>
@@ -192,7 +195,9 @@ function Outfits() {
                             onClick={() => toggleFavoriteOutfit(outfit._id)}
                             title={outfit.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                           >
-                            {outfit.isFavorite ? '❤️ Favorited' : '🤍 Favorite'}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              {outfit.isFavorite ? <><Heart size={16} fill="currentColor" strokeWidth={0} /> Favorited</> : <><Heart size={16} strokeWidth={1.5} /> Favorite</>}
+                            </div>
                           </button>
                           <button 
                             className="btn btn-ghost"
@@ -200,7 +205,9 @@ function Outfits() {
                             style={{ color: '#E74C3C' }}
                             title="Delete this outfit"
                           >
-                            🗑️ Remove
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <Trash2 size={16} strokeWidth={1.5} /> Remove
+                            </div>
                           </button>
                         </div>
                       </div>

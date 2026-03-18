@@ -1,0 +1,77 @@
+.custom-select {
+  position: relative;
+  width: 100%;
+  font-family: var(--font-body);
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.select-trigger:hover,
+.select-trigger.open {
+  border-color: var(--color-orange);
+}
+
+.select-trigger.open {
+  box-shadow: 0 0 0 3px rgba(232, 112, 64, 0.1);
+}
+
+.select-chevron {
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.select-trigger.open .select-chevron {
+  transform: rotate(180deg);
+}
+
+.custom-select.disabled .select-trigger {
+  background: var(--color-bg);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 50;
+  padding: 6px;
+}
+
+.select-option {
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  font-size: 0.95rem;
+}
+
+.select-option:hover {
+  background: var(--color-bg-warm);
+}
+
+.select-option.selected {
+  background: rgba(232, 112, 64, 0.1);
+  color: var(--color-orange);
+  font-weight: 600;
+}

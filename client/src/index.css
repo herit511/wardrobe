@@ -233,6 +233,7 @@ input, select, textarea {
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  text-transform: capitalize;
 }
 
 .chip:hover, .chip.active {
@@ -248,6 +249,7 @@ input, select, textarea {
   border-radius: var(--radius-full);
   font-size: 0.75rem;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
 .badge-orange {

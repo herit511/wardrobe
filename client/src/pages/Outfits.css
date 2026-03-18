@@ -204,8 +204,10 @@
 }
 
 .outfit-card-item-img {
-  width: 120px;
-  height: 120px;
+  width: 100%;
+  max-width: 120px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;

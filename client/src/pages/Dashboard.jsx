@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Sun, Sparkles, Shirt, Layers, Heart, Package, Shuffle, ArrowRight } from 'lucide-react'
 import { api } from '../api'
 import { getColorName } from '../utils'
 import './Dashboard.css'
@@ -43,7 +44,7 @@ function Dashboard() {
         <section className="hero-section animate-fade-in-up">
           <div className="hero-content">
             <div className="hero-weather">
-              <span className="weather-icon">☀️</span>
+              <Sun size={20} strokeWidth={1.5} className="weather-icon" />
               <span className="weather-text">22°C · Sunny</span>
             </div>
             <h1 className="hero-title heading-italic">What should I wear today?</h1>
@@ -51,7 +52,7 @@ function Dashboard() {
               Based on your schedule and today's sunny 22°C weather, we've curated a breathable yet professional look.
             </p>
             <button className="btn btn-primary hero-btn" onClick={() => navigate('/outfits')} id="get-suggestions-btn">
-              <span className="sparkle">✨</span> Get Outfit Suggestions
+              <Sparkles size={16} strokeWidth={1.5} /> Get Outfit Suggestions
             </button>
           </div>
         </section>
@@ -59,22 +60,22 @@ function Dashboard() {
         {/* Stats Cards */}
         <section className="stats-section">
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <div className="stat-icon">👔</div>
+            <div className="stat-icon"><Shirt size={24} strokeWidth={1.5} /></div>
             <div className="stat-value">{loading ? '-' : totalItems}</div>
             <div className="stat-label">Total Items</div>
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <div className="stat-icon">👗</div>
+            <div className="stat-icon"><Layers size={24} strokeWidth={1.5} /></div>
             <div className="stat-value">0</div>
             <div className="stat-label">Outfits Created</div>
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <div className="stat-icon">❤️</div>
+            <div className="stat-icon"><Heart size={24} strokeWidth={1.5} /></div>
             <div className="stat-value">{loading ? '-' : favoritePieces}</div>
             <div className="stat-label">Favorite Pieces</div>
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <div className="stat-icon">📦</div>
+            <div className="stat-icon"><Package size={24} strokeWidth={1.5} /></div>
             <div className="stat-value">{loading ? '-' : addedThisMonth}</div>
             <div className="stat-label">Added This Month</div>
           </div>
@@ -110,7 +111,9 @@ function Dashboard() {
                 </div>
                 <div className="outfit-actions">
                   <button className="btn btn-primary" id="wear-this-btn" onClick={() => alert('Outfit saved! (In-progress)')}>Wear This</button>
-                  <button className="btn btn-secondary" onClick={fetchDashboardData}>🔄 Shuffle</button>
+                  <button className="shuffle-btn" onClick={fetchDashboardData}>
+                    <Shuffle size={16} strokeWidth={1.5} /> Shuffle
+                  </button>
                 </div>
               </>
             ) : (
@@ -126,7 +129,9 @@ function Dashboard() {
         <section className="recent-section animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
           <div className="section-header">
             <h2 className="section-title heading-italic">Recently Added</h2>
-            <button className="btn btn-ghost" onClick={() => navigate('/closet')}>View All →</button>
+            <button className="btn btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => navigate('/closet')}>
+              View All <ArrowRight size={16} strokeWidth={1.5} />
+            </button>
           </div>
           <div className="recent-scroll">
             {recentItems.length === 0 && !loading && <div style={{ padding: '20px', color: '#666' }}>No items added yet.</div>}

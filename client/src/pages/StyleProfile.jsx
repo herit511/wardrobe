@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Square, Flame, Briefcase, Flower2, Activity, Crown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
 import './StyleProfile.css'
 
 const styleArchetypes = [
-  { id: 'minimalist', name: 'Minimalist', desc: 'Clean · Structural · Neutral', emoji: '⬜' },
-  { id: 'streetwear', name: 'Streetwear', desc: 'Urban · Bold · Casual', emoji: '🧢' },
-  { id: 'classic', name: 'Classic', desc: 'Timeless · Polished · Elegant', emoji: '👔' },
-  { id: 'bohemian', name: 'Bohemian', desc: 'Flowy · Eclectic · Earthy', emoji: '🌸' },
-  { id: 'sporty', name: 'Sporty', desc: 'Athletic · Dynamic · Fresh', emoji: '🏃' },
-  { id: 'formal', name: 'Formal', desc: 'Sharp · Refined · Powerful', emoji: '🎩' },
+  { id: 'minimalist', name: 'Minimalist', desc: 'Clean · Structural · Neutral', icon: Square },
+  { id: 'streetwear', name: 'Streetwear', desc: 'Urban · Bold · Casual', icon: Flame },
+  { id: 'classic', name: 'Classic', desc: 'Timeless · Polished · Elegant', icon: Briefcase },
+  { id: 'bohemian', name: 'Bohemian', desc: 'Flowy · Eclectic · Earthy', icon: Flower2 },
+  { id: 'sporty', name: 'Sporty', desc: 'Athletic · Dynamic · Fresh', icon: Activity },
+  { id: 'formal', name: 'Formal', desc: 'Sharp · Refined · Powerful', icon: Crown },
 ]
 
 const colorPalette = [
@@ -150,7 +151,7 @@ function StyleProfile() {
                   onClick={() => toggleStyle(arch.name)}
                   id={`style-${arch.id}`}
                 >
-                  <span className="archetype-emoji">{arch.emoji}</span>
+                  <span className="archetype-emoji"><arch.icon size={32} strokeWidth={1.5} /></span>
                   <h3 className="archetype-name">{arch.name}</h3>
                   <p className="archetype-desc">{arch.desc}</p>
                   {selectedStyles.includes(arch.name) && <div className="selected-check">✓</div>}

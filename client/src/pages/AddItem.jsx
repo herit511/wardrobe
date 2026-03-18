@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Camera, Sparkles } from 'lucide-react'
+import CustomSelect from '../components/CustomSelect'
 import { api } from '../api'
 import { colorMap } from '../utils'
 import './AddItem.css'
@@ -145,7 +147,7 @@ function AddItem() {
             >
               {!preview ? (
                 <div className="upload-placeholder">
-                  <div className="upload-icon">📸</div>
+                  <div className="upload-icon"><Camera size={48} strokeWidth={1.5} /></div>
                   <h3>Drag & drop your photo here</h3>
                   <p>or click to browse</p>
                   <span className="upload-formats">Supports JPG, PNG, JPEG</span>
@@ -156,8 +158,8 @@ function AddItem() {
                   {scanning && (
                     <div className="scan-overlay" style={{ borderRadius: '16px' }}>
                       <div className="scan-line"></div>
-                      <div className="scan-text">
-                        <span className="sparkle">✨</span> AI is Scanning...
+                      <div className="scan-text" style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+                        <Sparkles size={16} strokeWidth={1.5} className="sparkle" /> AI is Scanning...
                       </div>
                       <p className="scan-desc">Identifying fabric weight, color palette, and silhouette details.</p>
                     </div>
@@ -172,8 +174,8 @@ function AddItem() {
                     onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
                     onMouseLeave={(e) => e.currentTarget.style.opacity = 0}
                     >
-                      <span style={{ background: '#fff', color: '#1B2A4A', padding: '10px 20px', borderRadius: '24px', fontWeight: 600, fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-                        📷 Change Photo
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#fff', color: '#1B2A4A', padding: '10px 20px', borderRadius: '24px', fontWeight: 600, fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                        <Camera size={16} strokeWidth={1.5} /> Change Photo
                       </span>
                     </div>
                   )}
@@ -194,7 +196,7 @@ function AddItem() {
           <div className="details-panel animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="card details-card">
               <div className="details-header">
-                <h2><span className="sparkle">✨</span> AI-Detected Details</h2>
+                <h2 className="heading-italic" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Sparkles size={24} strokeWidth={1.5} className="sparkle" /> AI-Detected Details</h2>
                 {scanned && <span className="badge badge-orange">AI Analyzed</span>}
               </div>
               {error && <div className="error-message" style={{ color: '#E87040', marginBottom: '1rem', padding: '0 20px', fontSize: '0.9rem' }}>{error}</div>}
@@ -205,14 +207,12 @@ function AddItem() {
                     Category
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <select
-                    className="input-field"
+                  <CustomSelect
+                    options={categories.map(c => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))}
                     value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value, subCategory: subCategories[e.target.value]?.[0] || '' })}
+                    onChange={(val) => setForm({ ...form, category: val, subCategory: subCategories[val]?.[0] || '' })}
                     id="category-select"
-                  >
-                    {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-                  </select>
+                  />
                 </div>
 
                 <div className="form-group">
@@ -220,16 +220,12 @@ function AddItem() {
                     Sub-Category
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <select
-                    className="input-field"
+                  <CustomSelect
+                    options={(subCategories[form.category] || []).map(sc => ({ value: sc, label: sc.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) }))}
                     value={form.subCategory}
-                    onChange={(e) => setForm({ ...form, subCategory: e.target.value })}
+                    onChange={(val) => setForm({ ...form, subCategory: val })}
                     id="subcategory-select"
-                  >
-                    {(subCategories[form.category] || []).map(sc => (
-                      <option key={sc} value={sc}>{sc.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 <div className="form-group">
@@ -237,31 +233,36 @@ function AddItem() {
                     Color
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <div className="color-picker-row" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+                  <div className="color-picker-row" style={{ flexWrap: 'wrap' }}>
+                    {colorMap.filter(c => ['#000000', '#FFFFFF', '#1B2A4A', '#808080', '#D2B48C', '#E87040'].includes(c.hex)).map(c => (
+                      <button
+                        key={c.hex}
+                        type="button"
+                        className={`color-input ${form.color === c.hex ? 'active' : ''}`}
+                        style={{ backgroundColor: c.hex, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                        onClick={() => setForm({ ...form, color: c.hex })}
+                        title={c.name}
+                      />
+                    ))}
                     <input
                       type="color"
+                      title="Custom Color Picker"
                       value={form.color}
                       onChange={(e) => setForm({ ...form, color: e.target.value })}
-                      className="color-input"
-                      id="color-picker"
-                      title="Pick exact hex color"
+                      className="custom-color-picker"
+                      style={{ width: '32px', height: '32px', cursor: 'pointer', border: '1px solid var(--color-border)', borderRadius: '50%', padding: '0', background: 'none' }}
                     />
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: '1 1 200px' }}>
                       <span style={{ fontSize: '0.85rem', color: '#666', display: 'block', marginBottom: '4px' }}>Or pick by name:</span>
-                      <select
-                        className="input-field"
+                      <CustomSelect
+                        options={[
+                          { value: form.color, label: 'Custom / AI Matched' },
+                          ...Array.from(new Set(colorMap.map(c => c.name))).sort().map(name => ({ value: colorMap.find(c => c.name === name).hex, label: name }))
+                        ]}
                         value={form.color}
-                        onChange={(e) => setForm({ ...form, color: e.target.value })}
-                        style={{ padding: '8px' }}
-                      >
-                        <option value={form.color}>Custom / AI Matched</option>
-                        {Array.from(new Set(colorMap.map(c => c.name))).sort().map(name => {
-                          const hex = colorMap.find(c => c.name === name).hex;
-                          return (
-                            <option key={name} value={hex}>{name}</option>
-                          )
-                        })}
-                      </select>
+                        onChange={(val) => setForm({ ...form, color: val })}
+                        id="color-name-select"
+                      />
                     </div>
                   </div>
                 </div>
@@ -271,14 +272,12 @@ function AddItem() {
                     Pattern
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <select
-                    className="input-field"
+                  <CustomSelect
+                    options={patterns.map(p => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) }))}
                     value={form.pattern}
-                    onChange={(e) => setForm({ ...form, pattern: e.target.value })}
+                    onChange={(val) => setForm({ ...form, pattern: val })}
                     id="pattern-select"
-                  >
-                    {patterns.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
-                  </select>
+                  />
                 </div>
 
                 <div className="form-group">
@@ -286,14 +285,12 @@ function AddItem() {
                     Fit
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
-                  <select
-                    className="input-field"
+                  <CustomSelect
+                    options={fits.map(f => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))}
                     value={form.fit}
-                    onChange={(e) => setForm({ ...form, fit: e.target.value })}
+                    onChange={(val) => setForm({ ...form, fit: val })}
                     id="fit-select"
-                  >
-                    {fits.map(f => <option key={f} value={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</option>)}
-                  </select>
+                  />
                 </div>
               </div>
 

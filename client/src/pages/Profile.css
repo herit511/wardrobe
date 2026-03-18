@@ -76,7 +76,7 @@
 .stat-value-text {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-orange);
+  color: var(--color-navy);
 }
 
 /* Profile Grid */
@@ -306,7 +306,7 @@
   inset: 0;
   background: var(--color-border);
   border-radius: 26px;
-  transition: all var(--transition-fast);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toggle-slider:before {
@@ -318,7 +318,7 @@
   bottom: 3px;
   background: white;
   border-radius: 50%;
-  transition: transform var(--transition-fast);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-sm);
 }
 
@@ -349,6 +349,22 @@
 .danger-btn:hover {
   background: rgba(231, 76, 60, 0.1);
   color: var(--color-danger);
+}
+
+.outline-danger {
+  background: #ffffff;
+  color: #E74C3C;
+  border: 1.5px solid #E74C3C;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.outline-danger:hover {
+  background: #FDECEA;
 }
 
 @media (max-width: 768px) {
