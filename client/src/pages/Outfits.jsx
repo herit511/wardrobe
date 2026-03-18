@@ -16,10 +16,10 @@ function Outfits() {
   const [savingAction, setSavingAction] = useState(null)
   const [error, setError] = useState('')
 
-  useEffect(() => { generateOutfits() }, [])
-  useEffect(() => {
-    if (activeTab === 'saved' && savedOutfits.length === 0) fetchSavedOutfits()
-  }, [activeTab])
+  useEffect(() => { 
+    generateOutfits()
+    fetchSavedOutfits()
+  }, [])
 
   const generateOutfits = async () => {
     setLoading(true); setError('')
@@ -101,19 +101,6 @@ function Outfits() {
               <h3 className="sidebar-title">Style Your Day</h3>
               <p className="sidebar-desc">Refine your AI suggestions</p>
 
-              <div className="sidebar-section">
-                <div className="tab-switcher" style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                  <button className={`chip ${activeTab === 'generate' ? 'active' : ''}`} onClick={() => setActiveTab('generate')} style={{ flex: 1 }}>
-                    ✨ Generate
-                  </button>
-                  <button className={`chip ${activeTab === 'saved' ? 'active' : ''}`} onClick={() => setActiveTab('saved')} style={{ flex: 1 }}>
-                    💾 Saved
-                  </button>
-                </div>
-              </div>
-
-              {activeTab === 'generate' && (
-                <>
                   <div className="sidebar-section">
                     <label className="sidebar-label">Occasion</label>
                     <div className="occasion-chips">
@@ -154,21 +141,18 @@ function Outfits() {
                     </div>
                   </div>
                   <button className="btn btn-primary sidebar-generate" id="generate-outfits-btn" onClick={generateOutfits} disabled={loading}>
-                    <span className="sparkle">✨</span> {loading ? 'Generating...' : 'Generate Outfits'}
+                    <span className="sparkle">✨</span> {loading ? 'Generating...' : 'Generate AI Outfits'}
                   </button>
-                </>
-              )}
 
-              {activeTab === 'saved' && (
-                <div className="sidebar-section">
-                  <p style={{ color: '#6B7B8D', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                    Your saved outfits appear here. <strong>❤️ Favorited</strong> outfits are shown first.
-                  </p>
-                  <button className="btn btn-primary sidebar-generate" onClick={fetchSavedOutfits} disabled={savedLoading} style={{ marginTop: '12px' }}>
-                    🔄 {savedLoading ? 'Loading...' : 'Refresh'}
-                  </button>
-                </div>
-              )}
+                  <div className="sidebar-section" style={{ marginTop: '30px' }}>
+                    <h4 style={{ color: '#1B2A4A', marginBottom: '8px' }}>Saved Outfits</h4>
+                    <p style={{ color: '#6B7B8D', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                      <strong>❤️ Favorited</strong> outfits are shown first below.
+                    </p>
+                    <button className="btn btn-secondary sidebar-generate" onClick={fetchSavedOutfits} disabled={savedLoading} style={{ marginTop: '12px', width: '100%' }}>
+                      🔄 {savedLoading ? 'Loading...' : 'Refresh Saved'}
+                    </button>
+                  </div>
             </div>
           </aside>
 
@@ -176,18 +160,14 @@ function Outfits() {
           <main className="outfits-main">
             <div className="outfits-header animate-fade-in-up">
               <h1 className="page-title heading-italic">
-                <span className="sparkle">✨</span> {activeTab === 'generate' ? 'AI Recommendations' : 'My Saved Outfits'}
+                <span className="sparkle">✨</span> AI Outfit Suggestions
               </h1>
               <p className="page-subtitle">
-                {activeTab === 'generate'
-                  ? 'Based on your wardrobe and today\'s weather'
-                  : `${savedOutfits.length} saved · ${savedOutfits.filter(o => o.isFavorite).length} favorited`}
+                Based on your wardrobe, weather, and occasion 
               </p>
             </div>
 
-            {/* GENERATE TAB */}
-            {activeTab === 'generate' && (
-              <>
+            {/* GENERATE SECTION */}
                 {error && (
                   <div style={{ background: '#FDECEA', color: '#E74C3C', padding: '15px 20px', borderRadius: '8px', marginBottom: '20px' }}>
                     ⚠️ {error}
@@ -243,12 +223,16 @@ function Outfits() {
                     ))}
                   </div>
                 )}
-              </>
-            )}
 
-            {/* SAVED TAB */}
-            {activeTab === 'saved' && (
-              <>
+            {/* SAVED SECTION */}
+            <div className="outfits-header animate-fade-in-up" style={{ marginTop: '50px', paddingTop: '30px', borderTop: '1px solid #EBE4DD' }}>
+              <h1 className="page-title heading-italic">
+                💾 My Saved Outfits
+              </h1>
+              <p className="page-subtitle">
+                {savedOutfits.length} saved · {savedOutfits.filter(o => o.isFavorite).length} favorited
+              </p>
+            </div>
                 {savedLoading ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#1B2A4A' }}>Loading your saved outfits...</div>
                 ) : sortedSavedOutfits.length === 0 ? (
@@ -319,8 +303,6 @@ function Outfits() {
                     ))}
                   </div>
                 )}
-              </>
-            )}
           </main>
         </div>
       </div>
