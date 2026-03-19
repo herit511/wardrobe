@@ -122,7 +122,9 @@ function AddItem() {
                 subCategory: matched ? matched[1] : prev.subCategory,
                 color: hexColor,
                 pattern: mappedPattern,
-                occasion: prev.occasion,
+                fit: aiData.fit || prev.fit,
+                occasion: aiData.occasion || prev.occasion,
+                season: aiData.season || prev.season,
               }));
             }
           } catch (err) {
@@ -179,8 +181,8 @@ function AddItem() {
     formData.append('category', form.category)
     formData.append('subCategory', form.subCategory)
     formData.append('color', form.color)
-    formData.append('pattern', form.pattern)
-    formData.append('fit', form.fit)
+    if (form.pattern) formData.append('pattern', form.pattern)
+    if (form.fit) formData.append('fit', form.fit)
     formData.append('condition', form.condition)
     form.occasion.forEach(o => formData.append('occasion', o))
     form.season.forEach(s => formData.append('season', s))
@@ -190,7 +192,8 @@ function AddItem() {
       if (res.success) {
         navigate('/closet')
       } else {
-        setError(res.message || 'Failed to save item')
+        const errorMsg = res.errors ? res.errors.map(e => e.message).join('. ') : (res.message || 'Failed to save item');
+        setError(errorMsg)
       }
     } catch (err) {
       setError(err.message || 'Failed to save item')

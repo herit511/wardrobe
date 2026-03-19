@@ -119,9 +119,12 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
 {
   "name": "<closest match from: t-shirt, graphic tee, polo shirt, shirt, dress shirt, blouse, tank top, crop top, sweater, turtleneck, hoodie, sweatshirt, jeans, slim jeans, straight jeans, wide leg jeans, chinos, trousers, shorts, cargo pants, joggers, sweatpants, skirt, mini skirt, midi skirt, maxi skirt, leggings, jacket, blazer, suit jacket, denim jacket, leather jacket, bomber jacket, trench coat, overcoat, parka, cardigan, vest, sneakers, white sneakers, chunky sneakers, loafers, oxford shoes, derby shoes, chelsea boots, ankle boots, boots, sandals, slides, heels, block heels, mules, flip flops>",
   "color": "<closest match from: white, black, gray, light gray, beige, cream, ivory, off-white, camel, tan, taupe, charcoal, brown, dark brown, navy, blue, light blue, royal blue, sky blue, cobalt, denim, green, olive, khaki, forest green, sage, mint, emerald, red, dark red, crimson, maroon, burgundy, wine, pink, hot pink, blush, mauve, rose, yellow, mustard, gold, orange, coral, peach, rust, terracotta, purple, lavender, violet, plum, lilac>",
-  "pattern": "<closest match from: solid, striped, thin stripe, wide stripe, checkered, plaid, tartan, floral, small floral, graphic, camo, animal, paisley, houndstooth, herringbone, pinstripe, polka, tie_dye, geometric, abstract>"
+  "pattern": "<closest match from: solid, striped, thin stripe, wide stripe, checkered, plaid, tartan, floral, small floral, graphic, camo, animal, paisley, houndstooth, herringbone, pinstripe, polka, tie_dye, geometric, abstract>",
+  "fit": "<closest match from: slim, regular, relaxed, oversized, boxy>",
+  "occasion": ["<choices from: casual, party, office, streetwear, gym, ethnic>"],
+  "season": ["<choices from: summer, monsoon, winter, all_season>"]
 }
-Only return the JSON. If you cannot identify the item clearly, make your best guess.`;
+Only return the JSON. If you cannot identify the item clearly, make your best guess. Try to provide 1-2 relevant occasions and 1-2 relevant seasons.`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const result = await model.generateContent([prompt, imagePart]);
