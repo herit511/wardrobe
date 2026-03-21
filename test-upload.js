@@ -28,7 +28,7 @@ async function testUpload() {
     form.append('color', 'red');
     form.append('condition', 'new');
     form.append('occasion', 'casual');
-    form.append('season', 'summer');
+    form.append('weather', 'hot');
 
     console.log('Uploading item...');
     const uploadRes = await fetch(`${API_BASE}/items`, {

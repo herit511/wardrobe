@@ -5,7 +5,7 @@ import { api } from '../api'
 import { getColorName } from '../utils'
 import './Outfits.css'
 
-const occasionOptions = ['Casual', 'Office', 'Party', 'Date Night', 'Gym', 'Streetwear']
+const occasionOptions = ['Casual', 'Office', 'Party', 'Date Night', 'Gym', 'Ethnic']
 
 function Outfits() {
   const navigate = useNavigate()

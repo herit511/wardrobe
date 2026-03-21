@@ -55,16 +55,16 @@ router.get('/generate', auth, async (req, res, next) => {
     try {
         const { occasion = 'casual', temperature = 'mild' } = req.query;
 
-        // Map temperature → season for fashionEngine
-        const tempToSeason = { hot: 'summer', warm: 'summer', mild: 'spring', cool: 'fall', cold: 'winter' };
-        const season = tempToSeason[temperature.toLowerCase()] || 'spring';
+        // Map temperature → weather for fashionEngine (v2)
+        const tempToWeather = { hot: 'hot', warm: 'hot', mild: 'mid', spring: 'mid', cool: 'cold', cold: 'cold' };
+        const weather = tempToWeather[temperature.toLowerCase()] || 'mid';
 
-        // Map occasion string to fashionEngine key
+        // Map occasion string to fashionEngine v2 key
         const occasionMap = {
-            'casual': 'casual', 'party': 'party', 'office': 'smart-casual',
-            'formal': 'formal', 'interview': 'interview', 'gym': 'gym',
-            'college': 'college', 'beach': 'beach', 'streetwear': 'casual',
-            'smart-casual': 'smart-casual', 'ethnic': 'party',
+            'casual': 'casual', 'party': 'party', 'office': 'office',
+            'formal': 'office', 'interview': 'office', 'gym': 'gym',
+            'college': 'casual', 'beach': 'casual', 'streetwear': 'casual',
+            'smart-casual': 'office', 'ethnic': 'ethnic', 'date night': 'date night'
         };
         const engineOccasion = occasionMap[occasion.toLowerCase()] || 'casual';
 
@@ -129,9 +129,9 @@ router.get('/generate', auth, async (req, res, next) => {
         }
 
         // Call the fashionEngine (NOT Gemini)
-        console.log(`\n[fashionEngine] Calling suggestOutfits() with ${wardrobeForEngine.length} items, occasion=${engineOccasion}, season=${season}`);
+        console.log(`\n[fashionEngine] Calling suggestOutfits() with ${wardrobeForEngine.length} items, occasion=${engineOccasion}, weather=${weather}`);
         console.log(`[fashionEngine] Wardrobe items:`, wardrobeForEngine.map(i => ({ name: i.name, color: i.color, pattern: i.pattern })));
-        const engineResults = suggestOutfits(wardrobeForEngine, engineOccasion, season);
+        const engineResults = suggestOutfits(wardrobeForEngine, engineOccasion, weather);
         console.log(`[fashionEngine] suggestOutfits returned ${engineResults?.length || 0} outfit(s)`);
         if (engineResults?.length > 0) {
             engineResults.forEach((o, i) => {

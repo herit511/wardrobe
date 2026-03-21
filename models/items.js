@@ -59,14 +59,14 @@ const itemSchema = new mongoose.Schema({
     occasion: {
         type: [{
             type: String,
-            enum: ["casual", "party", "office", "streetwear", "gym", "ethnic"]
+            enum: ["casual", "office", "party", "date night", "gym", "ethnic"]
         }],
         required: true,
     },
-    season: {
+    weather: {
         type: [{
             type: String,
-            enum: ["summer", "monsoon", "winter", "all_season"]
+            enum: ["hot", "mild", "cold"]
         }],        
         required: true,
     },

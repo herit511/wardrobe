@@ -27,8 +27,8 @@ const SUB_CATEGORIES = [
 ];
 const FITS = ["slim", "regular", "relaxed", "oversized", "boxy"];
 const PATTERNS = ["solid", "striped", "checked", "graphic", "printed"];
-const OCCASIONS = ["casual", "party", "office", "streetwear", "gym", "ethnic"];
-const SEASONS = ["summer", "monsoon", "winter", "all_season"];
+const OCCASIONS = ["casual", "office", "party", "date night", "gym", "ethnic"];
+const WEATHER = ["hot", "mild", "cold"];
 const CONDITIONS = ["new", "good", "worn"];
 
 // Validation rules for creating an item
@@ -69,13 +69,13 @@ const createItemRules = [
       return true;
     }),
 
-  body("season")
-    .notEmpty().withMessage("Season is required")
+  body("weather")
+    .notEmpty().withMessage("Weather is required")
     .custom((value) => {
       const arr = Array.isArray(value) ? value : [value];
       for (const v of arr) {
-        if (!SEASONS.includes(v)) {
-          throw new Error(`Invalid season: ${v}. Must be one of: ${SEASONS.join(", ")}`);
+        if (!WEATHER.includes(v)) {
+          throw new Error(`Invalid weather: ${v}. Must be one of: ${WEATHER.join(", ")}`);
         }
       }
       return true;
@@ -126,13 +126,13 @@ const updateItemRules = [
       return true;
     }),
 
-  body("season")
+  body("weather")
     .optional()
     .custom((value) => {
       const arr = Array.isArray(value) ? value : [value];
       for (const v of arr) {
-        if (!SEASONS.includes(v)) {
-          throw new Error(`Invalid season: ${v}. Must be one of: ${SEASONS.join(", ")}`);
+        if (!WEATHER.includes(v)) {
+          throw new Error(`Invalid weather: ${v}. Must be one of: ${WEATHER.join(", ")}`);
         }
       }
       return true;
@@ -159,7 +159,7 @@ const listQueryRules = [
   query("category").optional().isIn(CATEGORIES).withMessage(`Invalid category filter`),
   query("subCategory").optional().isIn(SUB_CATEGORIES).withMessage(`Invalid sub-category filter`),
   query("occasion").optional().isIn(OCCASIONS).withMessage(`Invalid occasion filter`),
-  query("season").optional().isIn(SEASONS).withMessage(`Invalid season filter`),
+  query("weather").optional().isIn(WEATHER).withMessage(`Invalid weather filter`),
   query("condition").optional().isIn(CONDITIONS).withMessage(`Invalid condition filter`),
   query("color").optional().trim(),
   query("sort").optional().isIn(["createdAt", "-createdAt", "userPreferenceScore", "-userPreferenceScore"]).withMessage("Invalid sort field"),

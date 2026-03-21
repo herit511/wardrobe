@@ -6,13 +6,13 @@ import { getColorName } from '../utils'
 import './Closet.css'
 
 const categories = ['All', 'Favorites', 'Tops', 'Bottoms', 'Footwear', 'Outerwear', 'Accessories']
-const seasons = ['All', 'Summer', 'Winter', 'Monsoon', 'All Season']
+const weatherFilters = ['All', 'Hot', 'Mild', 'Cold']
 
 function Closet() {
   const navigate = useNavigate()
   const [items, setItems] = useState([])
   const [activeCategory, setActiveCategory] = useState('All')
-  const [activeSeason, setActiveSeason] = useState('All')
+  const [activeWeather, setActiveWeather] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [activeDropdown, setActiveDropdown] = useState(null)
@@ -61,10 +61,10 @@ function Closet() {
       const matchCategory = item.category.toLowerCase() === activeCategory.toLowerCase() || item.category === activeCategory.replace(/s$/, '').toLowerCase()
       if (!matchCategory) return false
     }
-    const matchSeason = activeSeason === 'All' || item.season.includes(activeSeason.toLowerCase()) || item.season.includes(activeSeason.toLowerCase().replace(' ', '_'))
+    const matchWeather = activeWeather === 'All' || item.weather.includes(activeWeather.toLowerCase())
     const searchString = `${item.category} ${item.subCategory} ${item.color}`.toLowerCase()
     const matchSearch = !searchQuery || searchString.includes(searchQuery.toLowerCase())
-    return matchSeason && matchSearch
+    return matchWeather && matchSearch
   })
 
   const favCount = items.filter(i => i.userPreferenceScore > 0).length
@@ -98,8 +98,8 @@ function Closet() {
             ))}
           </div>
           <div className="filter-right">
-            <select className="filter-select" value={activeSeason} onChange={(e) => setActiveSeason(e.target.value)} id="season-filter">
-              {seasons.map(s => <option key={s} value={s}>{s === 'All' ? 'All Seasons' : s}</option>)}
+            <select className="filter-select" value={activeWeather} onChange={(e) => setActiveWeather(e.target.value)} id="weather-filter">
+              {weatherFilters.map(w => <option key={w} value={w}>{w === 'All' ? 'All Weather' : w}</option>)}
             </select>
             <div className="search-box">
               <Search size={16} strokeWidth={2} />

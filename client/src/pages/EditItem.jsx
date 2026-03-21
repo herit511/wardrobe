@@ -16,8 +16,8 @@ const subCategories = {
 }
 const fits = ['slim', 'regular', 'relaxed', 'oversized', 'boxy']
 const patterns = ['solid', 'striped', 'checked', 'graphic', 'printed']
-const occasionOptions = ['casual', 'party', 'office', 'streetwear', 'gym', 'ethnic']
-const seasonOptions = ['summer', 'monsoon', 'winter', 'all_season']
+const occasionOptions = ['casual', 'office', 'party', 'date night', 'gym', 'ethnic']
+const weatherOptions = ['hot', 'mild', 'cold']
 const conditions = ['new', 'good', 'worn']
 
 function EditItem() {
@@ -37,7 +37,7 @@ function EditItem() {
     pattern: 'solid',
     fit: 'regular',
     occasion: [],
-    season: [],
+    weather: [],
     condition: 'good',
   })
 
@@ -71,7 +71,7 @@ function EditItem() {
           pattern: item.pattern || 'solid',
           fit: item.fit || 'regular',
           occasion: item.occasion || [],
-          season: item.season || [],
+          weather: item.weather || [],
           condition: item.condition || 'good',
         })
         setPreview(item.imageUrl)
@@ -121,7 +121,7 @@ function EditItem() {
         formData.append('fit', form.fit)
         formData.append('condition', form.condition)
         form.occasion.forEach(o => formData.append('occasion', o))
-        form.season.forEach(s => formData.append('season', s))
+        form.weather.forEach(w => formData.append('weather', w))
         res = await api.put(`/items/${id}`, formData)
       } else {
         // No new image, send JSON
@@ -133,7 +133,7 @@ function EditItem() {
           fit: form.fit,
           condition: form.condition,
           occasion: form.occasion,
-          season: form.season,
+          weather: form.weather,
         })
       }
 
@@ -322,16 +322,16 @@ function EditItem() {
               </div>
 
               <div className="form-group">
-                <label>Season</label>
+                <label>Weather</label>
                 <div className="multi-chips">
-                  {seasonOptions.map(s => (
+                  {weatherOptions.map(w => (
                     <button
-                      key={s}
+                      key={w}
                       type="button"
-                      className={`chip ${form.season.includes(s) ? 'active' : ''}`}
-                      onClick={() => toggleMultiSelect('season', s)}
+                      className={`chip ${form.weather.includes(w) ? 'active' : ''}`}
+                      onClick={() => toggleMultiSelect('weather', w)}
                     >
-                      {s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      {w.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </button>
                   ))}
                 </div>

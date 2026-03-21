@@ -28,7 +28,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 router.get("/", auth, listQueryRules, validate, async (req, res, next) => {
   try {
     const {
-      category, subCategory, color, occasion, season, condition,
+      category, subCategory, color, occasion, weather, condition,
       sort = "-createdAt",
       page = 1,
       limit = 20,
@@ -40,7 +40,7 @@ router.get("/", auth, listQueryRules, validate, async (req, res, next) => {
     if (subCategory) filter.subCategory = subCategory;
     if (color) filter.color = { $regex: color, $options: "i" };
     if (occasion) filter.occasion = occasion;
-    if (season) filter.season = season;
+    if (weather) filter.weather = weather;
     if (condition) filter.condition = condition;
 
     // Pagination
@@ -121,10 +121,10 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
   "color": "<closest match from: white, black, gray, light gray, beige, cream, ivory, off-white, camel, tan, taupe, charcoal, brown, dark brown, navy, blue, light blue, royal blue, sky blue, cobalt, denim, green, olive, khaki, forest green, sage, mint, emerald, red, dark red, crimson, maroon, burgundy, wine, pink, hot pink, blush, mauve, rose, yellow, mustard, gold, orange, coral, peach, rust, terracotta, purple, lavender, violet, plum, lilac>",
   "pattern": "<closest match from: solid, striped, thin stripe, wide stripe, checkered, plaid, tartan, floral, small floral, graphic, camo, animal, paisley, houndstooth, herringbone, pinstripe, polka, tie_dye, geometric, abstract>",
   "fit": "<closest match from: slim, regular, relaxed, oversized, boxy>",
-  "occasion": ["<choices from: casual, party, office, streetwear, gym, ethnic>"],
-  "season": ["<choices from: summer, monsoon, winter, all_season>"]
+  "occasion": ["<choices from: casual, office, party, date night, gym, ethnic>"],
+  "weather": ["<choices from: hot, mild, cold>"]
 }
-Only return the JSON. If you cannot identify the item clearly, make your best guess. Try to provide 1-2 relevant occasions and 1-2 relevant seasons.`;
+Only return the JSON. If you cannot identify the item clearly, make your best guess. Try to provide 1-2 relevant occasions and 1-2 relevant weather types.`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const result = await model.generateContent([prompt, imagePart]);
@@ -172,12 +172,12 @@ router.post("/", auth, upload.single("image"), createItemRules, validate, async 
 
     const {
       category, subCategory, fit, color,
-      pattern, occasion, season, condition,
+      pattern, occasion, weather, condition,
     } = req.body;
 
-    // Ensure occasion and season are arrays
+    // Ensure occasion and weather are arrays
     const occasionArr = Array.isArray(occasion) ? occasion : [occasion];
-    const seasonArr = Array.isArray(season) ? season : [season];
+    const weatherArr = Array.isArray(weather) ? weather : [weather];
 
     const newItem = new Item({
       userId: req.user.id,
@@ -187,7 +187,7 @@ router.post("/", auth, upload.single("image"), createItemRules, validate, async 
       color,
       pattern,
       occasion: occasionArr,
-      season: seasonArr,
+      weather: weatherArr,
       condition,
       imageUrl,
     });
@@ -244,13 +244,13 @@ router.put("/:id", auth, idParamRule, upload.single("image"), updateItemRules, v
     const updates = {};
     const allowedFields = [
       "category", "subCategory", "fit", "color", "pattern",
-      "occasion", "season", "condition", "userPreferenceScore",
+      "occasion", "weather", "condition", "userPreferenceScore",
     ];
 
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
-        // Ensure occasion and season are stored as arrays
-        if (field === "occasion" || field === "season") {
+        // Ensure occasion and weather are stored as arrays
+        if (field === "occasion" || field === "weather") {
           updates[field] = Array.isArray(req.body[field])
             ? req.body[field]
             : [req.body[field]];
