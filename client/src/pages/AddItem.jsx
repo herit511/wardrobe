@@ -8,7 +8,7 @@ import './AddItem.css'
 
 const categories = ['top', 'bottom', 'footwear', 'outerwear', 'accessories']
 const subCategories = {
-  top: ['shirt', 'tshirt', 'vest'],
+  top: ['shirt', 'tshirt', 'polo', 'vest'],
   bottom: ['jeans', 'trousers', 'cargo', 'shorts'],
   footwear: ['sneakers', 'formal_shoes', 'boots', 'slides', 'sport'],
   outerwear: ['coat', 'blazer', 'hoodie', 'jacket', 'sweater'],
@@ -16,7 +16,18 @@ const subCategories = {
 }
 const fits = ['slim', 'regular', 'relaxed', 'oversized', 'boxy']
 const patterns = ['solid', 'striped', 'checked', 'graphic', 'printed']
-const occasionOptions = ['casual', 'office', 'party', 'date night', 'gym', 'ethnic']
+const occasionOptions = [
+  { value: 'casual', label: 'Casual' },
+  { value: 'office', label: 'Office' },
+  { value: 'business formal', label: 'Business Formal' },
+  { value: 'party', label: 'Party' },
+  { value: 'date night', label: 'Date Night' },
+  { value: 'gym', label: 'Gym' },
+  { value: 'wedding guest', label: 'Wedding Guest' },
+  { value: 'ethnic', label: 'Ethnic / Traditional' },
+  { value: 'pooja / puja', label: 'Puja / Religious' },
+  { value: 'festival', label: 'Festival' }
+]
 const weatherOptions = ['hot', 'mild', 'cold']
 const conditions = ['new', 'good', 'worn']
 
@@ -60,7 +71,7 @@ function AddItem() {
               
               // Map AI name → category + subCategory
               const nameToCategory = {
-                't-shirt': ['top', 'tshirt'], 'graphic tee': ['top', 'tshirt'], 'polo shirt': ['top', 'shirt'],
+                't-shirt': ['top', 'tshirt'], 'graphic tee': ['top', 'tshirt'], 'polo shirt': ['top', 'polo'],
                 'shirt': ['top', 'shirt'], 'dress shirt': ['top', 'shirt'], 'blouse': ['top', 'shirt'],
                 'tank top': ['top', 'vest'], 'crop top': ['top', 'vest'], 'sweater': ['outerwear', 'sweater'],
                 'turtleneck': ['outerwear', 'sweater'], 'hoodie': ['outerwear', 'hoodie'],
@@ -383,12 +394,12 @@ function AddItem() {
                   {occasionOptions.map(occ => (
                     <button
                       type="button"
-                      key={occ}
-                      className={`chip ${form.occasion.includes(occ.toLowerCase()) ? 'active' : ''}`}
-                      onClick={() => toggleMultiSelect('occasion', occ.toLowerCase())}
-                      id={`additem-occ-${occ.toLowerCase().replace(' ', '-')}`}
+                      key={occ.value}
+                      className={`chip ${form.occasion.includes(occ.value) ? 'active' : ''}`}
+                      onClick={() => toggleMultiSelect('occasion', occ.value)}
+                      id={`additem-occ-${occ.value.replace(/ /g, '-')}`}
                     >
-                      {occ}
+                      {occ.label}
                     </button>
                   ))}
                 </div>
@@ -397,11 +408,19 @@ function AddItem() {
               <div className="form-group">
                 <label>Weather</label>
                 <div className="multi-chips">
+                    <button
+                      key="all_season"
+                      type="button"
+                      className={`chip ${form.weather.length === 3 ? 'active' : ''}`}
+                      onClick={() => setForm(prev => ({ ...prev, weather: prev.weather.length === 3 ? [] : ['hot', 'mild', 'cold'] }))}
+                    >
+                      All Season
+                    </button>
                   {weatherOptions.map(w => (
                     <button
                       key={w}
                       type="button"
-                      className={`chip ${form.weather.includes(w) ? 'active' : ''}`}
+                      className={`chip ${form.weather.includes(w) && form.weather.length < 3 ? 'active' : ''}`}
                       onClick={() => toggleMultiSelect('weather', w)}
                     >
                       {w.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}

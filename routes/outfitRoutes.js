@@ -5,7 +5,7 @@ const Outfit = require('../models/Outfit');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { getColorName } = require('../utils/colors');
-const { suggestOutfits, parseCLIPLabel, CLOTHING_ITEMS } = require('../fashionEngine');
+const { suggestOutfits, scoreOutfit, analyzeWardrobeGaps, scoreWardrobeVersatility, detectColorSeason, parseCLIPLabel, suggestFromCLIP, CLOTHING_ITEMS, INDIAN_FASHION, OCCASIONS } = require('../fashionEngine');
 
 // Fuzzy-match mapping for common Gemini mismatches
 const FUZZY_NAME_MAP = {
@@ -53,10 +53,14 @@ router.get('/', auth, async (req, res, next) => {
 // ============================================
 router.get('/generate', auth, async (req, res, next) => {
     try {
-        const { occasion = 'casual', temperature = 'mild' } = req.query;
+        const { occasion, temperature, preferredSubCategory } = req.query;
 
-        // Map temperature → weather for fashionEngine (v2)
-        const tempToWeather = { hot: 'hot', warm: 'hot', mild: 'mid', spring: 'mid', cool: 'cold', cold: 'cold' };
+        if (!occasion || !temperature) {
+            return res.status(400).json({ success: false, message: 'Occasion and temperature are required' });
+        }
+
+        // Convert UI string to engine scale ('Hot' -> 'hot', etc)
+        const tempToWeather = { 'hot': 'hot', 'mild': 'mid', 'cold': 'cold' };
         const weather = tempToWeather[temperature.toLowerCase()] || 'mid';
 
         // Map occasion string to fashionEngine v2 key
@@ -64,9 +68,14 @@ router.get('/generate', auth, async (req, res, next) => {
             'casual': 'casual', 'party': 'party', 'office': 'office',
             'formal': 'office', 'interview': 'office', 'gym': 'gym',
             'college': 'casual', 'beach': 'casual', 'streetwear': 'casual',
-            'smart-casual': 'office', 'ethnic': 'ethnic', 'date night': 'date night'
+            'smart-casual': 'office', 'ethnic': 'ethnic', 'date night': 'date night',
+            'business formal': 'business formal', 'wedding guest': 'wedding guest', 
+            'pooja / puja': 'pooja / puja', 'festival': 'festival'
         };
         const engineOccasion = occasionMap[occasion.toLowerCase()] || 'casual';
+
+        const user = await User.findById(req.user.id);
+        const userProfile = user?.styleDna || {};
 
         // Get user's wardrobe items
         const userItems = await Item.find({ userId: req.user.id });
@@ -82,7 +91,7 @@ router.get('/generate', auth, async (req, res, next) => {
         // The fashionEngine uses the new Gemini prompt's vocabulary (e.g. "t-shirt", "jeans", "sneakers")
         const subCatToEngineName = {
             // tops
-            'shirt': 'shirt', 'tshirt': 't-shirt', 'vest': 'vest',
+            'shirt': 'shirt', 'tshirt': 't-shirt', 'polo': 'polo shirt', 'vest': 'vest',
             // bottoms
             'jeans': 'jeans', 'trousers': 'trousers', 'cargo': 'cargo pants',
             'shorts': 'shorts',
@@ -128,10 +137,52 @@ router.get('/generate', auth, async (req, res, next) => {
             });
         }
 
+        let finalWardrobeForEngine = wardrobeForEngine;
+        let preferredAccessoryItems = []; // Track accessories to inject later
+
+        if (preferredSubCategory) {
+            const rawName = subCatToEngineName[preferredSubCategory] || preferredSubCategory.replace('_', ' ');
+            const resolvedName = resolveEngineName(rawName);
+            const prefRole = CLOTHING_ITEMS[resolvedName]?.role;
+
+            if (prefRole === 'accessory') {
+                // Accessories are NOT part of outfit composition — engine handles them separately.
+                // So instead of pruning, we collect matching accessories to inject into every outfit.
+                preferredAccessoryItems = wardrobeForEngine.filter(i => {
+                    const iRawName = subCatToEngineName[i._dbItem.subCategory] || i._dbItem.subCategory.replace('_', ' ');
+                    const iResolved = resolveEngineName(iRawName);
+                    return iResolved === resolvedName || i._dbItem.subCategory === preferredSubCategory;
+                });
+                console.log(`[fashionEngine] Preferred accessory: "${resolvedName}" — found ${preferredAccessoryItems.length} matching items to inject`);
+            } else {
+                console.log(`[fashionEngine] Preferred standard category: "${resolvedName}" (role: ${prefRole || 'unknown'})`);
+                const beforeCount = finalWardrobeForEngine.length;
+                finalWardrobeForEngine = finalWardrobeForEngine.filter(i => {
+                    const iRawName = subCatToEngineName[i._dbItem.subCategory] || i._dbItem.subCategory.replace('_', ' ');
+                    const iResolved = resolveEngineName(iRawName);
+                    
+                    const iRole = CLOTHING_ITEMS[iResolved]?.role;
+                    console.log(`[fashionEngine]   Item: ${i.name} (subCat: ${i._dbItem.subCategory}) -> resolved: ${iResolved} (role: ${iRole || 'unknown'})`);
+
+                    // 1. Literal subCategory string equality — absolute match
+                    if (i._dbItem.subCategory === preferredSubCategory) return true;
+
+                    // 2. If roles match, it MUST be the preferred one to survive
+                    if (prefRole && iRole && prefRole === iRole) {
+                        return iResolved === resolvedName;
+                    }
+
+                    // 3. Fallback: if role resolution is missing, keep it for safety unless it's a known conflict
+                    return true;
+                });
+                console.log(`[fashionEngine] Pruning complete: ${beforeCount} -> ${finalWardrobeForEngine.length} items`);
+            }
+        }
+
         // Call the fashionEngine (NOT Gemini)
-        console.log(`\n[fashionEngine] Calling suggestOutfits() with ${wardrobeForEngine.length} items, occasion=${engineOccasion}, weather=${weather}`);
-        console.log(`[fashionEngine] Wardrobe items:`, wardrobeForEngine.map(i => ({ name: i.name, color: i.color, pattern: i.pattern })));
-        const engineResults = suggestOutfits(wardrobeForEngine, engineOccasion, weather);
+        console.log(`\n[fashionEngine] Calling suggestOutfits() with ${finalWardrobeForEngine.length} items, occasion=${engineOccasion}, weather=${weather}`);
+        console.log(`[fashionEngine] Wardrobe items:`, finalWardrobeForEngine.map(i => ({ name: i.name, color: i.color, pattern: i.pattern })));
+        const engineResults = suggestOutfits(finalWardrobeForEngine, engineOccasion, weather, userProfile);
         console.log(`[fashionEngine] suggestOutfits returned ${engineResults?.length || 0} outfit(s)`);
         if (engineResults?.length > 0) {
             engineResults.forEach((o, i) => {
@@ -167,6 +218,36 @@ router.get('/generate', auth, async (req, res, next) => {
                 };
             });
 
+            // Inject preferred accessory items into the outfit
+            if (preferredAccessoryItems.length > 0) {
+                preferredAccessoryItems.forEach(accItem => {
+                    outfitItems.push({
+                        type: 'Accessory',
+                        name: `${accItem.color} ${accItem.name}`,
+                        color: accItem._dbItem ? accItem._dbItem.color : '#000000',
+                        imageUrl: accItem._dbItem ? accItem._dbItem.imageUrl : '',
+                        _id: accItem._dbItem ? accItem._dbItem._id : null,
+                    });
+                });
+            }
+
+            // Also include engine-suggested accessories (if no preferred was set)
+            if (preferredAccessoryItems.length === 0 && outfit.accessories && outfit.accessories.length > 0) {
+                outfit.accessories.forEach(acc => {
+                    // Engine accessories are name strings like "watch" — find matching wardrobe item
+                    const matchingWardrobeItem = wardrobeForEngine.find(w => w.name === acc || w.name === acc.name);
+                    if (matchingWardrobeItem) {
+                        outfitItems.push({
+                            type: 'Accessory',
+                            name: `${matchingWardrobeItem.color} ${matchingWardrobeItem.name}`,
+                            color: matchingWardrobeItem._dbItem ? matchingWardrobeItem._dbItem.color : '#000000',
+                            imageUrl: matchingWardrobeItem._dbItem ? matchingWardrobeItem._dbItem.imageUrl : '',
+                            _id: matchingWardrobeItem._dbItem ? matchingWardrobeItem._dbItem._id : null,
+                        });
+                    }
+                });
+            }
+
             // Convert fashionEngine score (0-10) to a percentage
             const matchPercent = Math.round(outfit.score.totalScore * 10);
 
@@ -177,10 +258,22 @@ router.get('/generate', auth, async (req, res, next) => {
                 tags: [occasion, outfit.score.grade],
                 explanation: outfit.explanation || `Score: ${outfit.score.totalScore}/10. ${outfit.score.tips?.[0] || ''}`,
                 items: outfitItems,
+                breakdown: outfit.score.breakdown || {},
+                tips: outfit.score.tips || []
             };
         });
 
-        res.json({ success: true, count: generatedOutfits.length, data: generatedOutfits });
+        const engineGaps = analyzeWardrobeGaps(finalWardrobeForEngine, engineOccasion, weather);
+        const engineVersatility = scoreWardrobeVersatility(finalWardrobeForEngine);
+        
+        let culturalContext = null;
+        if (engineOccasion === 'festival') {
+            culturalContext = { type: 'festival', data: INDIAN_FASHION.festivalColors };
+        } else if (engineOccasion === 'ethnic' || engineOccasion === 'pooja / puja') {
+            culturalContext = { type: 'ethnic', data: OCCASIONS[engineOccasion].keyRules };
+        }
+
+        res.json({ success: true, count: generatedOutfits.length, data: generatedOutfits, gaps: engineGaps, versatility: engineVersatility, culturalContext });
     } catch (error) {
         next(error);
     }

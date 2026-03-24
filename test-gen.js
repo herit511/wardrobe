@@ -19,12 +19,12 @@ async function testOutfits() {
 
         // 2. Add 5 items to their wardrobe so AI has enough to work with
         const items = [
-            { category: 'top', subCategory: 'tshirt', color: '#000000', fit: 'regular', pattern: 'solid', season: 'summer' },
-            { category: 'top', subCategory: 'hoodie', color: '#808080', fit: 'oversized', pattern: 'graphic', season: 'winter' },
-            { category: 'bottom', subCategory: 'jeans', color: '#000080', fit: 'slim', pattern: 'solid', season: 'all_season' },
-            { category: 'bottom', subCategory: 'shorts', color: '#F5F5DC', fit: 'regular', pattern: 'solid', season: 'summer' },
-            { category: 'footwear', subCategory: 'sneakers', color: '#FFFFFF', fit: 'regular', pattern: 'solid', season: 'all_season' },
-            { category: 'outerwear', subCategory: 'jacket', color: '#000000', fit: 'regular', pattern: 'solid', season: 'winter' },
+            { category: 'top', subCategory: 'tshirt', color: '#000000', fit: 'regular', pattern: 'solid', weather: 'hot' },
+            { category: 'top', subCategory: 'hoodie', color: '#808080', fit: 'oversized', pattern: 'graphic', weather: 'cold' },
+            { category: 'bottom', subCategory: 'jeans', color: '#000080', fit: 'slim', pattern: 'solid', weather: 'mild' },
+            { category: 'bottom', subCategory: 'shorts', color: '#F5F5DC', fit: 'regular', pattern: 'solid', weather: 'hot' },
+            { category: 'footwear', subCategory: 'sneakers', color: '#FFFFFF', fit: 'regular', pattern: 'solid', weather: 'mild' },
+            { category: 'outerwear', subCategory: 'jacket', color: '#000000', fit: 'regular', pattern: 'solid', weather: 'cold' },
         ];
 
         console.log("Populating 6 dummy items to closet...");
@@ -38,7 +38,7 @@ async function testOutfits() {
             formData.append('color', i.color);
             formData.append('fit', i.fit);
             formData.append('pattern', i.pattern);
-            formData.append('season[]', i.season);
+            formData.append('weather[]', i.weather);
             formData.append('occasion[]', 'casual');
             formData.append('condition', 'new');
 

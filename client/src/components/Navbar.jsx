@@ -1,14 +1,16 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Plus, Menu, X } from 'lucide-react'
 import './Navbar.css'
 
 function Navbar() {
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <nav className="navbar" id="main-navbar">
       <div className="navbar-inner container">
-        <div className="navbar-logo" onClick={() => navigate('/dashboard')}>
+        <div className="navbar-logo" onClick={() => { navigate('/dashboard'); setMenuOpen(false); }}>
           <span className="logo-text">WARDROBE</span>
         </div>
 
@@ -32,17 +34,38 @@ function Navbar() {
         </div>
 
         <div className="navbar-actions">
-          <NavLink to="/add-item" className="btn btn-primary btn-sm" id="nav-add-item">
+          <NavLink to="/add-item" className="btn btn-primary btn-sm" id="nav-add-item" onClick={() => setMenuOpen(false)}>
             <Plus size={16} strokeWidth={2.5} />
             Add Item
           </NavLink>
-          <NavLink to="/profile" className={({ isActive }) => `nav-avatar ${isActive ? 'active' : ''}`} id="nav-profile">
+          <NavLink to="/profile" className={({ isActive }) => `nav-avatar ${isActive ? 'active' : ''}`} id="nav-profile" onClick={() => setMenuOpen(false)}>
             <div className="avatar-circle">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
           </NavLink>
+
+          <button className="hamburger-btn" onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="mobile-menu animate-fade-in">
+          <NavLink to="/dashboard" className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
+            Home
+          </NavLink>
+          <NavLink to="/closet" className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
+            My Closet
+          </NavLink>
+          <NavLink to="/outfits" className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
+            Outfits
+          </NavLink>
+          <NavLink to="/style-profile" className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
+            Style DNA
+          </NavLink>
+        </div>
+      )}
     </nav>
   )
 }

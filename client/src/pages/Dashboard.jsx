@@ -9,33 +9,77 @@ function Dashboard() {
   const navigate = useNavigate()
   const [items, setItems] = useState([])
   const [todaysOutfit, setTodaysOutfit] = useState(null)
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [outfitLoading, setOutfitLoading] = useState(true)
+  const [weatherData, setWeatherData] = useState({ temp: '22', desc: 'Sunny', city: 'your location' })
 
   useEffect(() => {
-    fetchDashboardData()
+    fetchDashboardData();
+    fetchLiveWeather();
   }, [])
+
+  const fetchLiveWeather = async () => {
+    try {
+      // 1. Get location from IP
+      const ipRes = await fetch('https://ipapi.co/json/')
+      const ipData = await ipRes.json()
+      const city = ipData.city || 'your city'
+      const lat = ipData.latitude
+      const lon = ipData.longitude
+
+      if (lat && lon) {
+        // 2. Fetch weather from Open-Meteo (Free, no key)
+        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        const wData = await wRes.json()
+        if (wData.current_weather) {
+          const code = wData.current_weather.weathercode
+          const temp = Math.round(wData.current_weather.temperature)
+          
+          // Basic translation mapping
+          let desc = 'Clear'
+          if (code === 0) desc = 'Sunny'
+          else if (code <= 3) desc = 'Partly Cloudy'
+          else if (code >= 51 && code <= 65) desc = 'Rainy'
+          else if (code >= 71 && code <= 77) desc = 'Snowy'
+          else if (code >= 95) desc = 'Thunderstorm'
+          else if (code >= 45) desc = 'Foggy'
+
+          setWeatherData({ temp: temp, desc: desc, city: city })
+        }
+      }
+    } catch (err) { console.error('Failed to load live weather:', err) }
+  }
 
   const fetchDashboardData = async () => {
     try {
-      const [itemsRes, outfitRes] = await Promise.all([
-        api.get('/items'),
-        api.get('/outfits/generate?occasion=Casual')
+      const [statsRes, itemsRes] = await Promise.all([
+        api.get('/stats'),
+        api.get('/items?limit=5&sort=-createdAt')
       ])
       
+      if (statsRes.success) setStats(statsRes.data)
       if (itemsRes.success) setItems(itemsRes.data)
-      if (outfitRes.success && outfitRes.data.length > 0) setTodaysOutfit(outfitRes.data[0])
+      setLoading(false) // Instant counters
+
+      // Load heavy outfits separately
+      setOutfitLoading(true)
+      const outfitRes = await api.get('/outfits/generate?occasion=Casual&temperature=mild')
+      if (outfitRes.success && outfitRes.data.length > 0) {
+        setTodaysOutfit(outfitRes.data[0])
+      }
     } catch (err) {
       console.error(err)
     } finally {
       setLoading(false)
+      setOutfitLoading(false)
     }
   }
 
-  const totalItems = items.length
-  const favoritePieces = items.filter(i => i.userPreferenceScore > 0).length
-  const currentMonth = new Date().getMonth()
-  const addedThisMonth = items.filter(i => new Date(i.createdAt).getMonth() === currentMonth).length
-  const recentItems = items.slice(0, 5)
+  const totalItems = stats?.totalItems || 0
+  const favoritePieces = stats?.favoriteCount || 0
+  const addedThisMonth = stats?.addedThisMonth || 0
+  const recentItems = items // Already limited by API query
 
   return (
     <div className="dashboard-page" id="dashboard-page">
@@ -45,11 +89,11 @@ function Dashboard() {
           <div className="hero-content">
             <div className="hero-weather">
               <Sun size={20} strokeWidth={1.5} className="weather-icon" />
-              <span className="weather-text">22°C · Sunny</span>
+              <span className="weather-text">{weatherData.temp}°C · {weatherData.desc} ({weatherData.city})</span>
             </div>
             <h1 className="hero-title heading-italic">What should I wear today?</h1>
             <p className="hero-subtitle">
-              Based on your schedule and today's sunny 22°C weather, we've curated a breathable yet professional look.
+              Based on your schedule and today's {weatherData.desc.toLowerCase()} {weatherData.temp}°C weather in {weatherData.city}, we've curated a breathable yet tailored look.
             </p>
             <button className="btn btn-primary hero-btn" onClick={() => navigate('/outfits')} id="get-suggestions-btn">
               <Sparkles size={16} strokeWidth={1.5} /> Get Outfit Suggestions
@@ -66,7 +110,7 @@ function Dashboard() {
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="stat-icon"><Layers size={24} strokeWidth={1.5} /></div>
-            <div className="stat-value">0</div>
+            <div className="stat-value">{loading ? '-' : stats?.totalOutfits || 0}</div>
             <div className="stat-label">Outfits Created</div>
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
@@ -85,7 +129,7 @@ function Dashboard() {
         <section className="suggestion-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <h2 className="section-title heading-italic">Today's Suggestion</h2>
           <div className="outfit-preview card">
-            {loading ? (
+            {outfitLoading ? (
                <div style={{ padding: '40px', textAlign: 'center', color: '#6B7B8D' }}>Loading suggestion...</div>
             ) : todaysOutfit ? (
               <>
@@ -105,7 +149,7 @@ function Dashboard() {
                           <span className="badge badge-amber">{item.type}</span>
                         </div>
                       </div>
-                      {index < todaysOutfit.items.length - 1 && <div className="outfit-connector">+</div>}
+                      {index < todaysOutfit.items.length - 1 && <div className="outfit-connector" style={{ alignSelf: 'flex-start', paddingTop: '55px', paddingLeft: '15px' }}>+</div>}
                     </div>
                   ))}
                 </div>

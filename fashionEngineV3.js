@@ -2009,7 +2009,7 @@ function suggestFromCLIP(clipLabels, occasion="casual", weather="mid", userProfi
 // EXPORTS
 // ─────────────────────────────────────────────
 
-module.exports = {
+export {
   // Data
   COLOR_PROFILES, COLOR_HARMONY, COLOR_RULES,
   CLOTHING_ITEMS, PATTERNS, FABRICS, TEXTURE_RULES,

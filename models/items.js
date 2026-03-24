@@ -19,6 +19,7 @@ const itemSchema = new mongoose.Schema({
             "shirt",
             "tshirt",
             "vest",
+            "polo",
             "jeans",
             "trousers",
             "cargo",
@@ -59,7 +60,7 @@ const itemSchema = new mongoose.Schema({
     occasion: {
         type: [{
             type: String,
-            enum: ["casual", "office", "party", "date night", "gym", "ethnic"]
+            enum: ["casual", "office", "party", "date night", "gym", "ethnic", "business formal", "wedding guest", "pooja / puja", "festival"]
         }],
         required: true,
     },

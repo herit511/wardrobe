@@ -22,7 +22,11 @@ const userSchema = new mongoose.Schema({
         archetypes: [String],
         preferredColors: [String],
         preferredFit: String,
-        brands: [String]
+        brands: [String],
+        undertone: { type: String, default: '' },
+        skinDepth: { type: String, default: '' },
+        bodyType: { type: String, default: '' },
+        archetype: { type: String, default: '' }
     },
     preferences: {
         dailySuggestion: { type: Boolean, default: true },

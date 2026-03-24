@@ -1,6 +1,6 @@
 // API Helper with authentication interceptor
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const request = async (endpoint, options = {}) => {
     // Add auth token if it exists

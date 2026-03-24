@@ -19,7 +19,7 @@ const validate = (req, res, next) => {
 // Valid enum values (matching the Item schema)
 const CATEGORIES = ["top", "bottom", "footwear", "outerwear", "accessories"];
 const SUB_CATEGORIES = [
-  "shirt", "tshirt", "vest",
+  "shirt", "tshirt", "vest", "polo",
   "jeans", "trousers", "cargo", "shorts",
   "sneakers", "formal_shoes", "boots", "slides", "sport",
   "coat", "blazer", "hoodie", "jacket", "sweater",
@@ -27,7 +27,7 @@ const SUB_CATEGORIES = [
 ];
 const FITS = ["slim", "regular", "relaxed", "oversized", "boxy"];
 const PATTERNS = ["solid", "striped", "checked", "graphic", "printed"];
-const OCCASIONS = ["casual", "office", "party", "date night", "gym", "ethnic"];
+const OCCASIONS = ["casual", "office", "party", "date night", "gym", "ethnic", "business formal", "wedding guest", "pooja / puja", "festival"];
 const WEATHER = ["hot", "mild", "cold"];
 const CONDITIONS = ["new", "good", "worn"];
 

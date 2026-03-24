@@ -8,7 +8,7 @@ import './AddItem.css'
 
 const categories = ['top', 'bottom', 'footwear', 'outerwear', 'accessories']
 const subCategories = {
-  top: ['shirt', 'tshirt', 'vest'],
+  top: ['shirt', 'tshirt', 'polo', 'vest'],
   bottom: ['jeans', 'trousers', 'cargo', 'shorts'],
   footwear: ['sneakers', 'formal_shoes', 'boots', 'slides', 'sport'],
   outerwear: ['coat', 'blazer', 'hoodie', 'jacket', 'sweater'],
@@ -16,7 +16,18 @@ const subCategories = {
 }
 const fits = ['slim', 'regular', 'relaxed', 'oversized', 'boxy']
 const patterns = ['solid', 'striped', 'checked', 'graphic', 'printed']
-const occasionOptions = ['casual', 'office', 'party', 'date night', 'gym', 'ethnic']
+const occasionOptions = [
+  { value: 'casual', label: 'Casual' },
+  { value: 'office', label: 'Office' },
+  { value: 'business formal', label: 'Business Formal' },
+  { value: 'party', label: 'Party' },
+  { value: 'date night', label: 'Date Night' },
+  { value: 'gym', label: 'Gym' },
+  { value: 'wedding guest', label: 'Wedding Guest' },
+  { value: 'ethnic', label: 'Ethnic / Traditional' },
+  { value: 'pooja / puja', label: 'Puja / Religious' },
+  { value: 'festival', label: 'Festival' }
+]
 const weatherOptions = ['hot', 'mild', 'cold']
 const conditions = ['new', 'good', 'worn']
 
@@ -310,12 +321,12 @@ function EditItem() {
                 <div className="multi-chips">
                   {occasionOptions.map(o => (
                     <button
-                      key={o}
+                      key={o.value}
                       type="button"
-                      className={`chip ${form.occasion.includes(o) ? 'active' : ''}`}
-                      onClick={() => toggleMultiSelect('occasion', o)}
+                      className={`chip ${form.occasion.includes(o.value) ? 'active' : ''}`}
+                      onClick={() => toggleMultiSelect('occasion', o.value)}
                     >
-                      {o.charAt(0).toUpperCase() + o.slice(1)}
+                      {o.label}
                     </button>
                   ))}
                 </div>
@@ -323,18 +334,26 @@ function EditItem() {
 
               <div className="form-group">
                 <label>Weather</label>
-                <div className="multi-chips">
-                  {weatherOptions.map(w => (
+                  <div className="multi-chips">
                     <button
-                      key={w}
+                      key="all_season"
                       type="button"
-                      className={`chip ${form.weather.includes(w) ? 'active' : ''}`}
-                      onClick={() => toggleMultiSelect('weather', w)}
+                      className={`chip ${form.weather.length === 3 ? 'active' : ''}`}
+                      onClick={() => setForm(prev => ({ ...prev, weather: prev.weather.length === 3 ? [] : ['hot', 'mild', 'cold'] }))}
                     >
-                      {w.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      All Season
                     </button>
-                  ))}
-                </div>
+                    {weatherOptions.map(w => (
+                      <button
+                        key={w}
+                        type="button"
+                        className={`chip ${form.weather.includes(w) && form.weather.length < 3 ? 'active' : ''}`}
+                        onClick={() => toggleMultiSelect('weather', w)}
+                      >
+                        {w.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </button>
+                    ))}
+                  </div>
               </div>
 
               <div className="form-group">

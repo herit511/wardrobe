@@ -5,22 +5,49 @@ import { api } from '../api'
 import { getColorName } from '../utils'
 import './Outfits.css'
 
-const occasionOptions = ['Casual', 'Office', 'Party', 'Date Night', 'Gym', 'Ethnic']
+const occasionOptions = [
+  { value: 'casual', label: 'Casual' },
+  { value: 'office', label: 'Office' },
+  { value: 'business formal', label: 'Business Formal' },
+  { value: 'party', label: 'Party' },
+  { value: 'date night', label: 'Date Night' },
+  { value: 'gym', label: 'Gym' },
+  { value: 'wedding guest', label: 'Wedding Guest' },
+  { value: 'ethnic', label: 'Ethnic / Traditional' },
+  { value: 'pooja / puja', label: 'Puja / Religious' },
+  { value: 'festival', label: 'Festival' }
+]
 
 function Outfits() {
   const navigate = useNavigate()
-  const [selectedOccasion, setSelectedOccasion] = useState('Casual')
+  const [selectedOccasion, setSelectedOccasion] = useState('casual')
   const [temperature, setTemperature] = useState('mild')
+  const [preferredSubCategory, setPreferredSubCategory] = useState('')
+  const [closetItems, setClosetItems] = useState([])
   const [savedOutfits, setSavedOutfits] = useState([])
   const [savedLoading, setSavedLoading] = useState(false)
 
   useEffect(() => { 
     fetchSavedOutfits()
+    fetchClosetItems()
   }, [])
 
-  const handleGenerateClick = () => {
-    navigate(`/suggestions?occasion=${selectedOccasion}&temperature=${temperature}`)
+  const fetchClosetItems = async () => {
+    try {
+      const res = await api.get('/items')
+      if (res.success) setClosetItems(res.data)
+    } catch (err) { console.error('Failed to fetch items:', err) }
   }
+
+  const handleGenerateClick = () => {
+    const params = new URLSearchParams({ occasion: selectedOccasion, temperature });
+    if (preferredSubCategory) params.append('preferredSubCategory', preferredSubCategory);
+    
+    navigate(`/suggestions?${params.toString()}`);
+  }
+
+  // Derive unique subcategories from what the user actually owns
+  const uniqueSubCategories = Array.from(new Set(closetItems.filter(i => i.subCategory).map(i => i.subCategory))).sort();
 
   const fetchSavedOutfits = async () => {
     setSavedLoading(true)
@@ -77,8 +104,8 @@ function Outfits() {
                 <label className="sidebar-label">Occasion</label>
                 <div className="occasion-chips">
                   {occasionOptions.map(occ => (
-                    <button key={occ} className={`chip ${selectedOccasion === occ ? 'active' : ''}`} onClick={() => setSelectedOccasion(occ)} id={`occasion-${occ.toLowerCase().replace(' ', '-')}`}>
-                      {occ}
+                    <button key={occ.value} className={`chip ${selectedOccasion === occ.value ? 'active' : ''}`} onClick={() => setSelectedOccasion(occ.value)} id={`occasion-${occ.value.replace(/[\s/]+/g, '-')}`}>
+                      {occ.label}
                     </button>
                   ))}
                 </div>
@@ -111,6 +138,28 @@ function Outfits() {
                     <CloudSnow size={24} strokeWidth={1.5} style={{ marginBottom: '8px' }} />
                     Cold
                   </button>
+                </div>
+              </div>
+
+              {/* PREFERRED ITEM LOGIC */}
+              <div className="style-profile-section" style={{ marginTop: '20px', padding: '15px', background: '#F8F9FA', borderRadius: '8px', border: '1px solid #EBE4DD' }}>
+                <div style={{ marginBottom: '10px' }}>
+                  <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '8px', color: '#1B2A4A', fontWeight: 500 }}>
+                    Your Preference (Optional)
+                  </label>
+                  <select 
+                    value={preferredSubCategory} 
+                    onChange={e => setPreferredSubCategory(e.target.value)} 
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #EBE4DD', background: '#fff' }}
+                  >
+                    <option value="">No preference, generate anything!</option>
+                    {uniqueSubCategories.map(sub => (
+                      <option key={sub} value={sub}>
+                        {sub.charAt(0).toUpperCase() + sub.slice(1).replace('_', ' ')}
+                      </option>
+                    ))}
+                  </select>
+                  <p style={{ fontSize: '0.8rem', color: '#6B7B8D', marginTop: '8px', marginBottom: 0 }}>Select a style you definitely want to wear (e.g. Jeans), and AI will build an outfit around it.</p>
                 </div>
               </div>
               

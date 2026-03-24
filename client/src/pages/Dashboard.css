@@ -257,5 +257,15 @@
 
   .outfit-connector {
     transform: rotate(90deg);
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    align-self: center !important;
+    margin: var(--space-sm) 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-section {
+    grid-template-columns: 1fr;
   }
 }
