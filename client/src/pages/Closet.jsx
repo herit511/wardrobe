@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, NavLink } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Search, Shirt, MoreVertical, Edit2, Trash2, Heart, Droplets } from 'lucide-react'
 import { api } from '../api'
 import { getColorName, getOptimizedUrl } from '../utils'
@@ -11,6 +11,8 @@ const weatherFilters = ['All', 'Hot', 'Mild', 'Cold']
 
 function Closet() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeView = searchParams.get('view') || 'all'
   const [items, setItems] = useState([])
   const [activeCategory, setActiveCategory] = useState('All')
   const [activeWeather, setActiveWeather] = useState('All')
@@ -76,6 +78,10 @@ function Closet() {
   }
 
   const filteredItems = items.filter(item => {
+    // View filter (favorites / laundry)
+    if (activeView === 'favorites' && !(item.userPreferenceScore > 0)) return false
+    if (activeView === 'laundry' && !item.isLaundry) return false
+
     if (activeCategory !== 'All') {
       const matchCategory = item.category.toLowerCase() === activeCategory.toLowerCase() || item.category === activeCategory.replace(/s$/, '').toLowerCase()
       if (!matchCategory) return false
@@ -101,9 +107,9 @@ function Closet() {
         </div>
 
         <div className="closet-subnav">
-          <NavLink to="/closet" end className={({isActive}) => `subnav-btn ${isActive ? 'active' : ''}`}>All Items</NavLink>
-          <NavLink to="/favorites" className={({isActive}) => `subnav-btn ${isActive ? 'active' : ''}`}>Favorites</NavLink>
-          <NavLink to="/laundry" className={({isActive}) => `subnav-btn ${isActive ? 'active' : ''}`}>Laundry</NavLink>
+          <button onClick={() => setSearchParams({})} className={`subnav-btn ${activeView === 'all' ? 'active' : ''}`}>All Items</button>
+          <button onClick={() => setSearchParams({ view: 'favorites' })} className={`subnav-btn ${activeView === 'favorites' ? 'active' : ''}`}>Favorites</button>
+          <button onClick={() => setSearchParams({ view: 'laundry' })} className={`subnav-btn ${activeView === 'laundry' ? 'active' : ''}`}>Laundry</button>
         </div>
 
         {/* Filters */}
