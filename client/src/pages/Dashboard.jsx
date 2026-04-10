@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sun, Sparkles, Shirt, Layers, Heart, Package, Shuffle, ArrowRight } from 'lucide-react'
+import { Sun, Sparkles, Shirt, Layers, Package, Shuffle, ArrowRight } from 'lucide-react'
 import { api } from '../api'
-import { getColorName } from '../utils'
+import { getColorName, getOptimizedUrl } from '../utils'
+import SkeletonCard from '../components/SkeletonCard'
 import './Dashboard.css'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [items, setItems] = useState([])
+  const [allOutfits, setAllOutfits] = useState([])
   const [todaysOutfit, setTodaysOutfit] = useState(null)
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [outfitLoading, setOutfitLoading] = useState(true)
+  const [savingAction, setSavingAction] = useState(false)
+  const [outfitError, setOutfitError] = useState('')
+  const [fetchError, setFetchError] = useState(null)
   const [weatherData, setWeatherData] = useState({ temp: '22', desc: 'Sunny', city: 'your location' })
 
   useEffect(() => {
@@ -52,6 +57,9 @@ function Dashboard() {
   }
 
   const fetchDashboardData = async () => {
+    setOutfitError('')
+    setFetchError(null)
+    setLoading(true)
     try {
       const [statsRes, itemsRes] = await Promise.all([
         api.get('/stats'),
@@ -64,20 +72,67 @@ function Dashboard() {
 
       // Load heavy outfits separately
       setOutfitLoading(true)
-      const outfitRes = await api.get('/outfits/generate?occasion=Casual&temperature=mild')
-      if (outfitRes.success && outfitRes.data.length > 0) {
-        setTodaysOutfit(outfitRes.data[0])
+      try {
+        const outfitRes = await api.get('/outfits/generate?occasion=Casual&temperature=mild')
+        if (outfitRes.success && outfitRes.data.length > 0) {
+          setAllOutfits(outfitRes.data)
+          const randomIndex = Math.floor(Math.random() * outfitRes.data.length)
+          setTodaysOutfit(outfitRes.data[randomIndex])
+        }
+      } catch (oErr) {
+        console.error("Outfit generation failed:", oErr)
+        setOutfitError("Could not generate a new suggestion right now.")
       }
     } catch (err) {
-      console.error(err)
+      console.error("Dashboard fetch failed:", err)
+      setFetchError(err.message || "Failed to load dashboard data. Please check your connection.")
     } finally {
       setLoading(false)
       setOutfitLoading(false)
     }
   }
 
+  const handleWearThis = async () => {
+    if (!todaysOutfit) return;
+    setSavingAction(true); setOutfitError('');
+    try {
+      const itemIds = todaysOutfit.items.map(i => i._id || i);
+      const saveRes = await api.post('/outfits', { 
+        title: "Today's Random Pick", 
+        occasion: 'casual', 
+        items: itemIds 
+      });
+      if (!saveRes.success) throw new Error(saveRes.message || 'Failed to save');
+      const wearRes = await api.post(`/outfits/${saveRes.data._id}/wear`, {});
+      if (!wearRes.success) throw new Error(wearRes.message);
+      navigate('/outfits')
+    } catch (err) {
+      setOutfitError(err.message);
+    } finally {
+      setSavingAction(false);
+    }
+  }
+
+  const handleShuffle = () => {
+    if (allOutfits.length <= 1) return;
+    setOutfitLoading(true);
+    setTimeout(() => {
+      let randomIndex = Math.floor(Math.random() * allOutfits.length);
+      if (todaysOutfit) {
+        let attempts = 0;
+        // Try up to 5 times to pick a different outfit, falling back to random if very small array
+        while (allOutfits[randomIndex].id === todaysOutfit.id && attempts < 5) {
+          randomIndex = Math.floor(Math.random() * allOutfits.length);
+          attempts++;
+        }
+      }
+      setTodaysOutfit(allOutfits[randomIndex]);
+      setOutfitLoading(false);
+    }, 300); // 300ms simulated loading for a smooth fade transition effect
+  }
+
   const totalItems = stats?.totalItems || 0
-  const favoritePieces = stats?.favoriteCount || 0
+
   const addedThisMonth = stats?.addedThisMonth || 0
   const recentItems = items // Already limited by API query
 
@@ -101,35 +156,46 @@ function Dashboard() {
           </div>
         </section>
 
+        {fetchError && (
+          <div className="error-banner animate-fade-in" style={{ marginBottom: '20px', padding: '15px', background: '#FDECEA', color: '#E74C3C', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{fetchError}</span>
+            <button className="btn btn-ghost btn-xs" onClick={fetchDashboardData} style={{ color: '#E74C3C', border: '1px solid #E74C3C' }}>Retry</button>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <section className="stats-section">
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             <div className="stat-icon"><Shirt size={24} strokeWidth={1.5} /></div>
             <div className="stat-value">{loading ? '-' : totalItems}</div>
-            <div className="stat-label">Total Items</div>
+            <div className="stat-label uppercase-label">Total Items</div>
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="stat-icon"><Layers size={24} strokeWidth={1.5} /></div>
             <div className="stat-value">{loading ? '-' : stats?.totalOutfits || 0}</div>
-            <div className="stat-label">Outfits Created</div>
+            <div className="stat-label uppercase-label">Outfits Created</div>
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <div className="stat-icon"><Heart size={24} strokeWidth={1.5} /></div>
-            <div className="stat-value">{loading ? '-' : favoritePieces}</div>
-            <div className="stat-label">Favorite Pieces</div>
+            <div className="stat-icon"><Layers size={24} strokeWidth={1.5} /></div>
+            <div className="stat-value">{loading ? '-' : stats?.totalOutfits || 0}</div>
+            <div className="stat-label uppercase-label">Outfits Saved</div>
           </div>
           <div className="stat-card card animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             <div className="stat-icon"><Package size={24} strokeWidth={1.5} /></div>
             <div className="stat-value">{loading ? '-' : addedThisMonth}</div>
-            <div className="stat-label">Added This Month</div>
+            <div className="stat-label uppercase-label">Added This Month</div>
           </div>
         </section>
 
         {/* Today's Suggestion */}
         <section className="suggestion-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <h2 className="section-title heading-italic">Today's Suggestion</h2>
-          <div className="outfit-preview card">
-            {outfitLoading ? (
+          <div className="outfit-preview card" style={{ 
+              opacity: outfitLoading ? 0.6 : 1, 
+              transition: 'opacity 0.3s ease',
+              minHeight: '200px'
+          }}>
+            {outfitLoading && !todaysOutfit ? (
                <div style={{ padding: '40px', textAlign: 'center', color: '#6B7B8D' }}>Loading suggestion...</div>
             ) : todaysOutfit ? (
               <>
@@ -138,7 +204,7 @@ function Dashboard() {
                     <div key={item._id || index} style={{ display: 'flex', alignItems: 'center' }}>
                       <div className="outfit-item">
                         <div className="outfit-item-img" style={{ 
-                            backgroundImage: `url(${item.imageUrl})`, 
+                            backgroundImage: `url(${getOptimizedUrl(item.imageUrl, 400)})`, 
                             backgroundSize: 'cover', 
                             backgroundPosition: 'center',
                             backgroundColor: '#F5E6D3' 
@@ -149,13 +215,16 @@ function Dashboard() {
                           <span className="badge badge-amber">{item.type}</span>
                         </div>
                       </div>
-                      {index < todaysOutfit.items.length - 1 && <div className="outfit-connector" style={{ alignSelf: 'flex-start', paddingTop: '55px', paddingLeft: '15px' }}>+</div>}
+                      {index < todaysOutfit.items.length - 1 && <div className="outfit-connector">+</div>}
                     </div>
                   ))}
                 </div>
+                {outfitError && <p style={{ color: '#E74C3C', fontSize: '0.9rem', marginBottom: '10px' }}>{outfitError}</p>}
                 <div className="outfit-actions">
-                  <button className="btn btn-primary" id="wear-this-btn" onClick={() => alert('Outfit saved! (In-progress)')}>Wear This</button>
-                  <button className="shuffle-btn" onClick={fetchDashboardData}>
+                  <button className="btn btn-primary" id="wear-this-btn" onClick={handleWearThis} disabled={savingAction || outfitLoading}>
+                    {savingAction ? 'Logging...' : 'Wear This'}
+                  </button>
+                  <button className="shuffle-btn" onClick={handleShuffle} disabled={outfitLoading || savingAction || allOutfits.length <= 1}>
                     <Shuffle size={16} strokeWidth={1.5} /> Shuffle
                   </button>
                 </div>
@@ -178,10 +247,18 @@ function Dashboard() {
             </button>
           </div>
           <div className="recent-scroll">
-            {recentItems.length === 0 && !loading && <div style={{ padding: '20px', color: '#666' }}>No items added yet.</div>}
-            {recentItems.map((item, i) => (
+            {loading && <SkeletonCard count={4} type="list" />}
+            {recentItems.length === 0 && !loading && (
+              <div className="empty-state animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px', width: '100%', textAlign: 'center' }}>
+                <Shirt size={48} strokeWidth={1} style={{ marginBottom: '16px', color: '#1B2A4A', opacity: 0.3 }} />
+                <h3 style={{ marginBottom: '8px', color: '#1B2A4A' }}>Your wardrobe is empty</h3>
+                <p style={{ marginBottom: '20px', fontSize: '0.95rem', color: '#6B7B8D' }}>Start digitizing your clothes to get personalized AI suggestions.</p>
+                <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add Your First Item</button>
+              </div>
+            )}
+            {!loading && recentItems.map((item, i) => (
               <div key={item._id} className="recent-card card" style={{ animationDelay: `${0.5 + i * 0.1}s` }}>
-                <div className="recent-img" style={{ backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}>
+                <div className="recent-img" style={{ backgroundImage: `url(${getOptimizedUrl(item.imageUrl, 400)})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}>
                 </div>
                 <div className="recent-info">
                   <h4 style={{ textTransform: 'capitalize' }}>{getColorName(item.color)} {item.subCategory.replace('_', ' ')}</h4>

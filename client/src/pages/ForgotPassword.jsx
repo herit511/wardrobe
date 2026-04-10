@@ -1,12 +1,16 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { api } from '../api'
 import './Auth.css'
 
 function ForgotPassword() {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1) // 1: email, 2: OTP, 3: reset
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState(['', '', '', ''])
   const [passwords, setPasswords] = useState({ password: '', confirm: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleOtpChange = (value, index) => {
     const newOtp = [...otp]
@@ -17,12 +21,36 @@ function ForgotPassword() {
     }
   }
 
-  const handleNext = (e) => {
+  const handleNext = async (e) => {
     e.preventDefault()
-    if (step < 3) setStep(step + 1)
-    else {
-      // TODO: integrate reset password API
-      window.location.href = '/login'
+    setError('')
+    setLoading(true)
+
+    try {
+      if (step === 1) {
+        // Send OTP
+        const res = await api.post('/auth/forgot-password', { email })
+        if (!res.success) throw new Error(res.message)
+        alert('If this email is registered, a 4-digit code will be sent to you (Logging to server console for MVP setup).')
+        setStep(2)
+      } else if (step === 2) {
+        // Just move to step 3, OTP is verified on final submit
+        if (otp.join('').length !== 4) throw new Error('Please enter complete 4-digit code')
+        setStep(3)
+      } else if (step === 3) {
+        // Submit entirely
+        if (passwords.password !== passwords.confirm) throw new Error('Passwords do not match')
+        const finalOtp = otp.join('')
+        const res = await api.put('/auth/reset-password', { email, otp: finalOtp, newPassword: passwords.password })
+        if (!res.success) throw new Error(res.message)
+        
+        alert('Password reset successful! Please login with your new password.')
+        navigate('/login')
+      }
+    } catch (err) {
+      setError(err.message || 'Something went wrong')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -59,6 +87,8 @@ function ForgotPassword() {
           <p className="auth-subtitle" style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
             {stepDescriptions[step - 1]}
           </p>
+
+          {error && <div className="auth-error" style={{ color: '#E74C3C', padding: '10px 0', fontSize: '14px', textAlign: 'center' }}>{error}</div>}
 
           <form className="auth-form" onSubmit={handleNext}>
             {step === 1 && (
@@ -105,6 +135,7 @@ function ForgotPassword() {
                     value={passwords.password}
                     onChange={(e) => setPasswords({ ...passwords, password: e.target.value })}
                     required
+                    minLength={6}
                   />
                 </div>
                 <div className="form-group">
@@ -117,13 +148,14 @@ function ForgotPassword() {
                     value={passwords.confirm}
                     onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
                     required
+                    minLength={6}
                   />
                 </div>
               </>
             )}
 
-            <button type="submit" className="btn btn-primary auth-btn" id="continue-btn">
-              Continue
+            <button type="submit" className="btn btn-primary auth-btn" id="continue-btn" disabled={loading}>
+              {loading ? 'Processing...' : step === 3 ? 'Reset Password' : 'Continue'}
             </button>
 
             <p className="auth-toggle">

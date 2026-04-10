@@ -81,6 +81,18 @@ const itemSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    lastWorn: {
+        type: Date,
+        default: null
+    },
+    wearCount: {
+        type: Number,
+        default: 0
+    },
+    isLaundry: {
+        type: Boolean,
+        default: false
+    },
     imageUrl: {
         type: String,
         required: true,

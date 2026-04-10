@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Sparkles, Sun, CloudSun, CloudSnow, Save, RefreshCw, Shirt, Heart, Trash2 } from 'lucide-react'
+import { Sparkles, Sun, CloudSun, CloudSnow, Save, Shirt, Trash2, Share2, Plus, Heart } from 'lucide-react'
 import { api } from '../api'
-import { getColorName } from '../utils'
+import { getColorName, getOptimizedUrl } from '../utils'
 import './Outfits.css'
 
 const occasionOptions = [
@@ -22,11 +22,15 @@ function Outfits() {
   const navigate = useNavigate()
   const [selectedOccasion, setSelectedOccasion] = useState('casual')
   const [temperature, setTemperature] = useState('mild')
-  const [preferredSubCategory, setPreferredSubCategory] = useState('')
+  const [preferredSubCategories, setPreferredSubCategories] = useState([])
   const [closetItems, setClosetItems] = useState([])
   const [savedOutfits, setSavedOutfits] = useState([])
   const [savedLoading, setSavedLoading] = useState(false)
-
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null)
+  const [savingWearId, setSavingWearId] = useState(null)
+  const [filterOccasion, setFilterOccasion] = useState('All')
+  const [toastMsg, setToastMsg] = useState({ type: '', text: '' })
+  const [togglingFavId, setTogglingFavId] = useState(null)
   useEffect(() => { 
     fetchSavedOutfits()
     fetchClosetItems()
@@ -34,16 +38,24 @@ function Outfits() {
 
   const fetchClosetItems = async () => {
     try {
-      const res = await api.get('/items')
+      const res = await api.get('/items?limit=100')
       if (res.success) setClosetItems(res.data)
     } catch (err) { console.error('Failed to fetch items:', err) }
   }
 
   const handleGenerateClick = () => {
     const params = new URLSearchParams({ occasion: selectedOccasion, temperature });
-    if (preferredSubCategory) params.append('preferredSubCategory', preferredSubCategory);
+    if (preferredSubCategories.length > 0) params.append('preferredSubCategory', preferredSubCategories.join(','));
     
     navigate(`/suggestions?${params.toString()}`);
+  }
+
+  const togglePreference = (subCat) => {
+    if (preferredSubCategories.includes(subCat)) {
+      setPreferredSubCategories(prev => prev.filter(c => c !== subCat));
+    } else {
+      setPreferredSubCategories(prev => [...prev, subCat]);
+    }
   }
 
   // Derive unique subcategories from what the user actually owns
@@ -58,29 +70,64 @@ function Outfits() {
     finally { setSavedLoading(false) }
   }
 
-
-
   const toggleFavoriteOutfit = async (outfitId) => {
+    if (togglingFavId) return
+    setTogglingFavId(outfitId)
     try {
       const res = await api.put(`/outfits/${outfitId}/favorite`, {})
-      if (res.success) {
-        setSavedOutfits(prev => prev.map(o => o._id === outfitId ? { ...o, isFavorite: !o.isFavorite } : o))
+      if (res.success && res.data) {
+        setSavedOutfits(prev => prev.map(o => o._id === outfitId ? { ...o, isFavorite: res.data.isFavorite } : o))
       }
-    } catch (err) { console.error('Failed to toggle favorite:', err) }
+    } catch (err) { console.error(err) }
+    finally { setTogglingFavId(null) }
   }
-
   const deleteOutfit = async (outfitId) => {
-    if (!window.confirm('Remove this saved outfit?')) return
     try {
       const res = await api.del(`/outfits/${outfitId}`)
       if (res.success) setSavedOutfits(prev => prev.filter(o => o._id !== outfitId))
     } catch (err) { console.error('Failed to delete outfit:', err) }
+    setDeleteConfirmId(null)
   }
 
-  // Sort: favorites first, then newest
-  const sortedSavedOutfits = [...savedOutfits].sort((a, b) => {
-    if (a.isFavorite && !b.isFavorite) return -1
-    if (!a.isFavorite && b.isFavorite) return 1
+  const handleShare = async (outfit) => {
+    const text = `Check out this ${outfit.occasion} outfit I curated on Style DNA: ${outfit.title}!`;
+    const url = window.location.origin;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Style DNA', text, url });
+      } catch (err) { console.log('Share canceled', err) }
+    } else {
+      navigator.clipboard.writeText(`${text} ${url}`);
+      setToastMsg({ type: 'success', text: 'Outfit link copied to clipboard!' });
+      setTimeout(() => setToastMsg({ type: '', text: '' }), 3000);
+    }
+  }
+
+  const handleWearSaved = async (outfit) => {
+    setSavingWearId(outfit._id)
+    setToastMsg({ type: '', text: '' })
+    try {
+      const wearRes = await api.post(`/outfits/${outfit._id}/wear`, {})
+      if (!wearRes.success) throw new Error(wearRes.message)
+      setSavedOutfits(prev => prev.map(o => o._id === outfit._id ? { ...o, wornHistory: [...o.wornHistory, { date: new Date() }] } : o))
+      setToastMsg({ type: 'success', text: 'Outfit logged as worn today!' })
+      setTimeout(() => setToastMsg({ type: '', text: '' }), 3000)
+    } catch (err) {
+      setToastMsg({ type: 'error', text: err.message || 'Failed to log outfit' })
+    } finally {
+      setSavingWearId(null)
+    }
+  }
+
+  // Filter and Sort: newest first
+  const filteredSavedOutfits = savedOutfits.filter(o => {
+    const matchOccasion = filterOccasion === 'All' || o.occasion.toLowerCase() === filterOccasion.toLowerCase();
+    const matchFavorite = filterOccasion === 'Favorites' ? o.isFavorite : true;
+    return matchOccasion && matchFavorite;
+  })
+  const sortedSavedOutfits = [...filteredSavedOutfits].sort((a, b) => {
+    if (a.isFavorite && !b.isFavorite) return -1;
+    if (!a.isFavorite && b.isFavorite) return 1;
     return new Date(b.createdAt) - new Date(a.createdAt)
   })
 
@@ -88,12 +135,12 @@ function Outfits() {
     <div className="outfits-page" id="outfits-page">
       <div className="container">
         <div className="outfits-layout">
-          <main className="outfits-main" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+          <main className="outfits-main" style={{ width: '100%' }}>
             {/* GENERATE SECTION */}
-            <div className="card" style={{ padding: '30px', marginBottom: '40px', background: 'linear-gradient(145deg, #ffffff, #fdfbf7)', border: '1px solid #EBE4DD' }}>
-              <div className="outfits-header animate-fade-in-up" style={{ marginBottom: '20px' }}>
-                <h1 className="page-title heading-italic" style={{ fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={24} strokeWidth={1.5} className="sparkle" /> Get Outfit Suggestions
+            <div className="card generate-card animate-fade-in-up">
+              <div className="outfits-header" style={{ marginBottom: '20px' }}>
+                <h1 className="page-title heading-italic">
+                  <Sparkles size={24} strokeWidth={1.5} className="sparkle" /> Get Suggestions
                 </h1>
                 <p className="page-subtitle">
                   Tell AI your plans and we'll curate the perfect looks from your wardrobe.
@@ -101,7 +148,7 @@ function Outfits() {
               </div>
 
               <div className="sidebar-section">
-                <label className="sidebar-label">Occasion</label>
+                <label className="uppercase-label">Occasion</label>
                 <div className="occasion-chips">
                   {occasionOptions.map(occ => (
                     <button key={occ.value} className={`chip ${selectedOccasion === occ.value ? 'active' : ''}`} onClick={() => setSelectedOccasion(occ.value)} id={`occasion-${occ.value.replace(/[\s/]+/g, '-')}`}>
@@ -112,30 +159,27 @@ function Outfits() {
               </div>
               
               <div className="sidebar-section">
-                <label className="sidebar-label" style={{ marginTop: '20px' }}>Simulated Weather</label>
-                <div className="weather-widget" style={{ padding: '0', background: 'transparent', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', cursor: 'pointer' }}>
+                <label className="uppercase-label">Simulated Weather</label>
+                <div className="weather-widget">
                   <button 
-                    className={`chip ${temperature === 'hot' ? 'active' : ''}`} 
+                    className={`chip weather-chip ${temperature === 'hot' ? 'active' : ''}`} 
                     onClick={() => setTemperature('hot')} 
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 10px', fontSize: '1rem', background: temperature === 'hot' ? '#FDECEA' : '#fff' }}
                   >
-                    <Sun size={24} strokeWidth={1.5} style={{ marginBottom: '8px' }} />
+                    <Sun size={24} strokeWidth={1.5} />
                     Hot
                   </button>
                   <button 
-                    className={`chip ${temperature === 'mild' ? 'active' : ''}`} 
+                    className={`chip weather-chip ${temperature === 'mild' ? 'active' : ''}`} 
                     onClick={() => setTemperature('mild')} 
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 10px', fontSize: '1rem', background: temperature === 'mild' ? '#EBF5FF' : '#fff' }}
                   >
-                    <CloudSun size={24} strokeWidth={1.5} style={{ marginBottom: '8px' }} />
+                    <CloudSun size={24} strokeWidth={1.5} />
                     Mild
                   </button>
                   <button 
-                    className={`chip ${temperature === 'cold' ? 'active' : ''}`} 
+                    className={`chip weather-chip ${temperature === 'cold' ? 'active' : ''}`} 
                     onClick={() => setTemperature('cold')} 
-                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 10px', fontSize: '1rem', background: temperature === 'cold' ? '#F0F4F8' : '#fff' }}
                   >
-                    <CloudSnow size={24} strokeWidth={1.5} style={{ marginBottom: '8px' }} />
+                    <CloudSnow size={24} strokeWidth={1.5} />
                     Cold
                   </button>
                 </div>
@@ -145,21 +189,26 @@ function Outfits() {
               <div className="style-profile-section" style={{ marginTop: '20px', padding: '15px', background: '#F8F9FA', borderRadius: '8px', border: '1px solid #EBE4DD' }}>
                 <div style={{ marginBottom: '10px' }}>
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '8px', color: '#1B2A4A', fontWeight: 500 }}>
-                    Your Preference (Optional)
+                    Specific Pieces (Optional)
                   </label>
-                  <select 
-                    value={preferredSubCategory} 
-                    onChange={e => setPreferredSubCategory(e.target.value)} 
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #EBE4DD', background: '#fff' }}
-                  >
-                    <option value="">No preference, generate anything!</option>
-                    {uniqueSubCategories.map(sub => (
-                      <option key={sub} value={sub}>
-                        {sub.charAt(0).toUpperCase() + sub.slice(1).replace('_', ' ')}
-                      </option>
-                    ))}
-                  </select>
-                  <p style={{ fontSize: '0.8rem', color: '#6B7B8D', marginTop: '8px', marginBottom: 0 }}>Select a style you definitely want to wear (e.g. Jeans), and AI will build an outfit around it.</p>
+                  <div className="occasion-chips" style={{ marginBottom: '10px' }}>
+                    {uniqueSubCategories.length === 0 ? (
+                      <p style={{ fontSize: '0.85rem', color: '#6B7B8D', margin: 0 }}>Add items to your closet first to select preferences.</p>
+                    ) : (
+                      uniqueSubCategories.map(sub => (
+                        <button 
+                          key={sub} 
+                          className={`chip ${preferredSubCategories.includes(sub) ? 'active' : ''}`}
+                          onClick={() => togglePreference(sub)}
+                          style={{ padding: '6px 14px', fontSize: '0.85rem' }}
+                        >
+                          {preferredSubCategories.includes(sub) ? '✓ ' : '+ '}
+                          {sub.charAt(0).toUpperCase() + sub.slice(1).replace('_', ' ')}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <p style={{ fontSize: '0.8rem', color: '#6B7B8D', marginTop: '8px', marginBottom: 0 }}>Select specific styles you want to wear (e.g. Jeans, Chain), and AI will build an outfit containing all of them.</p>
                 </div>
               </div>
               
@@ -172,46 +221,90 @@ function Outfits() {
                   <Sparkles size={16} strokeWidth={1.5} className="sparkle" /> Generate My Outfits
                 </div>
               </button>
+
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                <span style={{ fontSize: '0.9rem', color: '#6B7B8D' }}>or</span>
+              </div>
+              
+              <button 
+                className="btn btn-secondary" 
+                style={{ width: '100%', marginTop: '15px', padding: '15px', fontSize: '1.1rem' }} 
+                onClick={() => navigate('/build-outfit')}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                  <Plus size={16} strokeWidth={1.5} /> Build Custom Outfit Manually
+                </div>
+              </button>
             </div>
 
             {/* SAVED SECTION */}
-            <div className="outfits-header animate-fade-in-up">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {toastMsg.text && (
+              <div style={{ padding: '12px 18px', borderRadius: '10px', marginBottom: '15px', fontSize: '0.9rem', background: toastMsg.type === 'error' ? '#FDECEA' : '#EAFaf1', color: toastMsg.type === 'error' ? '#E74C3C' : '#27AE60', textAlign: 'center', transition: 'all 0.3s ease' }}>
+                {toastMsg.text}
+              </div>
+            )}
+            <div className="outfits-header secondary animate-fade-in-up">
+              <div className="header-flex">
                 <div>
-                  <h1 className="page-title heading-italic" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Save size={20} strokeWidth={1.5} /> My Saved Outfits
+                  <h1 className="page-title heading-italic">
+                    <Save size={20} strokeWidth={1.5} /> My Closet
                   </h1>
                   <p className="page-subtitle">
-                    {savedOutfits.length} saved · {savedOutfits.filter(o => o.isFavorite).length} favorited
+                    {savedOutfits.length} curated styles
                   </p>
                 </div>
-                <button className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={fetchSavedOutfits} disabled={savedLoading}>
-                  <RefreshCw size={16} strokeWidth={1.5} /> Refresh
-                </button>
+                <select className="filter-select" value={filterOccasion} onChange={e => setFilterOccasion(e.target.value)}>
+                  <option value="All">All Occasions</option>
+                  <option value="Favorites">My Favorites</option>
+                  <option value="casual">Casual</option>
+                  <option value="office">Office</option>
+                  <option value="party">Party</option>
+                  <option value="gym">Gym</option>
+                  <option value="date night">Date Night</option>
+                </select>
               </div>
             </div>
                 {savedLoading ? (
                   <div style={{ textAlign: 'center', padding: '40px', color: '#1B2A4A' }}>Loading your saved outfits...</div>
                 ) : sortedSavedOutfits.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px', color: '#6B7B8D' }}>
-                    <div style={{ marginBottom: '15px', color: '#1B2A4A' }}><Shirt size={48} strokeWidth={1.5} /></div>
-                    <h3 style={{ marginBottom: '8px', color: '#1B2A4A' }}>No saved outfits yet</h3>
-                    <p>Use the box above to generate some outfits and save your favorites!</p>
+                  <div className="empty-state animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 20px', textAlign: 'center', background: '#ffffff', borderRadius: '16px', border: '1px solid #EBE4DD' }}>
+                    <div style={{ marginBottom: '16px', color: '#1B2A4A', opacity: 0.3 }}><Shirt size={48} strokeWidth={1} /></div>
+                    <h3 style={{ marginBottom: '8px', color: '#1B2A4A', fontSize: '1.4rem' }}>No saved outfits yet</h3>
+                    <p style={{ color: '#6B7B8D', marginBottom: '24px', maxWidth: '300px' }}>Use the generator above to create fresh looks and save them here.</p>
                   </div>
                 ) : (
                   <div className="outfit-cards">
                     {sortedSavedOutfits.map((outfit, i) => (
-                      <div key={outfit._id} className="outfit-card card animate-fade-in-up" style={{ animationDelay: `${0.1 + i * 0.1}s`, border: outfit.isFavorite ? '2px solid #E87040' : undefined }}>
+                      <div key={outfit._id} className="outfit-card card animate-fade-in-up" style={{ position: 'relative', overflow: 'hidden', animationDelay: `${0.1 + i * 0.1}s`, border: outfit.isFavorite ? '2px solid #E74C3C' : '1px solid #EBE4DD' }}>
+                        
+                        {deleteConfirmId === outfit._id && (
+                          <div className="animate-fade-in" style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.95)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, padding: '20px', textAlign: 'center' }}>
+                            <h4 style={{ margin: '0 0 10px 0', color: '#1B2A4A', fontSize: '1.1rem' }}>Delete this outfit?</h4>
+                            <p style={{ margin: '0 0 20px 0', fontSize: '0.9rem', color: '#6B7B8D' }}>This action cannot be undone.</p>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                              <button className="btn btn-ghost" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
+                              <button className="btn btn-primary" style={{ background: '#E74C3C', borderColor: '#E74C3C' }} onClick={() => deleteOutfit(outfit._id)}>Yes, Delete</button>
+                            </div>
+                          </div>
+                        )}
+                        {outfit.relaxedMatch && (
+                          <div style={{ padding: '4px 10px', background: '#FFF7ED', color: '#C2410C', fontSize: '0.7rem', fontWeight: 700, borderRadius: '4px', display: 'inline-block', marginBottom: '10px' }}>
+                            ✓ BEST POSSIBLE MATCH FROM CLOSET
+                          </div>
+                        )}
+
                         <div className="outfit-card-header">
                           <div>
                             <h2 className="outfit-card-title heading-italic">
-                              {outfit.isFavorite ? <Heart size={20} fill="currentColor" strokeWidth={0} /> : <Save size={20} strokeWidth={1.5} />} {outfit.title}
+                              <Save size={20} strokeWidth={1.5} /> {outfit.title}
                             </h2>
                             <div className="outfit-tags">
                               <span className="badge badge-amber">{outfit.occasion}</span>
-                              {outfit.isFavorite && <span className="badge badge-orange">Favorite</span>}
                               {outfit.wornHistory && outfit.wornHistory.length > 0 && (
                                 <span className="badge badge-amber">Worn {outfit.wornHistory.length}x</span>
+                              )}
+                              {outfit.generationContext?.confidence && (
+                                <span className="badge badge-amber" style={{ opacity: 0.8 }}>{outfit.generationContext.confidence}% Match</span>
                               )}
                             </div>
                           </div>
@@ -220,10 +313,16 @@ function Outfits() {
                           </div>
                         </div>
 
+                        {outfit.feelLine && (
+                          <div style={{ margin: '8px 0', padding: '6px 12px', background: '#FFF7ED', borderLeft: '3px solid #F97316', borderRadius: '4px', fontSize: '0.8rem', color: '#9A3412', fontWeight: 600 }}>
+                            {outfit.feelLine}
+                          </div>
+                        )}
+
                         <div className="outfit-card-items">
                           {outfit.items.map((item, j) => (
                             <div key={j} className="outfit-card-item">
-                              <div className="outfit-card-item-img" style={{ backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}></div>
+                              <div className="outfit-card-item-img" style={{ backgroundImage: item.imageUrl ? `url(${getOptimizedUrl(item.imageUrl, 400)})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}></div>
                               <div className="outfit-card-item-type" style={{ textTransform: 'capitalize' }}>{item.category || 'Item'}</div>
                               <div className="outfit-card-item-name" style={{ textTransform: 'capitalize', fontSize: '14px' }}>
                                 {item.subCategory ? `${getColorName(item.color)} ${item.subCategory.replace('_', ' ')}` : 'Item'}
@@ -231,6 +330,13 @@ function Outfits() {
                             </div>
                           ))}
                         </div>
+
+                        {outfit.signatureMove && (
+                          <div style={{ marginBottom: '15px', padding: '12px', background: '#F8F9FA', borderRadius: '8px', border: '1px solid #EBE4DD' }}>
+                            <h4 style={{ margin: '0 0 5px 0', fontSize: '0.75rem', textTransform: 'uppercase', color: '#94A3B8' }}>Signature Move</h4>
+                            <p style={{ margin: 0, fontSize: '0.9rem', fontStyle: 'italic', color: '#1B2A4A' }}>"{outfit.signatureMove}"</p>
+                          </div>
+                        )}
 
                         {outfit.wornHistory && outfit.wornHistory.length > 0 && (
                           <div className="outfit-card-reason">
@@ -240,21 +346,48 @@ function Outfits() {
 
                         <div className="outfit-card-actions">
                           <button 
-                            className={`btn ${outfit.isFavorite ? 'btn-primary' : 'btn-ghost'}`}
-                            onClick={() => toggleFavoriteOutfit(outfit._id)}
-                            title={outfit.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                            className="btn btn-primary"
+                            onClick={() => handleWearSaved(outfit)}
+                            disabled={savingWearId === outfit._id}
+                            title="Log as worn today"
+                            style={{ flex: 1 }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {outfit.isFavorite ? <><Heart size={16} fill="currentColor" strokeWidth={0} /> Favorited</> : <><Heart size={16} strokeWidth={1.5} /> Favorite</>}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                              {savingWearId === outfit._id ? 'Logging...' : <><Shirt size={16} strokeWidth={1.5} /> Wear</>}
                             </div>
                           </button>
+
+                          <button 
+                            className={`btn ${outfit.isFavorite ? 'btn-primary' : 'btn-ghost'}`}
+                            onClick={() => toggleFavoriteOutfit(outfit._id)}
+                            disabled={togglingFavId === outfit._id}
+                            title={outfit.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                            style={{ flex: 1 }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                              <Heart 
+                                size={16} 
+                                fill={outfit.isFavorite ? "white" : "none"} 
+                                stroke={outfit.isFavorite ? "white" : "#1B2A4A"} 
+                                strokeWidth={outfit.isFavorite ? 0 : 2} 
+                              /> 
+                              {outfit.isFavorite ? 'Favorited' : 'Favorite'}
+                            </div>
+                          </button>
+                          
+                          <button className="btn btn-ghost" onClick={() => handleShare(outfit)} style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                              <Share2 size={16} strokeWidth={1.5} /> Share
+                            </div>
+                          </button>
+
                           <button 
                             className="btn btn-ghost"
-                            onClick={() => deleteOutfit(outfit._id)}
-                            style={{ color: '#E74C3C' }}
+                            onClick={() => setDeleteConfirmId(outfit._id)}
+                            style={{ color: '#E74C3C', flex: 1 }}
                             title="Delete this outfit"
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
                               <Trash2 size={16} strokeWidth={1.5} /> Remove
                             </div>
                           </button>

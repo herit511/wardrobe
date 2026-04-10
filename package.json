@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "dev:all": "concurrently \"npm run dev\" \"cd client && npm run dev\""
+    "dev:all": "concurrently \"npm run dev\" \"cd client && npm run dev\"",
+    "build": "cd client && npm install && npm run build"
   },
   "keywords": [],
   "author": "",

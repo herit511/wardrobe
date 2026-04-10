@@ -79,6 +79,10 @@ function Login() {
             <p className="auth-toggle">
               New here? <Link to="/signup" id="signup-link">Create an account</Link>
             </p>
+
+            <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+              By signing in, you agree to our <Link to="/terms" style={{ color: 'var(--color-text-secondary)', textDecoration: 'underline' }}>Terms</Link> and <Link to="/privacy" style={{ color: 'var(--color-text-secondary)', textDecoration: 'underline' }}>Privacy Policy</Link>.
+            </div>
           </form>
         </div>
       </div>

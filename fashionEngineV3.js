@@ -578,177 +578,178 @@ const WEATHER = {
  */
 const CLOTHING_ITEMS = {
   // ── TOPS ──────────────────────────────
-  "t-shirt":            { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "graphic tee":        { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "oversized tee":      { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "polo shirt":         { formality:2, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "henley":             { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "shirt":              { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid","cold"],fabricWeight:"light"  },
-  "linen shirt":        { formality:2, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "flannel shirt":      { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "dress shirt":        { formality:4, role:"top",      category:"top",      weatherOk:["hot","mid","cold"],fabricWeight:"light"  },
-  "oxford shirt":       { formality:3, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"light"  },
-  "blouse":             { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "silk blouse":        { formality:4, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "tank top":           { formality:1, role:"top",      category:"top",      weatherOk:["hot"],             fabricWeight:"light"  },
-  "crop top":           { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "bodysuit":           { formality:2, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "sweater":            { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "chunky knit":        { formality:1, role:"top",      category:"top",      weatherOk:["cold"],            fabricWeight:"heavy"  },
-  "ribbed knit":        { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "turtleneck":         { formality:3, role:"top",      category:"top",      weatherOk:["cold"],            fabricWeight:"medium" },
-  "mock neck":          { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "hoodie":             { formality:1, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "zip hoodie":         { formality:1, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "sweatshirt":         { formality:1, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "peplum top":         { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "wrap top":           { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
+  "t-shirt":            { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","gym","party"] },
+  "graphic tee":        { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","gym"] },
+  "oversized tee":      { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","gym"] },
+  "polo shirt":         { formality:2, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night"] },
+  "henley":             { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "shirt":              { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid","cold"],fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "linen shirt":        { formality:2, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "flannel shirt":      { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "dress shirt":        { formality:4, role:"top",      category:"top",      weatherOk:["hot","mid","cold"],fabricWeight:"light",  occasionOk:["office","business formal","wedding guest","date night","party"] },
+  "oxford shirt":       { formality:3, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "blouse":             { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "silk blouse":        { formality:4, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "tank top":           { formality:1, role:"top",      category:"top",      weatherOk:["hot"],             fabricWeight:"light",  occasionOk:["casual","gym","party"] },
+  "crop top":           { formality:1, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","gym","party"] },
+  "bodysuit":           { formality:2, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "sweater":            { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","office","party","date night"] },
+  "chunky knit":        { formality:1, role:"top",      category:"top",      weatherOk:["cold"],            fabricWeight:"heavy",  occasionOk:["casual","party","gym"] },
+  "ribbed knit":        { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "turtleneck":         { formality:3, role:"top",      category:"top",      weatherOk:["cold"],            fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "mock neck":          { formality:2, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "hoodie":             { formality:1, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","gym","party"] },
+  "zip hoodie":         { formality:1, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","gym","party"] },
+  "sweatshirt":         { formality:1, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","gym","party"] },
+  "peplum top":         { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "wrap top":           { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
   // Indian tops
-  "kurta":              { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid","cold"],fabricWeight:"light"  },
-  "kurti":              { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "sherwani":           { formality:5, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "bandhgala":          { formality:5, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "pathani suit top":   { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light"  },
+  "kurta":              { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid","cold"],fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "kurti":              { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "sherwani":           { formality:5, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "bandhgala":          { formality:5, role:"top",      category:"top",      weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "pathani suit top":   { formality:3, role:"top",      category:"top",      weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
 
   // ── BOTTOMS ────────────────────────────
-  "jeans":              { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "slim jeans":         { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "straight jeans":     { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "wide leg jeans":     { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "bootcut jeans":      { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "flare jeans":        { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium" },
-  "ripped jeans":       { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium" },
-  "chinos":             { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid","cold"],fabricWeight:"light"  },
-  "linen trousers":     { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "trousers":           { formality:4, role:"bottom",   category:"bottom",   weatherOk:["hot","mid","cold"],fabricWeight:"medium" },
-  "dress trousers":     { formality:5, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "pleated trousers":   { formality:4, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "shorts":             { formality:1, role:"bottom",   category:"bottom",   weatherOk:["hot"],             fabricWeight:"light"  },
-  "cargo shorts":       { formality:1, role:"bottom",   category:"bottom",   weatherOk:["hot"],             fabricWeight:"light"  },
-  "cargo pants":        { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "joggers":            { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "sweatpants":         { formality:1, role:"bottom",   category:"bottom",   weatherOk:["cold"],            fabricWeight:"heavy"  },
-  "track pants":        { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "skirt":              { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "mini skirt":         { formality:2, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "midi skirt":         { formality:3, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium" },
-  "maxi skirt":         { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "pencil skirt":       { formality:4, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "pleated skirt":      { formality:3, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium" },
-  "leggings":           { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"light"  },
-  "thermal leggings":   { formality:1, role:"bottom",   category:"bottom",   weatherOk:["cold"],            fabricWeight:"medium" },
+  "jeans":              { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "slim jeans":         { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "straight jeans":     { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "wide leg jeans":     { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "bootcut jeans":      { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "flare jeans":        { formality:2, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "ripped jeans":       { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","party","gym"] },
+  "chinos":             { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid","cold"],fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "linen trousers":     { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "trousers":           { formality:4, role:"bottom",   category:"bottom",   weatherOk:["hot","mid","cold"],fabricWeight:"medium", occasionOk:["office","business formal","date night","party","wedding guest","casual"] },
+  "wide leg trousers":  { formality:4, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["office","party","date night","wedding guest","casual"] },
+  "dress trousers":     { formality:5, role:"bottom",   category:"bottom",   weatherOk:["hot","mid","cold"],      fabricWeight:"medium", occasionOk:["office","business formal","wedding guest","date night"] },
+  "pleated trousers":   { formality:4, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "shorts":             { formality:1, role:"bottom",   category:"bottom",   weatherOk:["hot"],             fabricWeight:"light",  occasionOk:["casual","gym"] },
+  "cargo shorts":       { formality:1, role:"bottom",   category:"bottom",   weatherOk:["hot"],             fabricWeight:"light",  occasionOk:["casual","gym"] },
+  "cargo pants":        { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party"] },
+  "joggers":            { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","gym"] },
+  "sweatpants":         { formality:1, role:"bottom",   category:"bottom",   weatherOk:["cold"],            fabricWeight:"heavy",  occasionOk:["casual","gym"] },
+  "track pants":        { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","gym"] },
+  "skirt":              { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "mini skirt":         { formality:2, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "midi skirt":         { formality:3, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "maxi skirt":         { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "pencil skirt":       { formality:4, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["office","business formal","date night","party"] },
+  "pleated skirt":      { formality:3, role:"bottom",   category:"bottom",   weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "leggings":           { formality:1, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"light",  occasionOk:["casual","gym"] },
+  "thermal leggings":   { formality:1, role:"bottom",   category:"bottom",   weatherOk:["cold"],            fabricWeight:"medium", occasionOk:["gym","casual"] },
   // Indian bottoms
-  "dhoti":              { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "churidar":           { formality:4, role:"bottom",   category:"bottom",   weatherOk:["mid","cold"],      fabricWeight:"light"  },
-  "salwar":             { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light"  },
+  "dhoti":              { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "churidar":           { formality:4, role:"bottom",   category:"bottom",   weatherOk:["hot","mid","cold"],      fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "salwar":             { formality:3, role:"bottom",   category:"bottom",   weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
 
   // ── FULL OUTFITS ────────────────────────
-  "dress":              { formality:3, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "mini dress":         { formality:2, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "midi dress":         { formality:3, role:"full",     category:"full",     weatherOk:["mid"],             fabricWeight:"medium" },
-  "maxi dress":         { formality:3, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "formal dress":       { formality:5, role:"full",     category:"full",     weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "jumpsuit":           { formality:3, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "formal jumpsuit":    { formality:4, role:"full",     category:"full",     weatherOk:["mid"],             fabricWeight:"medium" },
-  "co-ord set":         { formality:2, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "suit":               { formality:5, role:"full",     category:"full",     weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
+  "dress":              { formality:3, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "mini dress":         { formality:2, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "midi dress":         { formality:3, role:"full",     category:"full",     weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "maxi dress":         { formality:3, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "formal dress":       { formality:5, role:"full",     category:"full",     weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["business formal","wedding guest","date night","party"] },
+  "jumpsuit":           { formality:3, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "formal jumpsuit":    { formality:4, role:"full",     category:"full",     weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "co-ord set":         { formality:2, role:"full",     category:"full",     weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "suit":               { formality:5, role:"full",     category:"full",     weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["business formal","wedding guest","office"] },
 
   // ── OUTERWEAR / LAYERS ──────────────────
-  "jacket":             { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "blazer":             { formality:4, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "oversized blazer":   { formality:3, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"medium" },
-  "suit jacket":        { formality:5, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "denim jacket":       { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "leather jacket":     { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "faux leather jacket":{ formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "bomber jacket":      { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "varsity jacket":     { formality:1, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"medium" },
-  "windbreaker":        { formality:1, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"light"  },
-  "trench coat":        { formality:4, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "overcoat":           { formality:4, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy"  },
-  "wool coat":          { formality:4, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy"  },
-  "parka":              { formality:1, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy"  },
-  "puffer jacket":      { formality:1, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy"  },
-  "cardigan":           { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "longline cardigan":  { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "vest":               { formality:3, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "denim vest":         { formality:1, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"medium" },
+  "jacket":             { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "blazer":             { formality:4, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["office","business formal","date night","party","wedding guest","casual"] },
+  "oversized blazer":   { formality:3, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "suit jacket":        { formality:5, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["office","business formal","wedding guest"] },
+  "denim jacket":       { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "leather jacket":     { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["casual","party","date night"] },
+  "faux leather jacket":{ formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "bomber jacket":      { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "varsity jacket":     { formality:1, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","party","gym"] },
+  "windbreaker":        { formality:1, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"light",  occasionOk:["casual","gym","party"] },
+  "trench coat":        { formality:4, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "overcoat":           { formality:4, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy",  occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "wool coat":          { formality:4, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy",  occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "parka":              { formality:1, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy",  occasionOk:["casual","gym","party"] },
+  "puffer jacket":      { formality:1, role:"layer",    category:"outerwear",weatherOk:["cold"],            fabricWeight:"heavy",  occasionOk:["casual","gym","party"] },
+  "cardigan":           { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","office","party","date night"] },
+  "longline cardigan":  { formality:2, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","office","party","date night"] },
+  "vest":               { formality:3, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "denim vest":         { formality:1, role:"layer",    category:"outerwear",weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","party","gym"] },
   // Indian outerwear
-  "nehru jacket":       { formality:4, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "bandhgala jacket":   { formality:5, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "achkan":             { formality:5, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
+  "nehru jacket":       { formality:4, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "bandhgala jacket":   { formality:5, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "achkan":             { formality:5, role:"layer",    category:"outerwear",weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
 
   // ── SHOES ───────────────────────────────
-  "sneakers":           { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium" },
-  "white sneakers":     { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium" },
-  "chunky sneakers":    { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"heavy"  },
-  "low top sneakers":   { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "high top sneakers":  { formality:1, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "loafers":            { formality:3, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium" },
-  "penny loafers":      { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "oxford shoes":       { formality:5, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "derby shoes":        { formality:4, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "brogues":            { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "monk straps":        { formality:4, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "chelsea boots":      { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "ankle boots":        { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "combat boots":       { formality:1, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "boots":              { formality:2, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy"  },
-  "knee-high boots":    { formality:3, role:"shoes",    category:"footwear", weatherOk:["cold"],            fabricWeight:"heavy"  },
-  "sandals":            { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "leather sandals":    { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "slides":             { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot"],             fabricWeight:"light"  },
-  "heels":              { formality:4, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"medium" },
-  "stilettos":          { formality:5, role:"shoes",    category:"footwear", weatherOk:["mid"],             fabricWeight:"medium" },
-  "block heels":        { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid"],             fabricWeight:"medium" },
-  "kitten heels":       { formality:4, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "mules":              { formality:3, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"medium" },
-  "espadrilles":        { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot"],             fabricWeight:"light"  },
-  "flip flops":         { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot"],             fabricWeight:"light"  },
-  "running shoes":      { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium" },
+  "sneakers":           { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium", occasionOk:["casual","party","gym"] },
+  "white sneakers":     { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium", occasionOk:["casual","party","date night"] },
+  "chunky sneakers":    { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"heavy",  occasionOk:["casual","party","gym"] },
+  "low top sneakers":   { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "high top sneakers":  { formality:1, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","party","gym"] },
+  "loafers":            { formality:3, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "penny loafers":      { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "oxford shoes":       { formality:5, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],      fabricWeight:"heavy",  occasionOk:["office","business formal","wedding guest","date night"] },
+  "derby shoes":        { formality:4, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],      fabricWeight:"heavy",  occasionOk:["office","business formal","wedding guest","date night"] },
+  "brogues":            { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "monk straps":        { formality:4, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],      fabricWeight:"heavy",  occasionOk:["office","business formal","wedding guest","date night"] },
+  "chelsea boots":      { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "ankle boots":        { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "combat boots":       { formality:1, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["casual","party","gym"] },
+  "boots":              { formality:2, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"heavy",  occasionOk:["casual","party","date night"] },
+  "knee-high boots":    { formality:3, role:"shoes",    category:"footwear", weatherOk:["cold"],            fabricWeight:"heavy",  occasionOk:["casual","office","party","date night","wedding guest"] },
+  "sandals":            { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party"] },
+  "leather sandals":    { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "slides":             { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot"],             fabricWeight:"light",  occasionOk:["casual"] },
+  "heels":              { formality:4, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"medium", occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "stilettos":          { formality:5, role:"shoes",    category:"footwear", weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["business formal","wedding guest","date night","party"] },
+  "block heels":        { formality:3, role:"shoes",    category:"footwear", weatherOk:["mid"],             fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "kitten heels":       { formality:4, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "mules":              { formality:3, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"medium", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "espadrilles":        { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot"],             fabricWeight:"light",  occasionOk:["casual","party","date night"] },
+  "flip flops":         { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot"],             fabricWeight:"light",  occasionOk:["casual"] },
+  "running shoes":      { formality:1, role:"shoes",    category:"footwear", weatherOk:["hot","mid","cold"],fabricWeight:"medium", occasionOk:["casual","gym"] },
   // Indian shoes
-  "kolhapuri":          { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light"  },
-  "mojari":             { formality:4, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"medium" },
-  "jutti":              { formality:3, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light"  },
+  "kolhapuri":          { formality:2, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "mojari":             { formality:4, role:"shoes",    category:"footwear", weatherOk:["mid","cold"],      fabricWeight:"medium", occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "jutti":              { formality:3, role:"shoes",    category:"footwear", weatherOk:["hot","mid"],       fabricWeight:"light",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
 
   // ── ACCESSORIES ─────────────────────────
   // Never forced — only suggested via suggestAccessories()
-  "belt":               { formality:3, role:"accessory", category:"accessory", metalTone:null   },
-  "leather belt":       { formality:3, role:"accessory", category:"accessory", metalTone:null   },
-  "watch":              { formality:3, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "silver watch":       { formality:3, role:"accessory", category:"accessory", metalTone:"silver"},
-  "gold watch":         { formality:3, role:"accessory", category:"accessory", metalTone:"gold" },
-  "ring":               { formality:2, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "rings":              { formality:2, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "silver ring":        { formality:2, role:"accessory", category:"accessory", metalTone:"silver"},
-  "gold ring":          { formality:2, role:"accessory", category:"accessory", metalTone:"gold" },
-  "chain":              { formality:2, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "chains":             { formality:2, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "silver chain":       { formality:2, role:"accessory", category:"accessory", metalTone:"silver"},
-  "gold chain":         { formality:2, role:"accessory", category:"accessory", metalTone:"gold" },
-  "necklace":           { formality:3, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "bracelet":           { formality:2, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "earrings":           { formality:3, role:"accessory", category:"accessory", metalTone:"mixed"},
-  "sunglasses":         { formality:1, role:"accessory", category:"accessory", metalTone:null   },
-  "cap":                { formality:1, role:"accessory", category:"accessory", metalTone:null   },
-  "beanie":             { formality:1, role:"accessory", category:"accessory", metalTone:null   },
-  "hat":                { formality:2, role:"accessory", category:"accessory", metalTone:null   },
-  "scarf":              { formality:2, role:"accessory", category:"accessory", metalTone:null   },
-  "pocket square":      { formality:4, role:"accessory", category:"accessory", metalTone:null   },
-  "tie":                { formality:5, role:"accessory", category:"accessory", metalTone:null   },
-  "bow tie":            { formality:5, role:"accessory", category:"accessory", metalTone:null   },
-  "bag":                { formality:3, role:"accessory", category:"accessory", metalTone:null   },
-  "tote bag":           { formality:2, role:"accessory", category:"accessory", metalTone:null   },
-  "backpack":           { formality:1, role:"accessory", category:"accessory", metalTone:null   },
-  "clutch":             { formality:4, role:"accessory", category:"accessory", metalTone:null   },
-  "crossbody bag":      { formality:2, role:"accessory", category:"accessory", metalTone:null   },
-  "leather bag":        { formality:3, role:"accessory", category:"accessory", metalTone:null   },
+  "belt":               { formality:3, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","office","business formal","party","date night","wedding guest"] },
+  "leather belt":       { formality:3, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","office","business formal","party","date night","wedding guest"] },
+  "watch":              { formality:3, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","office","business formal","party","date night","wedding guest","gym"] },
+  "silver watch":       { formality:3, role:"accessory", category:"accessory", metalTone:"silver",occasionOk:["casual","office","business formal","party","date night","wedding guest"] },
+  "gold watch":         { formality:3, role:"accessory", category:"accessory", metalTone:"gold",  occasionOk:["casual","office","business formal","party","date night","wedding guest"] },
+  "ring":               { formality:2, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","party","date night","wedding guest","office"] },
+  "rings":              { formality:2, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","party","date night","wedding guest","office"] },
+  "silver ring":        { formality:2, role:"accessory", category:"accessory", metalTone:"silver",occasionOk:["casual","party","date night","wedding guest","office"] },
+  "gold ring":          { formality:2, role:"accessory", category:"accessory", metalTone:"gold",  occasionOk:["casual","party","date night","wedding guest","office"] },
+  "chain":              { formality:2, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","party","date night"] },
+  "chains":             { formality:2, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","party","date night"] },
+  "silver chain":       { formality:2, role:"accessory", category:"accessory", metalTone:"silver",occasionOk:["casual","party","date night"] },
+  "gold chain":         { formality:2, role:"accessory", category:"accessory", metalTone:"gold",  occasionOk:["casual","party","date night","ethnic","wedding guest"] },
+  "necklace":           { formality:3, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","office","party","date night","wedding guest"] },
+  "bracelet":           { formality:2, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","party","date night"] },
+  "earrings":           { formality:3, role:"accessory", category:"accessory", metalTone:"mixed", occasionOk:["casual","office","party","date night","wedding guest","ethnic","festival"] },
+  "sunglasses":         { formality:1, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","party","gym"] },
+  "cap":                { formality:1, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","gym","party"] },
+  "beanie":             { formality:1, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","gym","party"] },
+  "hat":                { formality:2, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","party","date night"] },
+  "scarf":              { formality:2, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","office","party","date night"] },
+  "pocket square":      { formality:4, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "tie":                { formality:5, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["business formal","wedding guest","office"] },
+  "bow tie":            { formality:5, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["business formal","wedding guest"] },
+  "bag":                { formality:3, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","office","party","date night","wedding guest"] },
+  "tote bag":           { formality:2, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","office","party","date night"] },
+  "backpack":           { formality:1, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","gym","party"] },
+  "clutch":             { formality:4, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["office","business formal","date night","party","wedding guest"] },
+  "crossbody bag":      { formality:2, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","party","date night"] },
+  "leather bag":        { formality:3, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["casual","office","party","date night","wedding guest"] },
   // Indian accessories
-  "dupatta":            { formality:3, role:"accessory", category:"accessory", metalTone:null   },
-  "stole":              { formality:3, role:"accessory", category:"accessory", metalTone:null   },
-  "pagdi":              { formality:4, role:"accessory", category:"accessory", metalTone:null   },
-  "maang tikka":        { formality:4, role:"accessory", category:"accessory", metalTone:"gold" },
-  "mathapatti":         { formality:5, role:"accessory", category:"accessory", metalTone:"gold" },
+  "dupatta":            { formality:3, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "stole":              { formality:3, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "pagdi":              { formality:4, role:"accessory", category:"accessory", metalTone:null,    occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "maang tikka":        { formality:4, role:"accessory", category:"accessory", metalTone:"gold",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
+  "mathapatti":         { formality:5, role:"accessory", category:"accessory", metalTone:"gold",  occasionOk:["ethnic","pooja / puja","festival","wedding guest"] },
 };
 
 
@@ -1010,6 +1011,221 @@ const OCCASIONS = {
       "Eid: whites, pastels, and rich fabrics — kurta or sherwani.",
     ],
   },
+};
+
+
+// ─────────────────────────────────────────────
+// SECTION 9B: OCCASION → VIBE MAPPING
+// ─────────────────────────────────────────────
+
+/**
+ * Each occasion maps to target vibes from the styling engine.
+ * Vibes CONTROL generation — they influence item and color selection,
+ * not just narration. Each vibe carries preferred colors and items
+ * that get priority during combination generation.
+ */
+const OCCASION_VIBES = {
+  party:             ["urban edge", "dark romanticism"],
+  "date night":      ["date night precision", "dark romanticism"],
+  office:            ["clean confidence", "quiet authority"],
+  casual:            ["effortless cool", "off-duty creative"],
+  gym:               ["athletic edge"],
+  "wedding guest":   ["cultural power", "festive fire", "stealth wealth"],
+  ethnic:            ["cultural power"],
+  "pooja / puja":    ["cultural power"],
+  festival:          ["festive fire", "cultural power"],
+  "business formal": ["quiet authority", "stealth wealth"],
+};
+
+/**
+ * Vibe preferences — what each vibe needs in terms of colors and items.
+ * This is a bridge between the styling engine's personality system
+ * and the core engine's generation logic.
+ */
+const VIBE_PREFERENCES = {
+  "urban edge": {
+    preferColors:  ["black", "white", "red", "charcoal", "cobalt"],
+    preferItems:   ["leather jacket", "jeans", "hoodie", "graphic tee", "blazer", "combat boots", "ankle boots"],
+    avoidColors:   ["beige", "cream", "pastel"],
+  },
+  "dark romanticism": {
+    preferColors:  ["burgundy", "navy", "black", "plum", "wine", "charcoal", "dark red"],
+    preferItems:   ["blazer", "trousers", "turtleneck", "overcoat", "chelsea boots", "dress shirt"],
+    avoidColors:   ["white", "beige", "cream", "sky blue"],
+  },
+  "date night precision": {
+    preferColors:  ["navy", "charcoal", "black", "white", "burgundy"],
+    preferItems:   ["shirt", "trousers", "turtleneck", "blazer", "slim jeans", "chelsea boots", "loafers"],
+    avoidColors:   [],
+  },
+  "clean confidence": {
+    preferColors:  ["white", "navy", "black", "gray", "charcoal"],
+    preferItems:   ["shirt", "trousers", "turtleneck", "white sneakers", "straight jeans", "blazer"],
+    avoidColors:   [],
+  },
+  "quiet authority": {
+    preferColors:  ["navy", "beige", "charcoal", "white", "camel"],
+    preferItems:   ["shirt", "chinos", "dress shirt", "trousers", "blazer", "loafers", "oxford shoes"],
+    avoidColors:   ["red", "orange", "hot pink"],
+  },
+  "effortless cool": {
+    preferColors:  ["white", "denim", "gray", "navy", "beige", "olive"],
+    preferItems:   ["t-shirt", "jeans", "shirt", "white sneakers", "linen shirt", "chinos"],
+    avoidColors:   [],
+  },
+  "off-duty creative": {
+    preferColors:  ["black", "olive", "gray", "navy", "charcoal"],
+    preferItems:   ["wide leg jeans", "t-shirt", "cargo pants", "oversized tee", "chunky sneakers"],
+    avoidColors:   [],
+  },
+  "athletic edge": {
+    preferColors:  ["black", "gray", "white", "navy"],
+    preferItems:   ["t-shirt", "joggers", "shorts", "sneakers", "running shoes", "hoodie", "track pants"],
+    avoidColors:   [],
+  },
+  "cultural power": {
+    preferColors:  ["white", "gold", "mustard", "navy", "burgundy", "maroon"],
+    preferItems:   ["kurta", "churidar", "sherwani", "bandhgala", "dhoti", "nehru jacket", "mojari", "jutti", "kolhapuri"],
+    avoidColors:   [],
+  },
+  "festive fire": {
+    preferColors:  ["burgundy", "emerald", "royal blue", "gold", "deep red", "maroon", "purple"],
+    preferItems:   ["sherwani", "kurta", "bandhgala", "nehru jacket", "churidar", "mojari"],
+    avoidColors:   ["white", "beige", "gray"],
+  },
+  "stealth wealth": {
+    preferColors:  ["camel", "cream", "white", "gray", "navy", "charcoal"],
+    preferItems:   ["overcoat", "trousers", "trench coat", "chinos", "cashmere sweater", "loafers", "chelsea boots"],
+    avoidColors:   ["red", "hot pink", "orange"],
+  },
+  "summer protagonist": {
+    preferColors:  ["white", "beige", "sky blue", "coral", "mint"],
+    preferItems:   ["shirt", "shorts", "t-shirt", "linen shirt", "chinos", "sandals", "espadrilles"],
+    avoidColors:   ["black", "charcoal"],
+  },
+  "golden hour": {
+    preferColors:  ["camel", "rust", "mustard", "olive", "terracotta", "beige", "brown", "cream"],
+    preferItems:   ["sweater", "chinos", "cardigan", "trousers", "boots", "chelsea boots"],
+    avoidColors:   [],
+  },
+};
+
+/**
+ * Get vibe preferences for scoring and filtering.
+ * Returns the preference object for a given vibe key.
+ */
+function getVibePreferences(vibeKey) {
+  return VIBE_PREFERENCES[vibeKey] || null;
+}
+
+
+// ─────────────────────────────────────────────
+// SECTION 9C: OUTFIT TEMPLATES
+// ─────────────────────────────────────────────
+
+/**
+ * Base outfit structures per occasion.
+ * Used to enforce diversity — different outfits in a batch
+ * should use DIFFERENT templates where possible.
+ *
+ * Each template is [topRole, bottomRole, shoeFormality, layerRequired]
+ */
+const OUTFIT_TEMPLATES = {
+  casual: [
+    { id: "casual_relaxed",  top: ["t-shirt","graphic tee","oversized tee"],  bottom: ["jeans","slim jeans","straight jeans","shorts"],  shoeFormality: [1,2], layerOk: false },
+    { id: "casual_smart",    top: ["shirt","linen shirt","polo shirt"],       bottom: ["chinos","linen trousers","wide leg jeans"],      shoeFormality: [2,3], layerOk: true },
+    { id: "casual_street",   top: ["hoodie","sweatshirt","oversized tee"],    bottom: ["joggers","cargo pants","track pants","wide leg jeans"], shoeFormality: [1,2], layerOk: false },
+    { id: "casual_summer",   top: ["linen shirt","tank top","t-shirt"],       bottom: ["shorts","linen trousers","cargo shorts"],         shoeFormality: [1,2], layerOk: false },
+  ],
+  office: [
+    { id: "office_sharp",    top: ["dress shirt","shirt"],                    bottom: ["trousers","dress trousers","pleated trousers"],  shoeFormality: [3,5], layerOk: true },
+    { id: "office_smart",    top: ["shirt","oxford shirt","blouse"],          bottom: ["chinos","linen trousers","wide leg trousers"],    shoeFormality: [3,4], layerOk: true },
+    { id: "office_minimal",  top: ["turtleneck","sweater","mock neck"],       bottom: ["trousers","chinos","wide leg trousers"],         shoeFormality: [3,4], layerOk: false },
+    { id: "office_summer",   top: ["linen shirt","silk blouse","polo shirt"], bottom: ["linen trousers","chinos","wide leg trousers"],    shoeFormality: [3,4], layerOk: true },
+  ],
+  "business formal": [
+    { id: "bf_classic",      top: ["dress shirt"],                            bottom: ["dress trousers","trousers"],                    shoeFormality: [4,5], layerOk: true },
+    { id: "bf_layered",      top: ["dress shirt","silk blouse"],              bottom: ["pleated trousers","dress trousers"],             shoeFormality: [4,5], layerOk: true },
+  ],
+  party: [
+    { id: "party_dark",      top: ["shirt","dress shirt","turtleneck"],       bottom: ["slim jeans","jeans","trousers"],                shoeFormality: [2,4], layerOk: true },
+    { id: "party_edge",      top: ["graphic tee","t-shirt","bodysuit"],       bottom: ["jeans","slim jeans","cargo pants","wide leg jeans"], shoeFormality: [1,3], layerOk: true },
+    { id: "party_elevated",  top: ["blouse","silk blouse","wrap top"],        bottom: ["trousers","pencil skirt","wide leg trousers"],   shoeFormality: [3,5], layerOk: true },
+    { id: "party_summer",    top: ["silk blouse","linen shirt","crop top"],   bottom: ["wide leg trousers","mini skirt","shorts"],        shoeFormality: [2,4], layerOk: false },
+  ],
+  "date night": [
+    { id: "date_refined",    top: ["shirt","dress shirt"],                    bottom: ["trousers","slim jeans","wide leg trousers"],      shoeFormality: [3,4], layerOk: true },
+    { id: "date_dark",       top: ["turtleneck","mock neck","henley"],        bottom: ["jeans","slim jeans","trousers"],                 shoeFormality: [2,4], layerOk: true },
+    { id: "date_smart",      top: ["sweater","ribbed knit","flannel shirt"],  bottom: ["chinos","jeans","wide leg jeans"],              shoeFormality: [2,3], layerOk: true },
+    { id: "date_summer",     top: ["linen shirt","silk blouse","wrap top"],   bottom: ["linen trousers","wide leg trousers","skirt"],     shoeFormality: [2,4], layerOk: false },
+  ],
+  gym: [
+    { id: "gym_basic",       top: ["t-shirt","graphic tee","tank top"],       bottom: ["shorts","joggers"],                             shoeFormality: [1,1], layerOk: false },
+    { id: "gym_cold",        top: ["hoodie","sweatshirt","zip hoodie"],       bottom: ["joggers","track pants","leggings"],              shoeFormality: [1,1], layerOk: false },
+  ],
+  "wedding guest": [
+    { id: "wed_ethnic",      top: ["kurta","sherwani","bandhgala"],           bottom: ["churidar","dhoti","salwar"],                    shoeFormality: [2,5], layerOk: true },
+    { id: "wed_western",     top: ["dress shirt","shirt"],                    bottom: ["trousers","dress trousers"],                    shoeFormality: [3,5], layerOk: true },  // must have blazer/layer
+    { id: "wed_indo",        top: ["kurta","shirt"],                          bottom: ["chinos","trousers"],                            shoeFormality: [2,4], layerOk: true },  // needs nehru jacket
+  ],
+  ethnic: [
+    { id: "ethnic_classic",  top: ["kurta","kurti"],                          bottom: ["churidar","dhoti","salwar"],                    shoeFormality: [2,4], layerOk: true },
+    { id: "ethnic_formal",   top: ["sherwani","bandhgala"],                   bottom: ["churidar"],                                     shoeFormality: [3,5], layerOk: true },
+  ],
+  "pooja / puja": [
+    { id: "puja_simple",     top: ["kurta","kurti","pathani suit top"],       bottom: ["churidar","dhoti","salwar"],                    shoeFormality: [2,3], layerOk: false },
+  ],
+  festival: [
+    { id: "fest_grand",      top: ["sherwani","bandhgala"],                   bottom: ["churidar"],                                     shoeFormality: [3,5], layerOk: true },
+    { id: "fest_vibrant",    top: ["kurta","kurti"],                          bottom: ["churidar","dhoti","salwar"],                    shoeFormality: [2,4], layerOk: true },
+  ],
+};
+
+
+// ─────────────────────────────────────────────
+// SECTION 9D: CULTURAL OCCASION RULES
+// ─────────────────────────────────────────────
+
+/**
+ * Differentiate ethnic / puja / festival — currently identical, now distinct.
+ * These rules are enforced during FILTERING, not just scoring.
+ */
+const CULTURAL_OCCASION_RULES = {
+  ethnic: {
+    description: "Clean traditional looks — balanced formality",
+    colorBias: [],  // no specific bias — versatile
+    colorAvoid: [],
+    requireRichElement: false,
+    requireSimple: false,
+    preferredFormality: [3, 5],
+  },
+  "pooja / puja": {
+    description: "Simple, minimal, light colors — conservative and respectful",
+    colorBias: ["white", "cream", "ivory", "yellow", "light blue", "beige", "gold", "orange"],
+    colorAvoid: ["black", "red", "hot pink", "neon"],
+    requireRichElement: false,
+    requireSimple: true,  // prefer simple items, avoid heavy embroidery
+    preferredFormality: [3, 4],
+  },
+  festival: {
+    description: "Vibrant, celebratory — rich elements required",
+    colorBias: ["burgundy", "emerald", "royal blue", "gold", "deep red", "maroon", "purple", "teal"],
+    colorAvoid: ["white", "beige", "gray"],  // too plain for festival
+    requireRichElement: true,  // at least one bold color or elevated item
+    requireSimple: false,
+    preferredFormality: [3, 5],
+  },
+};
+
+
+// ─────────────────────────────────────────────
+// SECTION 9E: GYM ALLOWED ITEMS (WHITELIST)
+// ─────────────────────────────────────────────
+
+const GYM_ALLOWED = {
+  tops:    ["t-shirt", "graphic tee", "oversized tee", "tank top", "crop top", "hoodie", "zip hoodie", "sweatshirt"],
+  bottoms: ["shorts", "cargo shorts", "joggers", "track pants", "sweatpants", "leggings", "thermal leggings"],
+  shoes:   ["sneakers", "chunky sneakers", "high top sneakers", "running shoes"],
 };
 
 
@@ -1431,11 +1647,21 @@ const INDIAN_FASHION = {
 // SECTION 16: SCORING ENGINE
 // ─────────────────────────────────────────────
 
-function scoreColorPair(color1, color2) {
+function scoreColorPair(color1, color2, occasion) {
   const c1 = (color1||"").toLowerCase().trim();
   const c2 = (color2||"").toLowerCase().trim();
   if (!c1||!c2)  return { score:5, level:"unknown", reason:"Color data missing." };
   if (c1===c2)   return { score:7, level:"good",    reason:"Monochromatic — works with tonal variation." };
+
+  // ── Gym-specific strict color rules ──
+  if (occasion === "gym") {
+    const darkClashes = [["navy","black"],["green","black"],["dark brown","black"],["charcoal","navy"]];
+    const isClash = darkClashes.some(([a,b])=>(a===c1&&b===c2)||(a===c2&&b===c1));
+    if (isClash) return { score:2, level:"avoid", reason:`${c1} + ${c2} clashes in gym context — prefer matching sets or neutral base.` };
+    // Gym bonus for matching sets or neutral+neutral
+    const p1g = COLOR_PROFILES[c1], p2g = COLOR_PROFILES[c2];
+    if (p1g?.neutral && p2g?.neutral) return { score:9, level:"great", reason:"Neutral gym combo — clean and intentional." };
+  }
 
   const alwaysOk = COLOR_RULES.alwaysWorks.some(([a,b])=>(a===c1&&b===c2)||(a===c2&&b===c1));
   if (alwaysOk)  return { score:10, level:"excellent", reason:`${c1} + ${c2} is a proven, timeless pairing.` };
@@ -1495,7 +1721,7 @@ function scoreOutfit(items, occasion="casual", weather="mid", userProfile={}) {
   const colorItems = items.filter(i=>i.color);
   for (let i=0; i<colorItems.length; i++) {
     for (let j=i+1; j<colorItems.length; j++) {
-      const r = scoreColorPair(colorItems[i].color, colorItems[j].color);
+      const r = scoreColorPair(colorItems[i].color, colorItems[j].color, occasion);
       breakdown.push({ check:"Color", items:`${colorItems[i].color} + ${colorItems[j].color}`, ...r });
       totalScore+=r.score; checks++;
     }
@@ -1602,17 +1828,65 @@ function scoreOutfit(items, occasion="casual", weather="mid", userProfile={}) {
   // ── 9. Weather tip ──
   if (wd?.tip) tips.push(wd.tip);
 
-  // ── 10. Fit tip (random from set) ──
-  const fitTips = [
-    "Tuck in your shirt to define the waist and add polish.",
-    "Oversized tops work best with slim or straight-leg bottoms — never oversized on both.",
-    "Cropped tops pair best with high-waisted bottoms.",
-    "Wide-leg trousers need a tucked or cropped top — never untucked and loose.",
-    "A slim fit top with straight-leg pants is a clean, timeless silhouette.",
-    "The 1/3 – 2/3 proportion rule: one piece takes up 1/3 of the visual, the other 2/3.",
-    "Monochromatic outfits (same color, different shades) look more expensive and elongating.",
-  ];
+  // ── 10. Fit tip (context-aware) ──
+  const names = items.map(i=>i.name.toLowerCase());
+  const roles = items.map(i=>CLOTHING_ITEMS[i.name]?.role);
+  
+  const fitTips = [];
+  if (names.some(n=>n.includes("oversized"))) {
+    fitTips.push("Oversized tops work best with slim or straight-leg bottoms — never oversized on both.");
+  }
+  if (names.some(n=>n.includes("wide-leg"))) {
+    fitTips.push("Wide-leg trousers need a tucked or cropped top — never untucked and loose.");
+  }
+  if (names.some(n=>n.includes("cropped"))) {
+    fitTips.push("Cropped tops pair best with high-waisted bottoms.");
+  }
+  if (roles.includes("top") && (names.includes("trousers") || names.includes("chinos"))) {
+    fitTips.push("Tuck in your shirt to define the waist and add polish.");
+  }
+  
+  // Generic high-quality tips if nothing specific triggered
+  if (fitTips.length === 0) {
+    fitTips.push("The 1/3 – 2/3 proportion rule: one piece takes up 1/3 of the visual, the other 2/3.");
+    fitTips.push("Monochromatic outfits (same color, different shades) look more expensive and elongating.");
+  }
+  
   tips.push(fitTips[Math.floor(Math.random() * fitTips.length)]);
+
+  // ── 11. Vibe alignment bonus ──
+  const vibes = OCCASION_VIBES[occasion];
+  if (vibes && vibes.length > 0) {
+    // Pick the best-matching vibe for this outfit
+    let bestVibeScore = -Infinity, bestVibe = null;
+    vibes.forEach(v => {
+      const vs = scoreVibeAlignment(items, v);
+      if (vs > bestVibeScore) { bestVibeScore = vs; bestVibe = v; }
+    });
+    if (bestVibeScore !== 0 && bestVibe) {
+      const vibeNormalized = Math.min(10, Math.max(0, 5 + bestVibeScore));
+      breakdown.push({ check:"Vibe", items:bestVibe, score:vibeNormalized,
+        level: bestVibeScore > 0 ? "great" : "caution",
+        reason: bestVibeScore > 0
+          ? `Outfit aligns with "${bestVibe}" vibe — cohesive styling.`
+          : `Outfit doesn't match target vibe "${bestVibe}" — consider adjustments.`,
+      });
+      totalScore += vibeNormalized; checks++;
+    }
+  }
+
+  // ── 12. Statement piece bonus ──
+  if (occasion !== "gym") {
+    const hasStatement = hasStatementElement(items);
+    const statementScore = hasStatement ? 8 : 3;
+    breakdown.push({ check:"Statement", items:"Visual interest", score:statementScore,
+      level: hasStatement ? "good" : "caution",
+      reason: hasStatement
+        ? "Outfit has visual interest — bold color, contrast, or layering."
+        : "Outfit lacks visual distinction — all neutrals with no contrast.",
+    });
+    totalScore += statementScore; checks++;
+  }
 
   const avg = checks > 0 ? Math.round((totalScore/checks)*10)/10 : 5;
   return {
@@ -1626,17 +1900,246 @@ function scoreOutfit(items, occasion="casual", weather="mid", userProfile={}) {
 
 
 // ─────────────────────────────────────────────
+// SECTION 16B: VALIDATION GATE FUNCTIONS
+// ─────────────────────────────────────────────
+
+/**
+ * Deterministic statement piece detection.
+ * An outfit MUST have at least one of:
+ * 1. A high-saturation color (from COLOR_PROFILES)
+ * 2. A lightness contrast between items (light vs dark)
+ * 3. A layering element (role === "layer")
+ * 4. Non-neutral color dominance (majority of items are non-neutral)
+ *
+ * Returns false if outfit is "too flat" (all neutrals, no contrast, no interest)
+ */
+function hasStatementElement(items) {
+  const colorItems = items.filter(i => i.color && COLOR_PROFILES[i.color]);
+
+  // Check 1: Any high-saturation color?
+  const hasHighSat = colorItems.some(i => COLOR_PROFILES[i.color]?.saturation === "high");
+  if (hasHighSat) return true;
+
+  // Check 2: Has a layering element?
+  const hasLayer = items.some(i => CLOTHING_ITEMS[i.name]?.role === "layer");
+  if (hasLayer) return true;
+
+  // Check 3: Non-neutral dominance (at least 2 non-neutral pieces or 1 if it's the top)?
+  const nonNeutrals = colorItems.filter(i => !COLOR_PROFILES[i.color]?.neutral);
+  if (nonNeutrals.length >= 2) return true;
+  if (nonNeutrals.length === 1 && items.find(i => i.color === nonNeutrals[0].color && CLOTHING_ITEMS[i.name]?.role === "top")) return true;
+
+  // Check 5: Mid-saturation color present (non-neutral)?
+  const hasMidSat = colorItems.some(i => COLOR_PROFILES[i.color]?.saturation === "mid" && !COLOR_PROFILES[i.color]?.neutral);
+  if (hasMidSat) return true;
+
+  // All checks failed — outfit is flat
+  return false;
+}
+
+/**
+ * Real-world constraint validation — runs FIRST before any scoring.
+ * Returns { valid: boolean, reason: string }
+ */
+function validateOutfitConstraints(items, occasion, weather) {
+  const wd = WEATHER[weather];
+
+  // 1. Must have shoes
+  const hasShoes = items.some(i => CLOTHING_ITEMS[i.name]?.category === "footwear");
+  if (!hasShoes && items.length > 0) {
+    return { valid: false, reason: "Missing shoes — every outfit needs footwear." };
+  }
+
+  // 2. Cold weather must have layer
+  if (weather === "cold" && wd?.layerRequired && occasion !== "gym") {
+    const hasLayer = items.some(i => CLOTHING_ITEMS[i.name]?.role === "layer");
+    if (!hasLayer) {
+      return { valid: false, reason: "Cold weather requires an outer layer (jacket, blazer, coat, etc.)." };
+    }
+  }
+
+  // 3. Hot weather must not have heavy items
+  if (weather === "hot" && wd) {
+    const hasBanned = items.some(i => wd.bannedItems.includes(i.name));
+    if (hasBanned) {
+      return { valid: false, reason: "Hot weather outfit contains heavy/banned items." };
+    }
+  }
+
+  // 4. Business formal must have formal shoes (formality >= 4)
+  if (occasion === "business formal") {
+    const shoe = items.find(i => CLOTHING_ITEMS[i.name]?.category === "footwear");
+    if (shoe && (CLOTHING_ITEMS[shoe.name]?.formality || 0) < 4) {
+      return { valid: false, reason: "Business formal requires formal shoes (oxford, derby, monk straps)." };
+    }
+  }
+
+  // 5. Gym must only have athletic items
+  if (occasion === "gym") {
+    const nonAthletic = items.filter(i => {
+      const ci = CLOTHING_ITEMS[i.name];
+      if (!ci) return false;
+      if (ci.role === "top" && !GYM_ALLOWED.tops.includes(i.name)) return true;
+      if (ci.role === "bottom" && !GYM_ALLOWED.bottoms.includes(i.name)) return true;
+      if (ci.category === "footwear" && !GYM_ALLOWED.shoes.includes(i.name)) return true;
+      return false;
+    });
+    if (nonAthletic.length > 0) {
+      return { valid: false, reason: `Gym outfit contains non-athletic items: ${nonAthletic.map(i=>i.name).join(", ")}` };
+    }
+  }
+
+  // 6. Statement piece check — reject "all flat" outfits for non-gym occasions
+  if (occasion !== "gym" && !hasStatementElement(items)) {
+    return { valid: false, reason: "Outfit is too flat — needs at least one bold color, contrast, or layering element." };
+  }
+
+  return { valid: true, reason: "OK" };
+}
+
+/**
+ * Occasion-specific validation — HARD REJECTS for contextually wrong outfits.
+ * Returns { valid: boolean, reason: string }
+ */
+function validateOccasionConstraints(items, occasion) {
+  const names = items.map(i => i.name);
+  const colors = items.map(i => i.color).filter(Boolean);
+
+  // PARTY & DATE NIGHT: strict rejection of boring office outfits
+  if (occasion === "party" || occasion === "date night") {
+    const isOfficeBasic =
+      names.includes("shirt") &&
+      (names.includes("chinos") || names.includes("trousers")) &&
+      !names.some(n => ["blazer","leather jacket","bomber jacket","turtleneck","hoodie","overcoat","silk blouse"].includes(n));
+
+    const officeColors = ["white","beige","light blue","cream","gray"];
+    const hasOnlyOfficeColors = colors.every(c => officeColors.includes(c));
+    
+    if (isOfficeBasic) {
+      if (occasion === "party" && (hasOnlyOfficeColors || colors.includes("navy"))) {
+        return { valid: false, reason: "Party outfit too basic/office — needs bolder colors, dark tones, or a statement piece." };
+      }
+      if (occasion === "date night" && hasOnlyOfficeColors) {
+        return { valid: false, reason: "Date night shouldn't look like office wear — add darker palettes, layering, or texture." };
+      }
+    }
+  }
+
+  // WEDDING GUEST: require at least one elevated element
+  if (occasion === "wedding guest") {
+    const elevatedItems = ["kurta","sherwani","bandhgala","blazer","suit jacket","nehru jacket",
+                           "bandhgala jacket","achkan","formal dress","suit","trench coat","overcoat",
+                           "dress shirt","silk blouse","formal jumpsuit"];
+    const hasElevated = names.some(n => elevatedItems.includes(n));
+    if (!hasElevated) {
+      return { valid: false, reason: "Wedding guest outfit needs at least one elevated piece (blazer, kurta, sherwani, bandhgala, etc.)." };
+    }
+  }
+
+  // FESTIVAL: require at least one rich element (bold color OR elevated item)
+  if (occasion === "festival") {
+    const cultural = CULTURAL_OCCASION_RULES.festival;
+    if (cultural.requireRichElement) {
+      const hasBoldColor = colors.some(c => {
+        const prof = COLOR_PROFILES[c];
+        return prof && (prof.saturation === "high" || cultural.colorBias.includes(c));
+      });
+      const hasElevatedItem = names.some(n =>
+        ["sherwani","bandhgala","bandhgala jacket","achkan","nehru jacket"].includes(n)
+      );
+      const hasLayer = names.some(n => CLOTHING_ITEMS[n]?.role === "layer");
+      if (!hasBoldColor && !hasElevatedItem && !hasLayer) {
+        return { valid: false, reason: "Festival outfit needs vibrancy — add a bold color, richer item, or layering element." };
+      }
+    }
+  }
+
+  // PUJA: reject heavy/flashy elements
+  if (occasion === "pooja / puja") {
+    const cultural = CULTURAL_OCCASION_RULES["pooja / puja"];
+    if (cultural.requireSimple) {
+      const flashyItems = ["sherwani","bandhgala","leather jacket","bomber jacket","graphic tee"];
+      const hasFlashy = names.some(n => flashyItems.includes(n));
+      if (hasFlashy) {
+        return { valid: false, reason: "Puja outfit should be simple and conservative — avoid flashy or heavy pieces." };
+      }
+    }
+    // Soft check: avoid dark/bold colors
+    if (cultural.colorAvoid.length > 0) {
+      const hasBanned = colors.some(c => cultural.colorAvoid.includes(c));
+      if (hasBanned && colors.length > 0) {
+        return { valid: false, reason: "Puja outfit should use light, simple colors (white, cream, yellow, gold) and avoid black/neon." };
+      }
+    }
+  }
+
+  return { valid: true, reason: "OK" };
+}
+
+/**
+ * Generate a unique signature for an outfit to detect duplicates.
+ * Tracks: item names sorted + colors sorted = structural identity.
+ */
+function getOutfitSignature(items) {
+  const namesSorted = items.map(i => i.name).sort().join("|");
+  const colorsSorted = items.map(i => i.color || "?").sort().join("|");
+  return `${namesSorted}::${colorsSorted}`;
+}
+
+/**
+ * Get the template ID that best matches an outfit's composition.
+ * Used for diversity — ensuring different templates per batch slot.
+ */
+function detectOutfitTemplate(items, occasion) {
+  const templates = OUTFIT_TEMPLATES[occasion];
+  if (!templates) return "unknown";
+  const names = items.map(i => i.name);
+
+  for (const tpl of templates) {
+    const topMatch = names.some(n => tpl.top.includes(n));
+    const bottomMatch = names.some(n => tpl.bottom.includes(n));
+    if (topMatch && bottomMatch) return tpl.id;
+  }
+  return "unknown";
+}
+
+/**
+ * Score vibe alignment for an outfit.
+ * Returns a bonus score (0 to +6) based on how well the outfit
+ * matches the selected vibe's preferences.
+ */
+function scoreVibeAlignment(items, vibeKey) {
+  const pref = VIBE_PREFERENCES[vibeKey];
+  if (!pref) return 0;
+
+  let bonus = 0;
+  items.forEach(item => {
+    // Color alignment
+    if (item.color && pref.preferColors.includes(item.color)) bonus += 1;
+    if (item.color && pref.avoidColors.includes(item.color)) bonus -= 2;
+    // Item alignment
+    if (pref.preferItems.includes(item.name)) bonus += 1;
+  });
+
+  return Math.max(-4, Math.min(6, bonus));
+}
+
+
+// ─────────────────────────────────────────────
 // SECTION 17: OUTFIT SUGGESTION ENGINE
 // ─────────────────────────────────────────────
 
 /**
- * suggestOutfits — generates diverse outfit suggestions.
+ * suggestOutfits — generates diverse, validated outfit suggestions.
  *
- * Diversity rules:
- * 1. Top 3 must each use a DIFFERENT top item
- * 2. Top 3 should ideally use different bottoms too
- * 3. Each outfit uses the best shoe for that specific combo
- * 4. Weather filter applied before combinations are generated
+ * 7-TIER PIPELINE:
+ * 1. Hard constraints (weather, footwear, gym whitelist)
+ * 2. Occasion constraints (hard rejects for party/date/wedding/festival/puja)
+ * 3. Vibe-controlled filtering (preferred colors/items get priority)
+ * 4. Template diversity (different outfit structures per batch slot)
+ * 5. Color diversity (no repeated top colors, penalize overused neutrals)
+ * 6. Statement piece validation (reject "flat" outfits)
+ * 7. Scoring (vibe alignment + statement bonus + standard scoring)
  *
  * @param {Array<{name,color,pattern?,fit?,fabric?}>} wardrobe
  * @param {string} occasion
@@ -1647,93 +2150,208 @@ function scoreOutfit(items, occasion="casual", weather="mid", userProfile={}) {
 function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile={}) {
   const accessories  = wardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role==="accessory");
   const clothingOnly = wardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role!=="accessory");
-  const filtered     = filterByWeather(clothingOnly, weather);
 
-  const tops    = filtered.filter(i=>CLOTHING_ITEMS[i.name]?.role==="top"||CLOTHING_ITEMS[i.name]?.role==="full");
-  const bottoms = filtered.filter(i=>CLOTHING_ITEMS[i.name]?.role==="bottom");
-  const layers  = filtered.filter(i=>CLOTHING_ITEMS[i.name]?.role==="layer");
-  const shoes   = filtered.filter(i=>CLOTHING_ITEMS[i.name]?.category==="footwear");
-  const fulls   = filtered.filter(i=>CLOTHING_ITEMS[i.name]?.role==="full");
+  // ── TIER 1: Hard weather filter ──
+  const filtered = filterByWeather(clothingOnly, weather);
+  const occasionFiltered = filterByOccasion(filtered, occasion);
+  const filteredAccessories = filterByOccasion(accessories, occasion);
+
+  // ── GYM STRICT FILTER ──
+  let tops, bottoms, layers, shoes, fulls;
+  if (occasion === "gym") {
+    tops    = occasionFiltered.filter(i => GYM_ALLOWED.tops.includes(i.name));
+    bottoms = occasionFiltered.filter(i => GYM_ALLOWED.bottoms.includes(i.name));
+    shoes   = occasionFiltered.filter(i => GYM_ALLOWED.shoes.includes(i.name));
+    // Allow athletic layers (hoodies) if cold
+    layers  = weather === "cold" ? occasionFiltered.filter(i => ["hoodie", "sweatshirt", "zip hoodie"].includes(i.name)) : [];
+    fulls   = [];
+  } else if (occasion === "business formal") {
+    tops    = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="top");
+    bottoms = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="bottom");
+    layers  = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="layer");
+    shoes   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.category==="footwear" && (CLOTHING_ITEMS[i.name]?.formality || 0) >= 4);
+    fulls   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="full");
+  } else {
+    tops    = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="top" || CLOTHING_ITEMS[i.name]?.role==="full");
+    bottoms = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="bottom");
+    layers  = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="layer");
+    shoes   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.category==="footwear");
+    fulls   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="full");
+  }
+
+  // ── TIER 3: Select vibe ──
+  const occasionVibes = OCCASION_VIBES[occasion] || [];
+  const selectedVibe = occasionVibes.length > 0 ? occasionVibes[0] : null; // Batch diversity can rotate this
+  const vibePref = selectedVibe ? getVibePreferences(selectedVibe) : null;
+
+  // TIERED VIBE PENALTIES (-20 hard, -8 to -12 soft)
+  function vibeSort(itemsArr) {
+    if (!vibePref) return itemsArr;
+    return [...itemsArr].sort((a, b) => {
+      const getScore = (item) => {
+        let sc = 0;
+        if (vibePref.preferItems.includes(item.name)) sc += 5;
+        if (item.color && vibePref.preferColors.includes(item.color)) sc += 4;
+        if (item.color && vibePref.avoidColors.includes(item.color)) sc -= 20; // Hard clash
+        else if (item.color && !vibePref.preferColors.includes(item.color)) sc -= 10; // Soft mismatch
+        return sc;
+      };
+      return getScore(b) - getScore(a);
+    });
+  }
+
+  const sortedTops    = vibeSort(tops.filter(t => CLOTHING_ITEMS[t.name]?.role==="top"));
+  const sortedBottoms = vibeSort(bottoms);
+  const sortedShoes   = vibeSort(shoes);
+  const sortedLayers  = vibeSort(layers);
 
   const allCombos = [];
+  const relaxationReasons = [];
 
-  // ── Generate top+bottom combos ──
-  tops.filter(t=>CLOTHING_ITEMS[t.name]?.role==="top").forEach(top => {
-    bottoms.forEach(bottom => {
-      const layerOptions = weather==="hot" ? [null]
-                         : layers.length>0 ? [null,...layers] : [null];
+  // ── Generation Loop ──
+  sortedTops.forEach(top => {
+    sortedBottoms.forEach(bottom => {
+      let layerOptions = (weather === "hot" || occasion === "gym") ? [null] 
+                       : (weather === "cold") ? (sortedLayers.length > 0 ? sortedLayers : [null])
+                       : (sortedLayers.length > 0 ? [null, ...sortedLayers] : [null]);
+
       layerOptions.forEach(layer => {
-        const base = layer ? [top,bottom,layer] : [top,bottom];
-        // Find best shoe
-        let bestShoe=null, bestShoeScore=-1;
-        shoes.forEach(shoe=>{
-          const sc = scoreOutfit([...base,shoe],occasion,weather,userProfile);
-          if (sc.totalScore>bestShoeScore){ bestShoeScore=sc.totalScore; bestShoe=shoe; }
+        const base = layer ? [top, bottom, layer] : [top, bottom];
+        let bestShoe = null, bestShoeScore = -Infinity;
+        sortedShoes.forEach(shoe => {
+          const sc = scoreOutfit([...base, shoe], occasion, weather, userProfile).totalScore;
+          if (sc > bestShoeScore) { bestShoeScore = sc; bestShoe = shoe; }
         });
-        const finalItems = bestShoe ? [...base,bestShoe] : base;
-        const finalScore = scoreOutfit(finalItems,occasion,weather,userProfile);
+        const finalItems = bestShoe ? [...base, bestShoe] : base;
+        
+        // Validations
+        if (!validateOutfitConstraints(finalItems, occasion, weather).valid) return;
+        if (!validateOccasionConstraints(finalItems, occasion).valid) return;
+        if (occasion !== "gym" && !hasStatementElement(finalItems)) return;
+
+        const scoreObj = scoreOutfit(finalItems, occasion, weather, userProfile);
+        const templateId = detectOutfitTemplate(finalItems, occasion);
+        
         allCombos.push({
           items: finalItems,
-          score: finalScore,
-          accessories: suggestAccessories(finalItems,accessories,occasion,weather),
-          _topKey: top.name,
-          _bottomKey: bottom.name,
+          score: scoreObj,
+          accessories: suggestAccessories(finalItems, filteredAccessories, occasion, weather),
+          selectedVibe,
+          templateId,
+          signature: getOutfitSignature(finalItems),
+          vibeAlignment: selectedVibe ? scoreVibeAlignment(finalItems, selectedVibe) : 0
         });
       });
     });
   });
 
-  // ── Generate full-outfit combos (dresses, jumpsuits) ──
-  fulls.forEach(full=>{
-    const layerOptions = weather==="hot"||CLOTHING_ITEMS[full.name]?.weatherOk.includes("hot")
-      ? [null] : [null,...layers];
-    layerOptions.forEach(layer=>{
-      const base = layer ? [full,layer] : [full];
-      let bestShoe=null,bestShoeScore=-1;
-      shoes.forEach(shoe=>{
-        const sc = scoreOutfit([...base,shoe],occasion,weather,userProfile);
-        if (sc.totalScore>bestShoeScore){ bestShoeScore=sc.totalScore; bestShoe=shoe; }
+  // Full outfit generation
+  fulls.forEach(full => {
+    let layerOptions = (weather === "hot") ? [null] : (sortedLayers.length > 0 ? [null, ...sortedLayers] : [null]);
+    layerOptions.forEach(layer => {
+      const base = layer ? [full, layer] : [full];
+      let bestShoe = null, bestShoeScore = -Infinity;
+      sortedShoes.forEach(shoe => {
+        const sc = scoreOutfit([...base, shoe], occasion, weather, userProfile).totalScore;
+        if (sc > bestShoeScore) { bestShoeScore = sc; bestShoe = shoe; }
       });
-      const finalItems = bestShoe ? [...base,bestShoe] : base;
+      const finalItems = bestShoe ? [...base, bestShoe] : base;
+      if (!validateOutfitConstraints(finalItems, occasion, weather).valid) return;
+      if (!validateOccasionConstraints(finalItems, occasion).valid) return;
+      
       allCombos.push({
         items: finalItems,
-        score: scoreOutfit(finalItems,occasion,weather,userProfile),
-        accessories: suggestAccessories(finalItems,accessories,occasion,weather),
-        _topKey: full.name,
-        _bottomKey: "full",
+        score: scoreOutfit(finalItems, occasion, weather, userProfile),
+        accessories: suggestAccessories(finalItems, filteredAccessories, occasion, weather),
+        selectedVibe,
+        templateId: detectOutfitTemplate(finalItems, occasion),
+        signature: getOutfitSignature(finalItems),
+        vibeAlignment: selectedVibe ? scoreVibeAlignment(finalItems, selectedVibe) : 0
       });
     });
   });
 
-  allCombos.sort((a,b)=>b.score.totalScore-a.score.totalScore);
+  // Handle Empty
+  if (allCombos.length === 0) {
+    const gapsInfo = analyzeWardrobeGaps(wardrobe, occasion, weather);
+    
+    const actionableGaps = gapsInfo.gaps.filter(g => g !== "Wardrobe is well-rounded for this occasion.");
+    const hasRealGaps = actionableGaps.length > 0;
 
-  // ── Enforce variety: different top for each suggestion ──
+    // Occasion-specific friendly messages
+    const occasionTips = {
+      casual:          { msg: `Your closet needs a few more casual basics to mix and match for ${weather} weather.`, quickWin: "A white tee and beige chinos go with almost everything." },
+      office:          { msg: `We need some smarter pieces to put together a polished office look for ${weather} weather.`, quickWin: "A light blue shirt and brown loafers will open up many office outfits." },
+      "business formal":{ msg: `Formal occasions need structured pieces — your closet is missing a few key items.`, quickWin: "A white dress shirt, dark trousers, and oxford shoes are the foundation." },
+      party:           { msg: `Party outfits need a bit more flair — let's add some statement pieces.`, quickWin: "A navy or burgundy shirt with slim dark jeans is a great party starting point." },
+      "date night":    { msg: `Date night calls for something a bit special — your closet needs a couple more refined options.`, quickWin: "An olive henley or textured sweater adds the right amount of effort." },
+      gym:             { msg: `We need athletic basics to build a proper gym outfit for ${weather} weather.`, quickWin: "A comfortable tee, joggers, and clean sneakers are all you need." },
+      "wedding guest": { msg: `Wedding outfits need a level of dressiness your closet doesn't quite have yet.`, quickWin: "A blazer with chinos and loafers creates an elegant guest look." },
+      ethnic:          { msg: `Traditional outfits need specific ethnic pieces that aren't in your closet yet.`, quickWin: "Start with a classic kurta and churidar — they work for most ethnic occasions." },
+      "pooja / puja":  { msg: `Puja outfits favour light, auspicious colours — your current pieces may not fit the mood.`, quickWin: "A white or cream kurta with light pants is perfect for puja." },
+      festival:        { msg: `Festival looks need vibrant or traditional pieces your closet is currently missing.`, quickWin: "A rich-coloured kurta or sherwani will make your festival wardrobe complete." },
+    };
+    const tip = occasionTips[occasion] || { msg: `Your closet needs a few more items for ${occasion} in ${weather} weather.`, quickWin: "Start with versatile neutrals — they pair with everything." };
+
+    return {
+      success: false,
+      advisorFeedback: {
+        message: tip.msg,
+        missingCategories: hasRealGaps ? actionableGaps.map(g => g.split(" — ")[0]) : [],
+        reasonCodes: gapsInfo.reasonCodes,
+        suggestedItems: hasRealGaps
+          ? actionableGaps.map(g => ({
+              tip: g.split(" — ")[0],
+              reason: g.includes(" — ") ? g.split(" — ")[1] : "This will open up new outfit possibilities."
+            }))
+          : [{ tip: "Your basics are covered but the colours, formality, or weather don't align for this specific look.", reason: "Try a different occasion or weather — or add items in new colours." }],
+        topRecommendation: tip.quickWin
+      }
+    };
+  }
+
+  // Diversity & Selection
+  allCombos.sort((a, b) => (b.score.totalScore + a.vibeAlignment * 0.2) - (a.score.totalScore + b.vibeAlignment * 0.2));
+
   const result = [];
-  const usedTops    = new Set();
-  const usedBottoms = new Set();
+  const usedTemplates = new Set();
+  const usedTopColors = new Set();
+  const usedTops = new Set();
 
   for (const combo of allCombos) {
-    if (!usedTops.has(combo._topKey)) {
-      usedTops.add(combo._topKey);
-      usedBottoms.add(combo._bottomKey);
-      result.push(combo);
-    } else if (!usedBottoms.has(combo._bottomKey) && result.length < 3) {
-      // Same top but different bottom — still valid as a variety pick
-      usedBottoms.add(combo._bottomKey);
-      result.push(combo);
+    if (result.length >= 3) break;
+    // Diversity penalties/filters
+    const isTemplateRepeat = usedTemplates.has(combo.templateId);
+    let relaxedThis = false;
+    if (isTemplateRepeat && result.length < 3) {
+      if (allCombos.length > 5 && result.length > 0) continue; // Try for better template if pool allows
+      relaxationReasons.push("Best possible match from your wardrobe (Structural diversity relaxed)");
+      relaxedThis = true;
     }
-    if (result.length>=3) break;
+    
+    // Calculate Confidence
+    let confidence = 100;
+    if (relaxedThis || relaxationReasons.length > 0) confidence -= 15;
+    if (combo.vibeAlignment < 5) confidence -= (5 - combo.vibeAlignment) * 5;
+    if (combo.score.totalScore < 8) confidence -= (8 - combo.score.totalScore) * 5;
+    confidence = Math.max(40, Math.min(100, confidence));
+
+    result.push({
+      ...combo,
+      confidence: Math.round(confidence),
+      relaxedMatch: relaxedThis || relaxationReasons.length > 0,
+      relaxationReasons: [...new Set(relaxationReasons)]
+    });
+
+    usedTemplates.add(combo.templateId);
+    usedTopColors.add(combo.items[0].color);
+    usedTops.add(combo.items[0].name);
   }
 
-  // Fallback fill
-  if (result.length<3) {
-    for (const combo of allCombos) {
-      if (!result.includes(combo)) result.push(combo);
-      if (result.length>=3) break;
-    }
-  }
-
-  return result.map(({_topKey,_bottomKey,...rest})=>rest);
+  return {
+    success: true,
+    data: result
+  };
 }
 
 function filterByWeather(items, weather) {
@@ -1746,6 +2364,20 @@ function filterByWeather(items, weather) {
     if (wd.bannedItems.includes(item.name)) return false;
     if (ci.weatherOk && !ci.weatherOk.includes(weather)) return false;
     return true;
+  });
+}
+
+/**
+ * Hard-filter items by occasion.
+ * Items whose occasionOk array does NOT include the target occasion
+ * are completely removed BEFORE combinations are generated.
+ */
+function filterByOccasion(items, occasion) {
+  return items.filter(item => {
+    const ci = CLOTHING_ITEMS[item.name];
+    if (!ci) return true; // unknown item, keep it
+    if (!ci.occasionOk) return true; // no rule defined, keep it
+    return ci.occasionOk.includes(occasion);
   });
 }
 
@@ -1783,83 +2415,80 @@ function generateOutfitName(items, occasion) {
  * @returns {{ gaps: string[], topRecommendation: string, reason: string }}
  */
 function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid") {
-  const clothingOnly = filterByWeather(wardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role!=="accessory"),weather);
+  const clothingOnly = filterByWeather(wardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role!=="accessory"), weather);
   const tops    = clothingOnly.filter(i=>CLOTHING_ITEMS[i.name]?.role==="top");
   const bottoms = clothingOnly.filter(i=>CLOTHING_ITEMS[i.name]?.role==="bottom");
   const shoes   = clothingOnly.filter(i=>CLOTHING_ITEMS[i.name]?.category==="footwear");
   const layers  = clothingOnly.filter(i=>CLOTHING_ITEMS[i.name]?.role==="layer");
 
   const gaps = [];
+  const reasonCodes = [];
   const occasionData = OCCASIONS[occasion];
   const formalityMin = occasionData?.formalityRange?.[0] || 1;
   const formalityMax = occasionData?.formalityRange?.[1] || 5;
 
-  // Missing tops for this occasion
-  const suitableTops = tops.filter(t=>
+  // 1. Missing categories check
+  if (tops.length === 0) {
+    gaps.push("No tops — add a white tee or light shirt to start");
+    reasonCodes.push("missing_required_category");
+  }
+  if (bottoms.length === 0) {
+    gaps.push("No bottoms — jeans or chinos will pair with most tops");
+    reasonCodes.push("missing_required_category");
+  }
+  if (shoes.length === 0) {
+    gaps.push("No shoes — white sneakers are the most versatile pick");
+    reasonCodes.push("missing_required_category");
+  }
+
+  // 2. Specific occasion gaps
+  const suitableTops = tops.filter(t =>
     CLOTHING_ITEMS[t.name]?.formality >= formalityMin &&
     CLOTHING_ITEMS[t.name]?.formality <= formalityMax
   );
-  if (suitableTops.length === 0) {
-    const rec = occasionData?.preferredItems?.find(i=>CLOTHING_ITEMS[i]?.role==="top");
-    if (rec) gaps.push(`No ${occasionData.label}-appropriate top. Consider a ${rec}.`);
+  if (suitableTops.length === 0 && tops.length > 0) {
+    const rec = occasionData?.preferredItems?.find(i => CLOTHING_ITEMS[i]?.role === "top");
+    if (rec) gaps.push(`Need a dressier top — try adding a ${rec}`);
+    reasonCodes.push("insufficient_formality_match");
   }
 
-  // Missing shoes
-  if (shoes.length === 0) {
-    gaps.push(`No shoes in wardrobe — add white sneakers first (most versatile).`);
-  } else {
-    const formalShoe = shoes.find(s=>CLOTHING_ITEMS[s.name]?.formality>=4);
-    const casualShoe = shoes.find(s=>CLOTHING_ITEMS[s.name]?.formality<=2);
-    if (!formalShoe && formalityMax >= 4) gaps.push("No formal shoes — oxford, derby, or loafers needed for this occasion.");
-    if (!casualShoe && formalityMin <= 2) gaps.push("No casual shoes — white sneakers or sandals are the most versatile addition.");
+  // 3. Formal shoes check
+  if (shoes.length > 0 && formalityMax >= 4) {
+    const hasFormalShoe = shoes.some(s => CLOTHING_ITEMS[s.name]?.formality >= 4);
+    if (!hasFormalShoe) {
+      gaps.push("No formal shoes — loafers or oxfords needed for this occasion");
+      reasonCodes.push("missing_required_category");
+    }
   }
 
-  // Missing layer for cold weather
-  if (weather==="cold" && layers.length===0) {
-    gaps.push("No outerwear in wardrobe — a navy or camel overcoat or blazer is the most versatile cold-weather addition.");
+  // 4. Color bans (Pooja/Funeral etc)
+  if (occasionData?.bannedColors && wardrobe.length > 0) {
+    const hasOnlyBanned = wardrobe.every(i => i.color && i.role !== "accessory" && occasionData.bannedColors.includes(i.color));
+    if (hasOnlyBanned) {
+      gaps.push(`Only ${occasionData.bannedColors.join(", ")} in closet — ${occasion} looks better in lighter or brighter colours`);
+      reasonCodes.push("color_constraint_violation");
+    }
   }
 
-  // Neutral top gap
-  const hasNeutralTop = tops.some(t=>
-    COLOR_PROFILES[t.color]?.neutral === true
-  );
-  if (!hasNeutralTop && tops.length > 0) {
-    gaps.push("No neutral-colored top — a white or gray option unlocks the most combinations.");
+  // 5. Missing layer for cold weather
+  if (weather === "cold" && layers.length === 0) {
+    gaps.push("No jacket or coat — add an overcoat or blazer for cold weather");
   }
 
-  // Neutral bottom gap
-  const hasNeutralBottom = bottoms.some(b=>
-    COLOR_PROFILES[b.color]?.neutral === true
-  );
-  if (!hasNeutralBottom && bottoms.length > 0) {
-    gaps.push("No neutral-colored bottom — navy jeans or beige chinos pairs with everything.");
+  // Summary logic
+  if (gaps.length === 0) {
+    gaps.push("Wardrobe is well-rounded for this occasion.");
+    reasonCodes.push("insufficient_diversity_pool");
   }
 
-  // Compute outfit count with and without hypothetical additions
-  // Most impactful addition = the one that creates the most new combos
   const currentCombos = tops.length * bottoms.length * Math.max(1, shoes.length);
-
   let topRec = gaps[0] || "Your wardrobe is well-balanced for this occasion.";
-  let topReasonText = "";
-
-  if (tops.length === 0) {
-    topRec = `Add a ${COLOR_RULES.alwaysWorks[0]?.[0] || "white"} ${occasionData?.preferredItems?.[0] || "shirt"}.`;
-    topReasonText = "You have no tops — this unlocks every outfit combination.";
-  } else if (bottoms.length === 0) {
-    topRec = "Add navy jeans or beige chinos.";
-    topReasonText = "You have no bottoms — one neutral bottom unlocks combinations with all your tops.";
-  } else if (shoes.length === 0) {
-    topRec = "Add white sneakers.";
-    topReasonText = "White sneakers are the single most versatile shoe — pairs with 80% of casual and smart casual outfits.";
-  } else {
-    topReasonText = `You currently have ~${currentCombos} outfit combinations. ${gaps[0] || ""}`;
-  }
 
   return {
-    currentOutfitCount: currentCombos,
     gaps: gaps.length > 0 ? gaps : ["Wardrobe is well-rounded for this occasion."],
     topRecommendation: topRec,
-    reason: topReasonText,
+    reasonCodes: [...new Set(reasonCodes)],
+    currentOutfitCount: currentCombos
   };
 }
 
@@ -2009,7 +2638,7 @@ function suggestFromCLIP(clipLabels, occasion="casual", weather="mid", userProfi
 // EXPORTS
 // ─────────────────────────────────────────────
 
-export {
+module.exports = {
   // Data
   COLOR_PROFILES, COLOR_HARMONY, COLOR_RULES,
   CLOTHING_ITEMS, PATTERNS, FABRICS, TEXTURE_RULES,
@@ -2018,12 +2647,23 @@ export {
   LAYERING_RULES, SHOE_PAIRING, METAL_TONE_RULES,
   INDIAN_FASHION, INTENTIONAL_CONTRASTS,
 
+  // New systems
+  OCCASION_VIBES, VIBE_PREFERENCES, OUTFIT_TEMPLATES,
+  CULTURAL_OCCASION_RULES, GYM_ALLOWED,
+
   // Core logic
-  scoreColorPair, scoreOutfit, suggestOutfits,
+  scoreColorPair, scoreOutfit, suggestOutfits, filterByOccasion,
   checkFormalityMatch, canMixPatterns,
   scoreShoeBottomPair, scoreItemForBodyType,
   scoreOutfitForArchetype, scoreColorForSeason,
   detectColorSeason, filterByWeather,
+
+  // Validation gates
+  validateOutfitConstraints, validateOccasionConstraints,
+  hasStatementElement, getOutfitSignature, detectOutfitTemplate,
+
+  // Vibe system
+  getVibePreferences, scoreVibeAlignment,
 
   // Accessory logic
   suggestAccessories,

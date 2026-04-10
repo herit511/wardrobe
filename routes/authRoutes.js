@@ -1,11 +1,80 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Item = require('../models/items');
 const Outfit = require('../models/Outfit');
 const auth = require('../middleware/auth');
 const { validate, registerRules, loginRules } = require('../middleware/validation');
+
+// ============================================
+// POST /api/auth/forgot-password
+// ============================================
+router.post('/forgot-password', async (req, res, next) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'There is no user with that email' });
+        }
+
+        // Generate 4-digit OTP
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+        // Hash OTP and set to resetPasswordToken field
+        user.resetPasswordToken = crypto.createHash('sha256').update(otp).digest('hex');
+
+        // Set expire (10 minutes)
+        user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+        await user.save();
+
+        console.log('\n=============================================');
+        console.log('PASSWORD RESET OTP GENERATED');
+        console.log(`Your 4-digit code is: ${otp}`);
+        console.log('=============================================\n');
+
+        res.status(200).json({ success: true, message: 'OTP sent (Check server console)' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// ============================================
+// PUT /api/auth/reset-password
+// ============================================
+router.put('/reset-password', async (req, res, next) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        // Get hashed token
+        const resetPasswordToken = crypto.createHash('sha256').update(otp).digest('hex');
+
+        const user = await User.findOne({
+            email,
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long' });
+        }
+
+        // Set new password (saved hook will hash it)
+        user.password = newPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Password reset successful' });
+    } catch (error) {
+        next(error);
+    }
+});
 
 // ============================================
 // POST /api/auth/register — Create a new user

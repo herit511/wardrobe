@@ -33,15 +33,12 @@ router.get('/', auth, async (req, res, next) => {
         let totalTimesWorn = 0;
         const wornEvents = [];
         
-        // Fetch recent outfits with worn history populated only for the list we return
-        const recentWornOutfits = await Outfit.find({ userId, "wornHistory.0": { $exists: true } })
-            .populate('items')
-            .sort('-createdAt')
-            .limit(10);
+        // Fetch all outfits that have been worn to calculate sum
+        const allWornOutfits = await Outfit.find({ userId, "wornHistory.0": { $exists: true } }).populate('items').sort('-createdAt');
 
-        for (const outfit of recentWornOutfits) {
+        for (const outfit of allWornOutfits) {
             if (outfit.wornHistory && outfit.wornHistory.length > 0) {
-                totalTimesWorn += outfit.wornHistory.length; // Approximate total on the fetched subset or make it exact
+                totalTimesWorn += outfit.wornHistory.length; 
                 for (const entry of outfit.wornHistory) {
                     wornEvents.push({
                         outfitId: outfit._id,
@@ -59,6 +56,7 @@ router.get('/', auth, async (req, res, next) => {
                 }
             }
         }
+        
         wornEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
         const recentWornHistory = wornEvents.slice(0, 5);
 

@@ -31,14 +31,19 @@ app.use("/api/auth", authRoutes);
 app.use("/api/outfits", outfitRoutes);
 app.use("/api/stats", statsRoutes);
 
-// Health check
-app.get("/", (req, res) => {
-  res.json({ success: true, message: "Wardrobe Backend Running" });
+const path = require("path");
+
+// Serve frontend static files in production or if client/dist exists
+app.use(express.static(path.join(__dirname, "client/dist")));
+
+// API 404 handler for unknown API routes
+app.use("/api", (req, res) => {
+  res.status(404).json({ success: false, message: `API Route ${req.method} ${req.originalUrl} not found` });
 });
 
-// 404 handler for unknown routes
+// Catch-all to serve React app for non-API routes
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route ${req.method} ${req.url} not found` });
+  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
 });
 
 // Global error handler (must be AFTER routes)

@@ -178,6 +178,7 @@ function AddItem() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (submitting) return;
     
     if (!fileRef.current?.files?.[0]) {
       setError('Please upload an image of the item')

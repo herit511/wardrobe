@@ -78,3 +78,11 @@ export function getColorName(hexColor) {
   }
   return closestColor;
 }
+
+export function getOptimizedUrl(url, width = 400) {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  // If already optimized or has transformations, return as is to avoid breaking
+  if (url.includes('/upload/c_') || url.includes('/upload/w_') || url.includes('/upload/q_')) return url;
+  
+  return url.replace('/upload/', `/upload/q_auto,f_auto,c_fill,w_${width}/`);
+}

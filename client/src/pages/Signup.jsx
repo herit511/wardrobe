@@ -107,6 +107,10 @@ function Signup() {
             <p className="auth-toggle">
               Already have an account? <Link to="/login" id="login-link">Sign in</Link>
             </p>
+
+            <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+              By creating an account, you agree to our <Link to="/terms" style={{ color: 'var(--color-text-secondary)', textDecoration: 'underline' }}>Terms</Link> and <Link to="/privacy" style={{ color: 'var(--color-text-secondary)', textDecoration: 'underline' }}>Privacy Policy</Link>.
+            </div>
           </form>
         </div>
       </div>

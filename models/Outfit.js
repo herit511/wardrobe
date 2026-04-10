@@ -21,6 +21,34 @@ const outfitSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    // AI Styling Metadata
+    personality: {
+        vibe: String,
+        description: String
+    },
+    signatureMove: String,
+    feelLine: String,
+    colorStory: {
+        story: String,
+        emotion: String
+    },
+    microStyling: [{
+        item: String,
+        tip: String
+    }],
+    finishingMove: {
+        primary: String,
+        secondary: String
+    },
+    wowReason: String,
+    // Generation Context
+    generationContext: {
+        weather: String,
+        occasion: String,
+        selectedVibe: String,
+        relaxedMatch: { type: Boolean, default: false },
+        confidence: Number
+    },
     wornHistory: [{
         date: { type: Date, default: Date.now },
         notes: String

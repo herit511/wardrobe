@@ -32,7 +32,9 @@ const userSchema = new mongoose.Schema({
         dailySuggestion: { type: Boolean, default: true },
         weeklyTips: { type: Boolean, default: true },
         trendAlerts: { type: Boolean, default: false }
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
 }, { timestamps: true });
 
 // Hash password before saving

@@ -116,10 +116,20 @@
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  margin-top: 4px;
-  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.uppercase-label {
+  /* Utility class matching refined stat-label style */
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 /* Today's Suggestion */
@@ -172,9 +182,14 @@
 }
 
 .outfit-connector {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   color: var(--color-text-muted);
   font-weight: 300;
+  margin: 0 var(--space-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 140px; /* Match image height */
 }
 
 .outfit-actions {

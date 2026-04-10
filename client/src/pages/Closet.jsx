@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Heart, Search, Shirt, MoreVertical, Edit2, Trash2 } from 'lucide-react'
+import { useNavigate, NavLink } from 'react-router-dom'
+import { Search, Shirt, MoreVertical, Edit2, Trash2, Heart, Droplets } from 'lucide-react'
 import { api } from '../api'
-import { getColorName } from '../utils'
+import { getColorName, getOptimizedUrl } from '../utils'
+import SkeletonCard from '../components/SkeletonCard'
 import './Closet.css'
 
-const categories = ['All', 'Favorites', 'Tops', 'Bottoms', 'Footwear', 'Outerwear', 'Accessories']
+const categories = ['All', 'Tops', 'Bottoms', 'Footwear', 'Outerwear', 'Accessories']
 const weatherFilters = ['All', 'Hot', 'Mild', 'Cold']
 
 function Closet() {
@@ -16,6 +17,11 @@ function Closet() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [activeDropdown, setActiveDropdown] = useState(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
+  const [togglingFav, setTogglingFav] = useState(null)
+  const [togglingLaundry, setTogglingLaundry] = useState(null)
 
   useEffect(() => { 
     fetchItems() 
@@ -24,50 +30,62 @@ function Closet() {
     return () => window.removeEventListener('click', handleClickOutside)
   }, [])
 
-  const fetchItems = async () => {
+  const fetchItems = async (pageNum = 1) => {
     try {
-      const res = await api.get('/items')
-      if (res.success) setItems(res.data)
+      const res = await api.get(`/items?page=${pageNum}&limit=500`)
+      if (res.success) {
+        if (pageNum === 1) setItems(res.data)
+        else setItems(prev => [...prev, ...res.data])
+        setHasMore(pageNum < res.pagination.pages)
+        setPage(pageNum)
+      }
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this item?')) return
     try {
       await api.del(`/items/${id}`)
       setItems(items.filter(item => item._id !== id))
     } catch (err) { console.error(err) }
+    setDeleteConfirmId(null)
   }
 
   const toggleFavorite = async (item) => {
-    // Optimistic update
-    const newScore = item.userPreferenceScore > 0 ? 0 : 1
-    setItems(prev => prev.map(i => i._id === item._id ? { ...i, userPreferenceScore: newScore } : i))
+    if (togglingFav) return
+    setTogglingFav(item._id)
     try {
       const res = await api.put(`/items/${item._id}/favorite`, {})
-      if (!res.success) throw new Error('Failed')
-    } catch (err) {
-      // Revert on failure
-      setItems(prev => prev.map(i => i._id === item._id ? { ...i, userPreferenceScore: item.userPreferenceScore } : i))
-      console.error('Failed to toggle favorite:', err)
-    }
+      if (res.success && res.data) {
+        setItems(prev => prev.map(i => i._id === item._id ? { ...i, userPreferenceScore: res.data.userPreferenceScore } : i))
+      }
+    } catch (err) { console.error(err) }
+    finally { setTogglingFav(null) }
+  }
+
+  const toggleLaundry = async (item) => {
+    if (togglingLaundry) return
+    setTogglingLaundry(item._id)
+    try {
+      const res = await api.put(`/items/${item._id}/laundry`, {})
+      if (res.success && res.data) {
+        setItems(prev => prev.map(i => i._id === item._id ? { ...i, isLaundry: res.data.isLaundry } : i))
+      }
+    } catch (err) { console.error(err) }
+    finally { setTogglingLaundry(null) }
   }
 
   const filteredItems = items.filter(item => {
-    if (activeCategory === 'Favorites') {
-      if (item.userPreferenceScore <= 0) return false
-    } else if (activeCategory !== 'All') {
+    if (activeCategory !== 'All') {
       const matchCategory = item.category.toLowerCase() === activeCategory.toLowerCase() || item.category === activeCategory.replace(/s$/, '').toLowerCase()
       if (!matchCategory) return false
     }
-    const matchWeather = activeWeather === 'All' || item.weather.includes(activeWeather.toLowerCase())
-    const searchString = `${item.category} ${item.subCategory} ${item.color}`.toLowerCase()
-    const matchSearch = !searchQuery || searchString.includes(searchQuery.toLowerCase())
+    const matchWeather = activeWeather === 'All' || (item.weather && item.weather.includes(activeWeather.toLowerCase()))
+    const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/);
+    const searchString = `${item.category} ${item.subCategory || ''} ${item.brand || ''} ${getColorName(item.color)}`.toLowerCase()
+    const matchSearch = !searchQuery || searchTerms.every(term => searchString.includes(term))
     return matchWeather && matchSearch
   })
-
-  const favCount = items.filter(i => i.userPreferenceScore > 0).length
 
   return (
     <div className="closet-page" id="closet-page">
@@ -79,8 +97,13 @@ function Closet() {
           </div>
           <div className="header-stats">
             <span className="badge badge-amber">{items.length} Items</span>
-            {favCount > 0 && <span className="badge badge-orange"><Heart size={14} fill="currentColor" strokeWidth={1.5} style={{ verticalAlign: 'text-bottom' }} /> {favCount} Favorites</span>}
           </div>
+        </div>
+
+        <div className="closet-subnav">
+          <NavLink to="/closet" end className={({isActive}) => `subnav-btn ${isActive ? 'active' : ''}`}>All Items</NavLink>
+          <NavLink to="/favorites" className={({isActive}) => `subnav-btn ${isActive ? 'active' : ''}`}>Favorites</NavLink>
+          <NavLink to="/laundry" className={({isActive}) => `subnav-btn ${isActive ? 'active' : ''}`}>Laundry</NavLink>
         </div>
 
         {/* Filters */}
@@ -93,7 +116,7 @@ function Closet() {
                 onClick={() => setActiveCategory(cat)}
                 id={`filter-${cat.toLowerCase()}`}
               >
-                {cat === 'Favorites' ? <><Heart size={14} fill="currentColor" strokeWidth={1.5} style={{ verticalAlign: 'text-bottom' }} /> {cat}</> : cat}
+                {cat}
               </button>
             ))}
           </div>
@@ -110,18 +133,19 @@ function Closet() {
 
         {/* Items Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#1B2A4A' }}>Loading closet...</div>
+          <SkeletonCard count={8} type="grid" />
         ) : (
           <div className="items-grid">
             {filteredItems.map((item, i) => (
               <div key={item._id} className={`item-card card animate-fade-in-up ${activeDropdown === item._id ? 'has-dropdown' : ''}`} style={{ animationDelay: `${0.15 + i * 0.05}s` }} id={`item-${item._id}`}>
-                <div className="item-img" style={{ backgroundImage: `url(${item.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}>
+                <div className="item-img" style={{ backgroundImage: `url(${getOptimizedUrl(item.imageUrl, 400)})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3', position: 'relative' }}>
+                  
                   <button 
-                    className={`fav-btn ${item.userPreferenceScore > 0 ? 'fav-active' : ''}`}
                     onClick={(e) => { e.stopPropagation(); toggleFavorite(item); }}
-                    title={item.userPreferenceScore > 0 ? 'Remove from favorites' : 'Add to favorites'}
+                    disabled={togglingFav === item._id}
+                    style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '50%', padding: '6px', cursor: 'pointer', zIndex: 2, display: 'flex' }}
                   >
-                    {item.userPreferenceScore > 0 ? <Heart size={20} fill="currentColor" strokeWidth={0} /> : <Heart size={20} strokeWidth={2} />}
+                    <Heart size={18} fill={item.userPreferenceScore > 0 ? "#E74C3C" : "none"} stroke={item.userPreferenceScore > 0 ? "#E74C3C" : "#1B2A4A"} />
                   </button>
 
                   <div className="item-actions-wrapper">
@@ -134,10 +158,18 @@ function Closet() {
                     
                     {activeDropdown === item._id && (
                       <div className="actions-dropdown animate-fade-in">
+                        {!['footwear', 'accessories'].includes(item.category.toLowerCase()) && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); toggleLaundry(item); }}
+                            disabled={togglingLaundry === item._id}
+                          >
+                            <Droplets size={14} /> {item.isLaundry ? 'Mark Clean' : 'Add to Laundry'}
+                          </button>
+                        )}
                         <button onClick={(e) => { e.stopPropagation(); navigate(`/edit-item/${item._id}`); }}>
                           <Edit2 size={14} /> Edit
                         </button>
-                        <button className="delete-option" onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); handleDelete(item._id); }}>
+                        <button className="delete-option" onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); setDeleteConfirmId(item._id); }}>
                           <Trash2 size={14} /> Delete
                         </button>
                       </div>
@@ -147,26 +179,46 @@ function Closet() {
                 <div className="item-info">
                   <div className="item-category-badge">
                     <span className="badge badge-orange">{item.category}</span>
-                    {item.userPreferenceScore > 0 && <span className="badge badge-orange" style={{ marginLeft: '4px' }}><Heart size={12} fill="currentColor" strokeWidth={0} /></span>}
+                    {item.isLaundry && !['footwear', 'accessories'].includes(item.category.toLowerCase()) && <span className="badge badge-amber" style={{ marginLeft: '4px', background: '#FDECEA', color: '#E74C3C', border: '1px solid #E74C3C' }} title="In Laundry"><Droplets size={12} strokeWidth={2} /> Laundry</span>}
                   </div>
                   <h3 className="item-name" style={{ textTransform: 'capitalize' }}>{getColorName(item.color)} {item.subCategory.replace('_', ' ')}</h3>
-                  <p className="item-brand">{item.condition} condition</p>
+                  <p className="item-brand">{item.isLaundry && !['footwear', 'accessories'].includes(item.category.toLowerCase()) ? 'Needs washing' : `${item.condition} condition`}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
 
+        {!loading && hasMore && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px', marginBottom: '10px' }}>
+            <button className="btn btn-secondary" onClick={() => fetchItems(page + 1)}>
+              Load More Items
+            </button>
+          </div>
+        )}
+
         {!loading && filteredItems.length === 0 && (
           <div className="empty-state animate-fade-in">
             <div className="empty-icon">
-              {activeCategory === 'Favorites' ? <Heart size={48} fill="currentColor" strokeWidth={1} style={{ color: '#E87040' }} /> : <Shirt size={48} strokeWidth={1.5} style={{ color: '#1B2A4A' }} />}
+              <Shirt size={48} strokeWidth={1.5} style={{ color: '#1B2A4A' }} />
             </div>
-            <h2 className="heading-italic">{activeCategory === 'Favorites' ? 'No favorite items yet' : 'No items found'}</h2>
-            <p>{activeCategory === 'Favorites' ? 'Tap the heart on any item to add it to your favorites.' : 'Try changing your filters or add new items to your closet.'}</p>
-            {activeCategory !== 'Favorites' && (
-              <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add First Item</button>
-            )}
+            <h2 className="heading-italic">No items found</h2>
+            <p>Try changing your filters or add new items to your closet.</p>
+            <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add First Item</button>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmId && (
+          <div className="modal-overlay animate-fade-in" onClick={() => setDeleteConfirmId(null)}>
+            <div className="modal-content card" onClick={(e) => e.stopPropagation()}>
+              <h3>Delete this item?</h3>
+              <p>This action cannot be undone.</p>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                <button className="btn btn-ghost" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
+                <button className="btn btn-primary" style={{ background: '#E74C3C' }} onClick={() => handleDelete(deleteConfirmId)}>Delete</button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -5,11 +5,15 @@ const Item = require("../models/items");
 const upload = require("../middleware/upload");
 const auth = require("../middleware/auth");
 const { cloudinary } = require("../config/cloudinary");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const axios = require("axios");
 const fs = require("fs");
 const multer = require("multer");
+const FormData = require("form-data");
 
 const tempUpload = multer({ dest: "uploads/" });
+
+// Local ML service URL (replaces Google Gemini)
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
 
 const {
   validate,
@@ -19,8 +23,7 @@ const {
   listQueryRules,
 } = require("../middleware/validation");
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Note: Gemini removed — using local ML service at ML_SERVICE_URL
 
 // ============================================
 // GET /api/items — List all items with filters
@@ -30,9 +33,12 @@ router.get("/", auth, listQueryRules, validate, async (req, res, next) => {
     const {
       category, subCategory, color, occasion, weather, condition,
       sort = "-createdAt",
-      page = 1,
-      limit = 20,
+      page,
+      limit,
     } = req.query;
+
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 20;
 
     // Build filter object scoped to user
     const filter = { userId: req.user.id };
@@ -42,16 +48,23 @@ router.get("/", auth, listQueryRules, validate, async (req, res, next) => {
     if (occasion) filter.occasion = occasion;
     if (weather) filter.weather = weather;
     if (condition) filter.condition = condition;
+    if (req.query.isLaundry !== undefined) {
+      if (req.query.isLaundry === 'true') {
+        filter.isLaundry = true;
+      } else {
+        filter.isLaundry = { $ne: true }; // matches false, null, and missing!
+      }
+    }
 
     // Pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     // Execute query
     const [items, total] = await Promise.all([
       Item.find(filter)
         .sort(sort)
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(limitNum),
       Item.countDocuments(filter),
     ]);
 
@@ -91,7 +104,7 @@ router.get("/:id", auth, idParamRule, validate, async (req, res, next) => {
 });
 
 // ============================================
-// POST /api/items/analyze — Analyze image with Gemini AI
+// POST /api/items/analyze — Analyze image with local ML service
 // ============================================
 router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next) => {
   try {
@@ -99,59 +112,38 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
       return res.status(400).json({ success: false, message: "No image provided for analysis." });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ success: false, message: "Gemini API key is missing on the server." });
-    }
+    // Build multipart form to send to the local ML service
+    const formData = new FormData();
+    formData.append("image", fs.createReadStream(req.file.path), {
+      filename: req.file.originalname || "upload.jpg",
+      contentType: req.file.mimetype,
+    });
 
-    // Convert local file to generative part
-    const fileToGenerativePart = (path, mimeType) => {
-      return {
-        inlineData: {
-          data: Buffer.from(fs.readFileSync(path)).toString("base64"),
-          mimeType
-        },
-      };
-    };
+    // Call local ML service
+    const mlResponse = await axios.post(`${ML_SERVICE_URL}/analyze`, formData, {
+      headers: formData.getHeaders(),
+      timeout: 30000, // 30 second timeout
+    });
 
-    const imagePart = fileToGenerativePart(req.file.path, req.file.mimetype);
-
-    const prompt = `Analyze this clothing item image. Respond ONLY with a valid JSON object — no markdown, no explanation, no backticks. Use this exact structure:
-{
-  "name": "<closest match from: t-shirt, graphic tee, polo shirt, shirt, dress shirt, blouse, tank top, crop top, sweater, turtleneck, hoodie, sweatshirt, jeans, slim jeans, straight jeans, wide leg jeans, chinos, trousers, shorts, cargo pants, joggers, sweatpants, skirt, mini skirt, midi skirt, maxi skirt, leggings, jacket, blazer, suit jacket, denim jacket, leather jacket, bomber jacket, trench coat, overcoat, parka, cardigan, vest, sneakers, white sneakers, chunky sneakers, loafers, oxford shoes, derby shoes, chelsea boots, ankle boots, boots, sandals, slides, heels, block heels, mules, flip flops>",
-  "color": "<closest match from: white, black, gray, light gray, beige, cream, ivory, off-white, camel, tan, taupe, charcoal, brown, dark brown, navy, blue, light blue, royal blue, sky blue, cobalt, denim, green, olive, khaki, forest green, sage, mint, emerald, red, dark red, crimson, maroon, burgundy, wine, pink, hot pink, blush, mauve, rose, yellow, mustard, gold, orange, coral, peach, rust, terracotta, purple, lavender, violet, plum, lilac>",
-  "pattern": "<closest match from: solid, striped, thin stripe, wide stripe, checkered, plaid, tartan, floral, small floral, graphic, camo, animal, paisley, houndstooth, herringbone, pinstripe, polka, tie_dye, geometric, abstract>",
-  "fit": "<closest match from: slim, regular, relaxed, oversized, boxy>",
-  "occasion": ["<choices from: casual, office, party, date night, gym, ethnic>"],
-  "weather": ["<choices from: hot, mild, cold>"]
-}
-Only return the JSON. If you cannot identify the item clearly, make your best guess. Try to provide 1-2 relevant occasions and 1-2 relevant weather types.`;
-
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
-    const result = await model.generateContent([prompt, imagePart]);
-    const responseText = result.response.text();
-
-    // Clean any potential markdown string wrappers from Gemini
-    let cleanedText = responseText.replace(/```json\n?/g, '').replace(/```/g, '').trim();
-
-    let insights;
-    try {
-      insights = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error("Gemini returned non-JSON response:", cleanedText);
-      // Cleanup local temp file
-      if (req.file && req.file.path) fs.unlinkSync(req.file.path);
-      return res.status(422).json({ success: false, message: "Could not read this item — try a clearer photo." });
-    }
-
-    console.log(`\n[Gemini Analyze] Clean JSON response:`, JSON.stringify(insights, null, 2));
+    const insights = mlResponse.data;
+    console.log(`\n[ML Service Analyze] Response:`, JSON.stringify(insights, null, 2));
     res.json({ success: true, data: insights });
 
     // Cleanup local temp file
     if (req.file && req.file.path) fs.unlinkSync(req.file.path);
 
   } catch (error) {
-    console.error("Gemini Analysis Error:", error);
+    console.error("ML Service Analysis Error:", error.message);
     if (req.file && req.file.path) { try { fs.unlinkSync(req.file.path); } catch(e) {} }
+
+    // If ML service is down, return a helpful message
+    if (error.code === "ECONNREFUSED") {
+      return res.status(503).json({
+        success: false,
+        message: "AI Analysis service is not running. Start it with: cd ml_service && python -m uvicorn main:app --port 8000"
+      });
+    }
+
     res.status(500).json({ success: false, message: `AI Analysis Failed: ${error.message}` });
   }
 });
@@ -203,28 +195,42 @@ router.post("/", auth, upload.single("image"), createItemRules, validate, async 
     next(error);
   }
 });
-
 // ============================================
-// PUT /api/items/:id/favorite — Toggle favorite (lightweight, no multer)
+// PUT /api/items/:id/favorite — Toggle favorite
 // ============================================
 router.put("/:id/favorite", auth, idParamRule, validate, async (req, res, next) => {
   try {
     const item = await Item.findOne({ _id: req.params.id, userId: req.user.id });
-    if (!item) {
-      return res.status(404).json({ success: false, message: "Item not found" });
-    }
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
 
     item.userPreferenceScore = item.userPreferenceScore > 0 ? 0 : 1;
     await item.save();
 
-    res.json({
-      success: true,
-      data: item,
-    });
-  } catch (error) {
-    next(error);
-  }
+    res.json({ success: true, data: item });
+  } catch (error) { next(error); }
 });
+
+// ============================================
+// PUT /api/items/:id/laundry — Toggle laundry
+// ============================================
+router.put("/:id/laundry", auth, idParamRule, validate, async (req, res, next) => {
+  try {
+    const item = await Item.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!item) return res.status(404).json({ success: false, message: "Item not found" });
+
+    const isExempt = ['footwear', 'accessories'].includes(item.category.toLowerCase());
+    if (isExempt) return res.json({ success: true, data: item });
+
+    item.isLaundry = !item.isLaundry;
+    if (!item.isLaundry) {
+      item.wearCount = 0;
+    }
+    await item.save();
+
+    res.json({ success: true, data: item });
+  } catch (error) { next(error); }
+});
+
 
 // ============================================
 // PUT /api/items/:id — Update item

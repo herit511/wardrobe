@@ -1,7 +1,7 @@
 /* ============================================
    WARDROBE — Design System
    Colors: Peach/Beige + Navy + Orange
-   Fonts: Playfair Display (headings) + Plus Jakarta Sans (body)
+   Fonts: Playfair Display (headings) + Poppins (body)
    ============================================ */
 
 :root {
@@ -30,8 +30,8 @@
   --color-success: #27AE60;
 
   /* Fonts */
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Poppins', sans-serif;
 
   /* Spacing */
   --space-xs: 4px;
@@ -87,14 +87,15 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  font-weight: 600;
-  line-height: 1.3;
+  font-weight: 500; /* Regular Playfair weight is more elegant */
+  line-height: 1.25;
   color: var(--color-navy);
+  letter-spacing: -0.01em;
 }
 
-h1 { font-size: 2.5rem; }
-h2 { font-size: 1.75rem; }
-h3 { font-size: 1.25rem; }
+h1 { font-size: 3.2rem; }
+h2 { font-size: 2.2rem; }
+h3 { font-size: 1.4rem; }
 
 a {
   color: var(--color-orange);
@@ -266,6 +267,16 @@ input, select, textarea {
 
 .heading-italic {
   font-style: italic;
+  font-weight: 400; /* Extra elegant for italics */
+}
+
+.uppercase-label {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
 }
 
 .input-field {

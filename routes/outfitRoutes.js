@@ -5,7 +5,8 @@ const Outfit = require('../models/Outfit');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { getColorName } = require('../utils/colors');
-const { suggestOutfits, scoreOutfit, analyzeWardrobeGaps, scoreWardrobeVersatility, detectColorSeason, parseCLIPLabel, suggestFromCLIP, CLOTHING_ITEMS, INDIAN_FASHION, OCCASIONS } = require('../fashionEngine');
+const { suggestOutfits, scoreOutfit, analyzeWardrobeGaps, scoreWardrobeVersatility, detectColorSeason, parseCLIPLabel, suggestFromCLIP, CLOTHING_ITEMS, INDIAN_FASHION, OCCASIONS } = require('../fashionEngineV3');
+const { applyStyleIntelligence } = require('../fashionStylingEngine');
 
 // Fuzzy-match mapping for common Gemini mismatches
 const FUZZY_NAME_MAP = {
@@ -77,8 +78,8 @@ router.get('/generate', auth, async (req, res, next) => {
         const user = await User.findById(req.user.id);
         const userProfile = user?.styleDna || {};
 
-        // Get user's wardrobe items
-        const userItems = await Item.find({ userId: req.user.id });
+        // Get user's clean wardrobe items (exclude laundry)
+        const userItems = await Item.find({ userId: req.user.id, isLaundry: { $ne: true } });
 
         if (userItems.length < 3) {
             return res.status(400).json({
@@ -123,6 +124,7 @@ router.get('/generate', auth, async (req, res, next) => {
                 name: resolvedName,
                 color: hexToColorName(item.color),
                 pattern: item.pattern || 'solid',
+                userPreferenceScore: item.userPreferenceScore || 0,
                 _dbItem: item,
             };
         });
@@ -137,69 +139,89 @@ router.get('/generate', auth, async (req, res, next) => {
             });
         }
 
-        let finalWardrobeForEngine = wardrobeForEngine;
+        let finalWardrobeForEngine = [...wardrobeForEngine];
         let preferredAccessoryItems = []; // Track accessories to inject later
 
+        let preferences = [];
         if (preferredSubCategory) {
-            const rawName = subCatToEngineName[preferredSubCategory] || preferredSubCategory.replace('_', ' ');
-            const resolvedName = resolveEngineName(rawName);
-            const prefRole = CLOTHING_ITEMS[resolvedName]?.role;
-
-            if (prefRole === 'accessory') {
-                // Accessories are NOT part of outfit composition — engine handles them separately.
-                // So instead of pruning, we collect matching accessories to inject into every outfit.
-                preferredAccessoryItems = wardrobeForEngine.filter(i => {
-                    const iRawName = subCatToEngineName[i._dbItem.subCategory] || i._dbItem.subCategory.replace('_', ' ');
-                    const iResolved = resolveEngineName(iRawName);
-                    return iResolved === resolvedName || i._dbItem.subCategory === preferredSubCategory;
-                });
-                console.log(`[fashionEngine] Preferred accessory: "${resolvedName}" — found ${preferredAccessoryItems.length} matching items to inject`);
-            } else {
-                console.log(`[fashionEngine] Preferred standard category: "${resolvedName}" (role: ${prefRole || 'unknown'})`);
-                const beforeCount = finalWardrobeForEngine.length;
-                finalWardrobeForEngine = finalWardrobeForEngine.filter(i => {
-                    const iRawName = subCatToEngineName[i._dbItem.subCategory] || i._dbItem.subCategory.replace('_', ' ');
-                    const iResolved = resolveEngineName(iRawName);
-                    
-                    const iRole = CLOTHING_ITEMS[iResolved]?.role;
-                    console.log(`[fashionEngine]   Item: ${i.name} (subCat: ${i._dbItem.subCategory}) -> resolved: ${iResolved} (role: ${iRole || 'unknown'})`);
-
-                    // 1. Literal subCategory string equality — absolute match
-                    if (i._dbItem.subCategory === preferredSubCategory) return true;
-
-                    // 2. If roles match, it MUST be the preferred one to survive
-                    if (prefRole && iRole && prefRole === iRole) {
-                        return iResolved === resolvedName;
-                    }
-
-                    // 3. Fallback: if role resolution is missing, keep it for safety unless it's a known conflict
-                    return true;
-                });
-                console.log(`[fashionEngine] Pruning complete: ${beforeCount} -> ${finalWardrobeForEngine.length} items`);
+            if (Array.isArray(preferredSubCategory)) {
+                preferences = preferredSubCategory;
+            } else if (typeof preferredSubCategory === 'string') {
+                preferences = preferredSubCategory.split(',').map(s => s.trim()).filter(Boolean);
             }
+        }
+
+        if (preferences.length > 0) {
+            console.log(`[fashionEngine] User has ${preferences.length} preferences: ${preferences.join(', ')}`);
+            preferences.forEach(pref => {
+                const rawName = subCatToEngineName[pref] || pref.replace('_', ' ');
+                const resolvedName = resolveEngineName(rawName);
+                const prefRole = CLOTHING_ITEMS[resolvedName]?.role;
+
+                if (prefRole === 'accessory') {
+                    // Accessories are NOT part of outfit composition — engine handles them separately.
+                    // So instead of pruning, we collect matching accessories to inject into every outfit.
+                    const matchingAccs = wardrobeForEngine.filter(i => {
+                        const iRawName = subCatToEngineName[i._dbItem.subCategory] || i._dbItem.subCategory.replace('_', ' ');
+                        const iResolved = resolveEngineName(iRawName);
+                        return iResolved === resolvedName || i._dbItem.subCategory === pref;
+                    });
+                    preferredAccessoryItems = [...preferredAccessoryItems, ...matchingAccs];
+                    console.log(`[fashionEngine] Preferred accessory: "${resolvedName}" — found ${matchingAccs.length} matching items to inject`);
+                } else {
+                    console.log(`[fashionEngine] Preferred standard category: "${resolvedName}" (role: ${prefRole || 'unknown'})`);
+                    const beforeCount = finalWardrobeForEngine.length;
+                    finalWardrobeForEngine = finalWardrobeForEngine.filter(i => {
+                        const iRawName = subCatToEngineName[i._dbItem.subCategory] || i._dbItem.subCategory.replace('_', ' ');
+                        const iResolved = resolveEngineName(iRawName);
+                        
+                        const iRole = CLOTHING_ITEMS[iResolved]?.role;
+
+                        // 1. Literal subCategory string equality — absolute match
+                        if (i._dbItem.subCategory === pref) return true;
+
+                        // 2. If roles match, it MUST be the preferred one to survive
+                        if (prefRole && iRole && prefRole === iRole) {
+                            return iResolved === resolvedName;
+                        }
+
+                        // 3. Fallback: if role resolution is missing, keep it for safety unless it's a known conflict
+                        return true;
+                    });
+                    console.log(`[fashionEngine] Pruning complete for ${pref}: ${beforeCount} -> ${finalWardrobeForEngine.length} items`);
+                }
+            });
         }
 
         // Call the fashionEngine (NOT Gemini)
         console.log(`\n[fashionEngine] Calling suggestOutfits() with ${finalWardrobeForEngine.length} items, occasion=${engineOccasion}, weather=${weather}`);
         console.log(`[fashionEngine] Wardrobe items:`, finalWardrobeForEngine.map(i => ({ name: i.name, color: i.color, pattern: i.pattern })));
         const engineResults = suggestOutfits(finalWardrobeForEngine, engineOccasion, weather, userProfile);
-        console.log(`[fashionEngine] suggestOutfits returned ${engineResults?.length || 0} outfit(s)`);
-        if (engineResults?.length > 0) {
-            engineResults.forEach((o, i) => {
-                console.log(`[fashionEngine] Outfit ${i+1}: score=${o.score.totalScore}/10, grade=${o.score.grade}, name="${o.score.outfitName}"`);
+        
+        // Handle Error / No Outfits pass
+        if (engineResults.success === false) {
+            console.log(`[fashionEngine] suggestOutfits failed to find matches. Advisor mode enabled.`);
+            return res.status(200).json({
+                success: false,
+                advisorFeedback: engineResults.advisorFeedback,
+                message: engineResults.advisorFeedback?.message || 'No outfits found.'
             });
         }
 
-        // Safety check 3: Empty results
-        if (!engineResults || engineResults.length === 0) {
-            return res.status(400).json({
+        const outfitsToStyle = engineResults.data || [];
+        console.log(`[fashionEngine] suggestOutfits returned ${outfitsToStyle.length} outfit(s)`);
+
+        if (outfitsToStyle.length === 0) {
+            return res.status(200).json({
                 success: false,
-                message: 'No outfit combinations found. Try uploading more items or switching the occasion.'
+                message: 'Empty wardrobe results.',
+                advisorFeedback: { message: 'Add more items to unlock combinations.' }
             });
         }
 
         // Map fashionEngine output → frontend expected format
-        const generatedOutfits = engineResults.map((outfit, index) => {
+        const styledOutfits = applyStyleIntelligence(outfitsToStyle, engineOccasion, weather, userProfile);
+        const generatedOutfits = styledOutfits.map((outfit, index) => {
             const outfitItems = outfit.items.map(item => {
                 const dbItem = item._dbItem;
                 let typeStr = 'Accessory';
@@ -253,13 +275,27 @@ router.get('/generate', auth, async (req, res, next) => {
 
             return {
                 id: `gen-engine-${Date.now()}-${index}`,
-                title: outfit.score.outfitName || `${occasion} Style ${index + 1}`,
+                title: outfit.outfitName || outfit.score.outfitName || `${occasion} Style ${index + 1}`,
                 match: matchPercent,
                 tags: [occasion, outfit.score.grade],
                 explanation: outfit.explanation || `Score: ${outfit.score.totalScore}/10. ${outfit.score.tips?.[0] || ''}`,
                 items: outfitItems,
+                warnings: outfit.warnings || [],
                 breakdown: outfit.score.breakdown || {},
-                tips: outfit.score.tips || []
+                tips: outfit.score.tips || [],
+                // Styled attributes
+                description: outfit.description,
+                feelLine: outfit.feelLine,
+                colorStory: outfit.colorStory,
+                signatureMove: outfit.signatureMove,
+                microStyling: outfit.microStyling,
+                finishingMove: outfit.finishingMove,
+                trends: outfit.trends,
+                wowReason: outfit.wowReason,
+                moodBoard: outfit.moodBoard,
+                relaxedMatch: outfit.relaxedMatch,
+                relaxationReasons: outfit.relaxationReasons,
+                confidence: outfit.confidence
             };
         });
 
@@ -284,7 +320,7 @@ router.get('/generate', auth, async (req, res, next) => {
 // ============================================
 router.post('/', auth, async (req, res, next) => {
     try {
-        const { title, items, occasion } = req.body;
+        const { title, items, occasion, isFavorite } = req.body;
 
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ success: false, message: 'Outfit must contain items.' });
@@ -294,8 +330,34 @@ router.post('/', auth, async (req, res, next) => {
             userId: req.user.id,
             title: title || 'Saved Outfit',
             items,
-            occasion: occasion || 'Casual'
+            occasion: occasion || 'Casual',
+            isFavorite: isFavorite || false,
+            // Styling Metadata
+            personality: req.body.personality,
+            signatureMove: req.body.signatureMove,
+            feelLine: req.body.feelLine,
+            colorStory: req.body.colorStory,
+            microStyling: req.body.microStyling,
+            finishingMove: req.body.finishingMove,
+            wowReason: req.body.wowReason,
+            // Generation Context
+            generationContext: req.body.generationContext || {
+                weather: req.body.weather,
+                occasion: occasion,
+                selectedVibe: req.body.selectedVibe,
+                relaxedMatch: req.body.relaxedMatch,
+                confidence: req.body.confidence
+            }
         });
+
+        // If this is a manual outfit (we'll pass a flag or just assume custom logic means it's manual)
+        // Let's increment userPreferenceScore of the items to feed the AI
+        if (req.body.isManual) {
+            await Item.updateMany(
+                { _id: { $in: items }, userId: req.user.id },
+                { $inc: { userPreferenceScore: 1 } }
+            );
+        }
 
         res.status(201).json({ success: true, data: newOutfit });
     } catch (error) {
@@ -317,6 +379,39 @@ router.post('/:id/wear', auth, async (req, res, next) => {
         outfit.wornHistory.push({ date: new Date() });
         await outfit.save();
 
+        // Look at constituent items to update wearCount and potentially send to laundry
+        if (outfit.items && outfit.items.length > 0) {
+            const items = await Item.find({ _id: { $in: outfit.items }, userId: req.user.id });
+            const bulkOps = [];
+            
+            for (const item of items) {
+                const isExempt = ['footwear', 'accessories'].includes(item.category.toLowerCase());
+                let newWearCount = (item.wearCount || 0) + 1;
+                let newIsLaundry = item.isLaundry || false;
+
+                // Don't modify items already in laundry
+                if (newIsLaundry) continue;
+
+                if (!isExempt) {
+                    if (newWearCount >= 3) {
+                        newIsLaundry = true;
+                        newWearCount = 0; // reset
+                    }
+                }
+
+                bulkOps.push({
+                    updateOne: {
+                        filter: { _id: item._id },
+                        update: { $set: { wearCount: newWearCount, isLaundry: newIsLaundry, lastWorn: new Date() } }
+                    }
+                });
+            }
+
+            if (bulkOps.length > 0) {
+                await Item.bulkWrite(bulkOps);
+            }
+        }
+
         res.json({ success: true, data: outfit });
     } catch (error) {
         next(error);
@@ -324,25 +419,18 @@ router.post('/:id/wear', auth, async (req, res, next) => {
 });
 
 // ============================================
-// PUT /api/outfits/:id/favorite — Toggle favorite status
+// PUT /api/outfits/:id/favorite — Toggle outfit favorite
 // ============================================
 router.put('/:id/favorite', auth, async (req, res, next) => {
     try {
         const outfit = await Outfit.findOne({ _id: req.params.id, userId: req.user.id });
-
-        if (!outfit) {
-            return res.status(404).json({ success: false, message: 'Outfit not found.' });
-        }
+        if (!outfit) return res.status(404).json({ success: false, message: 'Outfit not found.' });
 
         outfit.isFavorite = !outfit.isFavorite;
         await outfit.save();
-
         res.json({ success: true, data: outfit });
-    } catch (error) {
-        next(error);
-    }
+    } catch (error) { next(error); }
 });
-
 // ============================================
 // DELETE /api/outfits/:id — Delete a saved outfit
 // ============================================

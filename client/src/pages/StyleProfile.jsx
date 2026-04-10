@@ -78,6 +78,7 @@ function StyleProfile() {
   const [skinDepth, setSkinDepth] = useState('')
   const [bodyType, setBodyType] = useState('')
   const [saving, setSaving] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   // Pre-fill if editing existing DNA
   useEffect(() => {
@@ -139,6 +140,7 @@ function StyleProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
+    setErrorMsg('')
     try {
       const styleDna = {
         archetypes: selectedStyles,
@@ -151,13 +153,11 @@ function StyleProfile() {
       }
       const res = await api.put('/auth/preferences', { styleDna })
       if (res.success) {
-        // If they already had styles, they came from Profile edit. Otherwise they are onboarding.
         const isEditing = user?.styleDna?.archetypes?.length > 0
-        // Use window.location.href to hard reload and refresh the AuthContext user state
         window.location.href = isEditing ? '/profile' : '/dashboard'
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save preferences')
+      setErrorMsg(err.response?.data?.message || 'Failed to save preferences')
     } finally {
       setSaving(false)
     }
@@ -178,6 +178,12 @@ function StyleProfile() {
           <h1 className="page-title heading-italic">Your Style DNA</h1>
           <p className="page-subtitle">Let's define your unique fashion blueprint.</p>
         </div>
+
+        {errorMsg && (
+          <div style={{ background: '#FDECEA', color: '#E74C3C', padding: '15px', borderRadius: '8px', marginBottom: '20px', textAlign: 'center' }}>
+            {errorMsg}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {/* Style Personality */}

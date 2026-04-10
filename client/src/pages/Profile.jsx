@@ -16,10 +16,12 @@ function Profile() {
   // Edit Profile State
   const [editingProfile, setEditingProfile] = useState(false)
   const [profileForm, setProfileForm] = useState({ name: user?.name || '', email: user?.email || '' })
+  const [profileMsg, setProfileMsg] = useState({ type: '', text: '' })
   
   // Change Password State
   const [changingPassword, setChangingPassword] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' })
+  const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' })
 
   // Delete Account State
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -55,26 +57,31 @@ function Profile() {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault()
+    setProfileMsg({ type: '', text: '' })
     try {
       const res = await api.put('/auth/profile', profileForm)
       if (res.success) {
         setEditingProfile(false)
         window.location.reload() // Reload to refresh AuthContext
       }
-    } catch (err) { alert(err.response?.data?.message || 'Update failed') }
+    } catch (err) { setProfileMsg({ type: 'error', text: err.response?.data?.message || 'Update failed' }) }
   }
 
   const handleChangePassword = async (e) => {
     e.preventDefault()
-    if (passwordForm.newPassword.length < 6) return alert("New password must be at least 6 characters.")
+    setPasswordMsg({ type: '', text: '' })
+    if (passwordForm.newPassword.length < 6) return setPasswordMsg({ type: 'error', text: "New password must be at least 6 characters." })
     try {
       const res = await api.put('/auth/password', passwordForm)
       if (res.success) {
-        alert('Password updated successfully')
-        setChangingPassword(false)
+        setPasswordMsg({ type: 'success', text: 'Password updated successfully' })
+        setTimeout(() => {
+          setChangingPassword(false)
+          setPasswordMsg({ type: '', text: '' })
+        }, 2000)
         setPasswordForm({ currentPassword: '', newPassword: '' })
       }
-    } catch (err) { alert(err.response?.data?.message || 'Password update failed') }
+    } catch (err) { setPasswordMsg({ type: 'error', text: err.response?.data?.message || 'Password update failed' }) }
   }
 
   const handleTogglePreference = async (key) => {
@@ -121,23 +128,25 @@ function Profile() {
 
         {/* Edit Profile Modal */}
         {editingProfile && (
-          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-            <div className="modal-content card" style={{ padding: '30px', width: '90%', maxWidth: '400px', position: 'relative' }}>
-              <button 
-                onClick={() => setEditingProfile(false)} 
-                style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}
-              >✕</button>
-              <h3 style={{ marginBottom: '20px', fontFamily: 'var(--font-heading)', fontStyle: 'italic' }}>Edit Profile</h3>
+          <div className="modal-overlay">
+            <div className="modal-content card">
+              <button className="modal-close" onClick={() => setEditingProfile(false)}>✕</button>
+              <h3 className="modal-title">Edit Profile</h3>
               <form onSubmit={handleUpdateProfile}>
-                <div className="form-group" style={{ marginBottom: '15px' }}>
+                <div className="form-group">
                   <label>Name</label>
-                  <input type="text" className="form-control" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
+                  <input type="text" className="input-field" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} required />
                 </div>
-                <div className="form-group" style={{ marginBottom: '20px' }}>
+                <div className="form-group">
                   <label>Email</label>
-                  <input type="email" className="form-control" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} required />
+                  <input type="email" className="input-field" value={profileForm.email} onChange={e => setProfileForm({...profileForm, email: e.target.value})} required />
                 </div>
-                <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Save Changes</button>
+                {profileMsg.text && (
+                  <div className={`form-msg ${profileMsg.type}`}>
+                    {profileMsg.text}
+                  </div>
+                )}
+                <button type="submit" className="btn btn-primary full-width">Save Changes</button>
               </form>
             </div>
           </div>
@@ -154,8 +163,8 @@ function Profile() {
             <div className="stat-label">Outfits Worn</div>
           </div>
           <div className="profile-stat">
-            <div className="stat-value-text">{loading ? '-' : (stats?.totalOutfits || 0)} Saved</div>
-            <div className="stat-label">Outfits</div>
+            <div className="stat-value">{loading ? '-' : (stats?.totalOutfits || 0)}</div>
+            <div className="stat-label">Saved Outfits</div>
           </div>
         </section>
 
@@ -165,39 +174,31 @@ function Profile() {
             <div className="card-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={20} strokeWidth={1.5} /> Recent Outfit History</h3>
             </div>
-            <div style={{ padding: '0 20px 20px' }}>
+            <div className="history-list">
               {stats && stats.recentWornHistory.length > 0 ? (
                 stats.recentWornHistory.map((entry, i) => {
                   const d = new Date(entry.date)
                   return (
-                    <div key={i} style={{ 
-                      display: 'flex', alignItems: 'center', gap: '15px', 
-                      padding: '12px 0', 
-                      borderBottom: i < stats.recentWornHistory.length - 1 ? '1px solid #eee' : 'none' 
-                    }}>
-                      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    <div key={i} className="history-item">
+                      <div className="history-thumbs">
                         {entry.items && entry.items.map((item, j) => (
-                          <div key={j} style={{ 
-                            width: '50px', height: '50px', borderRadius: '8px', 
-                            backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : 'none',
-                            backgroundSize: 'cover', backgroundPosition: 'center',
-                            backgroundColor: '#F5E6D3', border: '2px solid #fff',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                          <div key={j} className="history-thumb" style={{ 
+                            backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : 'none'
                           }} title={`${item.category} - ${item.subCategory}`}></div>
                         ))}
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1B2A4A' }}>{entry.title}</div>
-                        <div style={{ fontSize: '0.8rem', color: '#6B7B8D' }}>{entry.occasion}</div>
+                      <div className="history-info">
+                        <div className="history-title">{entry.title}</div>
+                        <div className="history-meta">{entry.occasion}</div>
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: '#6B7B8D', flexShrink: 0 }}>
+                      <div className="history-date">
                         {dayNames[d.getDay()]}, {d.toLocaleDateString()}
                       </div>
                     </div>
                   )
                 })
               ) : (
-                <div style={{ color: '#6B7B8D', padding: '20px 0', textAlign: 'center' }}>
+                <div className="empty-history">
                   {loading ? 'Loading...' : 'No outfits worn yet. Wear your first outfit!'}
                 </div>
               )}
@@ -288,6 +289,11 @@ function Profile() {
                   <form onSubmit={handleChangePassword} style={{ width: '100%', marginTop: '10px', background: '#F8F9FA', padding: '15px', borderRadius: '8px' }}>
                     <input type="password" placeholder="Current Password" required value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} style={{ width: '100%', marginBottom: '10px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
                     <input type="password" placeholder="New Password" required value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} style={{ width: '100%', marginBottom: '15px', padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }} />
+                    {passwordMsg.text && (
+                      <div style={{ marginBottom: '15px', padding: '10px', borderRadius: '4px', fontSize: '0.9rem', background: passwordMsg.type === 'error' ? '#FDECEA' : '#EAFaf1', color: passwordMsg.type === 'error' ? '#E74C3C' : '#27AE60' }}>
+                        {passwordMsg.text}
+                      </div>
+                    )}
                     <button type="submit" className="btn btn-primary btn-sm">Update Password</button>
                   </form>
                 )}
@@ -343,15 +349,15 @@ function Profile() {
 
         {/* Delete Account Modal */}
         {showDeleteModal && (
-          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-            <div className="modal-content card animate-fade-in-up" style={{ padding: '30px', width: '90%', maxWidth: '400px', textAlign: 'center' }}>
-              <h3 style={{ marginBottom: '15px', color: '#E74C3C', fontFamily: 'var(--font-heading)', fontStyle: 'italic', fontSize: '1.4rem' }}>Delete Account</h3>
-              <p style={{ color: '#6B7B8D', marginBottom: '25px', lineHeight: '1.5' }}>
+          <div className="modal-overlay">
+            <div className="modal-content card danger-modal">
+              <h3 className="modal-title danger">Delete Account</h3>
+              <p className="modal-text">
                 Are you strictly sure you want to delete your account? This action cannot be undone and all your data, including saved outfits and closet items, will be permanently lost.
               </p>
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-                <button className="btn btn-ghost" onClick={() => setShowDeleteModal(false)} style={{ flex: 1 }}>Cancel</button>
-                <button className="btn" onClick={handleDeleteAccount} style={{ flex: 1, background: '#E74C3C', color: 'white', border: 'none' }}>Yes, Delete</button>
+              <div className="modal-actions">
+                <button className="btn btn-ghost" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                <button className="btn btn-danger" onClick={handleDeleteAccount}>Yes, Delete</button>
               </div>
             </div>
           </div>

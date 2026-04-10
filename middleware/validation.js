@@ -164,7 +164,7 @@ const listQueryRules = [
   query("color").optional().trim(),
   query("sort").optional().isIn(["createdAt", "-createdAt", "userPreferenceScore", "-userPreferenceScore"]).withMessage("Invalid sort field"),
   query("page").optional().isInt({ min: 1 }).withMessage("Page must be a positive integer"),
-  query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit must be between 1 and 100"),
+  query("limit").optional().isInt({ min: 1, max: 1000 }).withMessage("Limit must be between 1 and 1000"),
 ];
 
 // Validation rules for user registration

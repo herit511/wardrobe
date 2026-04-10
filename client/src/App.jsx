@@ -9,8 +9,11 @@ import Outfits from './pages/Outfits'
 import Suggestions from './pages/Suggestions'
 import AddItem from './pages/AddItem'
 import EditItem from './pages/EditItem'
+import BuildOutfit from './pages/BuildOutfit'
 import StyleProfile from './pages/StyleProfile'
 import Profile from './pages/Profile'
+import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -21,6 +24,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
 
         {/* App Routes (with navbar) */}
         <Route element={<ProtectedRoute />}>
@@ -30,6 +35,7 @@ function App() {
           <Route path="/suggestions" element={<><Navbar /><Suggestions /></>} />
           <Route path="/add-item" element={<><Navbar /><AddItem /></>} />
           <Route path="/edit-item/:id" element={<><Navbar /><EditItem /></>} />
+          <Route path="/build-outfit" element={<><Navbar /><BuildOutfit /></>} />
           <Route path="/style-profile" element={<><Navbar /><StyleProfile /></>} />
           <Route path="/profile" element={<><Navbar /><Profile /></>} />
         </Route>
