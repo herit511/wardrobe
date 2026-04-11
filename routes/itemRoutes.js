@@ -7,10 +7,11 @@ const auth = require("../middleware/auth");
 const { cloudinary } = require("../config/cloudinary");
 const axios = require("axios");
 const fs = require("fs");
+const os = require("os");
+const path = require("path");
 const multer = require("multer");
 
-const tempUpload = multer({ dest: "uploads/" });
-
+const tempUpload = multer({ dest: path.join(os.tmpdir(), "uploads") });
 
 const {
   validate,
