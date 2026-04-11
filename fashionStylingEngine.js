@@ -313,6 +313,11 @@ const MICRO_STYLING = {
     "The hem should be clean — not frayed, not rolled (unless it's your aesthetic).",
     "With a tucked tee: instantly looks more intentional. With untucked: make sure the tee is fitted.",
   ],
+  "joggers": [
+    "The ankle cuff defines the look: it should hug the ankle just above the shoe, never slumping over it.",
+    "Pair with structured tops — a clean tee, denim jacket, or overcoat — to balance the relaxed bottom.",
+    "Avoid running shoes unless you're actually running. Choose retro sneakers or minimalist leather sneakers to bridge the gap between gym and street.",
+  ],
 
   // ── Shoes ────────────────────────────────
 
@@ -481,6 +486,14 @@ const SIGNATURE_MOVES = {
       move: "Let the overcoat be the only structure in the look — keep everything under it soft and fitted. The coat does the work alone.",
     },
     {
+      items: ["hoodie","joggers"],
+      move: "The full sweatsuit only works if the fit is intentional. A slightly cropped hoodie with tapered joggers looks active; anything baggy just looks tired.",
+    },
+    {
+      items: ["oversized tee","joggers"],
+      move: "French tuck the oversized tee into the joggers just slightly at the hip to establish a waist and prevent the entire silhouette from dragging.",
+    },
+    {
       items: ["hoodie","trousers"],
       move: "The trick is the half-tuck: front hem of the hoodie tucked into the trousers, back left out. This creates a casual waist where there usually isn't one.",
     },
@@ -587,6 +600,12 @@ const TRENDS_2024_2025 = {
       description: "Functional outdoor aesthetics in urban settings. Cargo, technical fabrics, layering.",
       items: ["cargo pants","parka","puffer jacket","boots"],
       tip: "The key is keeping it clean — gorpcore works when it's intentional, not accidental.",
+    },
+    {
+      name: "Elevated Athleisure",
+      description: "Bridging the gap between performance wear and street style. Comfort without sacrificing silhouette.",
+      items: ["joggers","track pants","sweatpants","sneakers"],
+      tip: "The fit is everything. The moment athleisure becomes baggy, it loses all its elevation.",
     },
   ],
   color: [

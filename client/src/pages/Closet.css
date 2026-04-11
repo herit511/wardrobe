@@ -47,6 +47,9 @@
   padding: 0 var(--space-xs) 12px;
   position: relative;
   transition: color var(--transition-fast);
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .subnav-btn:hover {

@@ -20,7 +20,7 @@ const validate = (req, res, next) => {
 const CATEGORIES = ["top", "bottom", "footwear", "outerwear", "accessories"];
 const SUB_CATEGORIES = [
   "shirt", "tshirt", "vest", "polo",
-  "jeans", "trousers", "cargo", "shorts",
+  "jeans", "trousers", "cargo", "shorts", "joggers",
   "sneakers", "formal_shoes", "boots", "slides", "sport",
   "coat", "blazer", "hoodie", "jacket", "sweater",
   "ring", "chain", "watch", "belt", "cap"

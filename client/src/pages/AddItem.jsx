@@ -9,7 +9,7 @@ import './AddItem.css'
 const categories = ['top', 'bottom', 'footwear', 'outerwear', 'accessories']
 const subCategories = {
   top: ['shirt', 'tshirt', 'polo', 'vest'],
-  bottom: ['jeans', 'trousers', 'cargo', 'shorts'],
+  bottom: ['jeans', 'trousers', 'cargo', 'shorts', 'joggers'],
   footwear: ['sneakers', 'formal_shoes', 'boots', 'slides', 'sport'],
   outerwear: ['coat', 'blazer', 'hoodie', 'jacket', 'sweater'],
   accessories: ['ring', 'chain', 'watch', 'belt', 'cap'],
@@ -79,8 +79,8 @@ function AddItem() {
                 'slim jeans': ['bottom', 'jeans'], 'straight jeans': ['bottom', 'jeans'],
                 'wide leg jeans': ['bottom', 'jeans'], 'chinos': ['bottom', 'trousers'],
                 'trousers': ['bottom', 'trousers'], 'shorts': ['bottom', 'shorts'],
-                'cargo pants': ['bottom', 'cargo'], 'joggers': ['bottom', 'trousers'],
-                'sweatpants': ['bottom', 'trousers'], 'jacket': ['outerwear', 'jacket'],
+                'cargo pants': ['bottom', 'cargo'], 'joggers': ['bottom', 'joggers'],
+                'sweatpants': ['bottom', 'joggers'], 'jacket': ['outerwear', 'jacket'],
                 'blazer': ['outerwear', 'blazer'], 'suit jacket': ['outerwear', 'blazer'],
                 'denim jacket': ['outerwear', 'jacket'], 'leather jacket': ['outerwear', 'jacket'],
                 'bomber jacket': ['outerwear', 'jacket'], 'trench coat': ['outerwear', 'coat'],

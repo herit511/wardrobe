@@ -8,12 +8,9 @@ const { cloudinary } = require("../config/cloudinary");
 const axios = require("axios");
 const fs = require("fs");
 const multer = require("multer");
-const FormData = require("form-data");
 
 const tempUpload = multer({ dest: "uploads/" });
 
-// Local ML service URL (replaces Google Gemini)
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
 
 const {
   validate,
@@ -23,7 +20,6 @@ const {
   listQueryRules,
 } = require("../middleware/validation");
 
-// Note: Gemini removed — using local ML service at ML_SERVICE_URL
 
 // ============================================
 // GET /api/items — List all items with filters
@@ -104,7 +100,7 @@ router.get("/:id", auth, idParamRule, validate, async (req, res, next) => {
 });
 
 // ============================================
-// POST /api/items/analyze — Analyze image with local ML service
+// POST /api/items/analyze — Analyze image with Kimi K2.5 Vision
 // ============================================
 router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next) => {
   try {
@@ -112,39 +108,87 @@ router.post("/analyze", auth, tempUpload.single("image"), async (req, res, next)
       return res.status(400).json({ success: false, message: "No image provided for analysis." });
     }
 
-    // Build multipart form to send to the local ML service
-    const formData = new FormData();
-    formData.append("image", fs.createReadStream(req.file.path), {
-      filename: req.file.originalname || "upload.jpg",
-      contentType: req.file.mimetype,
-    });
+    const apiKey = process.env.KIMI_API_KEY;
+    if (!apiKey) {
+      if (req.file && req.file.path) try { fs.unlinkSync(req.file.path); } catch(e) {}
+      return res.status(503).json({ success: false, message: "Kimi API key not configured. Add KIMI_API_KEY to your .env file." });
+    }
 
-    // Call local ML service
-    const mlResponse = await axios.post(`${ML_SERVICE_URL}/analyze`, formData, {
-      headers: formData.getHeaders(),
-      timeout: 30000, // 30 second timeout
-    });
+    // Read the image and convert to base64
+    const imageBuffer = fs.readFileSync(req.file.path);
+    const base64Image = imageBuffer.toString("base64");
+    const mimeType = req.file.mimetype || "image/jpeg";
 
-    const insights = mlResponse.data;
-    console.log(`\n[ML Service Analyze] Response:`, JSON.stringify(insights, null, 2));
+    // Build the vision request (via NVIDIA NIM)
+    const kimiResponse = await axios.post(
+      "https://integrate.api.nvidia.com/v1/chat/completions",
+      {
+        model: "meta/llama-3.2-90b-vision-instruct",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: { url: `data:${mimeType};base64,${base64Image}` }
+              },
+              {
+                type: "text",
+                text: `You are a fashion and clothing analysis expert. Analyze this clothing image and return ONLY a valid JSON object (no markdown, no backticks, no extra text). Do not guess.
+
+Identify:
+- "name": The specific item type. Must be one of: t-shirt, graphic tee, polo shirt, shirt, dress shirt, blouse, tank top, crop top, sweater, turtleneck, hoodie, sweatshirt, jeans, slim jeans, straight jeans, wide leg jeans, chinos, trousers, shorts, cargo pants, joggers, sweatpants, skirt, leggings, jacket, blazer, suit jacket, denim jacket, leather jacket, bomber jacket, trench coat, overcoat, parka, cardigan, vest, sneakers, white sneakers, chunky sneakers, loafers, oxford shoes, derby shoes, chelsea boots, ankle boots, boots, sandals, slides, heels, flip flops, kurta, sherwani, nehru jacket, churidar, dhoti, mojari
+- "color": The dominant color. Must be one of: white, black, gray, light gray, beige, cream, ivory, off-white, camel, tan, taupe, charcoal, brown, dark brown, navy, blue, light blue, royal blue, sky blue, cobalt, denim, green, olive, khaki, forest green, sage, mint, emerald, red, dark red, crimson, maroon, burgundy, wine, pink, hot pink, blush, mauve, rose, yellow, mustard, gold, orange, coral, peach, rust, terracotta, purple, lavender, violet, plum, lilac
+- "pattern": Must be one of: solid, striped, thin stripe, wide stripe, checkered, plaid, tartan, floral, small floral, graphic, camo, animal, paisley, houndstooth, herringbone, pinstripe, polka, tie_dye, geometric, abstract
+- "fit": Must be one of: slim, regular, relaxed, oversized, boxy
+- "occasion": Array of suitable occasions. Pick from: casual, office, business formal, party, date night, gym, wedding guest, ethnic, pooja / puja, festival
+- "weather": Array of suitable weather. Pick from: hot, mild, cold
+
+Return ONLY the JSON object.`
+              }
+            ]
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 400
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        timeout: 45000
+      }
+    );
+
+    // Parse the response
+    let insights;
+    const content = kimiResponse.data?.choices?.[0]?.message?.content || "";
+    console.log(`\n[Kimi K2.5 Analyze] Raw response:`, content);
+
+    try {
+      // Strip markdown code fences if present
+      const cleaned = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      insights = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("[Kimi K2.5] Failed to parse JSON:", parseErr.message);
+      return res.status(500).json({ success: false, message: "AI returned invalid format. Please try again." });
+    }
+
+    console.log(`[Kimi K2.5 Analyze] Parsed:`, JSON.stringify(insights, null, 2));
     res.json({ success: true, data: insights });
 
-    // Cleanup local temp file
-    if (req.file && req.file.path) fs.unlinkSync(req.file.path);
-
   } catch (error) {
-    console.error("ML Service Analysis Error:", error.message);
-    if (req.file && req.file.path) { try { fs.unlinkSync(req.file.path); } catch(e) {} }
+    console.error("Kimi K2.5 Analysis Error:", error.response?.data || error.message);
 
-    // If ML service is down, return a helpful message
-    if (error.code === "ECONNREFUSED") {
-      return res.status(503).json({
-        success: false,
-        message: "AI Analysis service is not running. Start it with: cd ml_service && python -m uvicorn main:app --port 8000"
-      });
+    if (error.response?.status === 401) {
+      return res.status(503).json({ success: false, message: "Invalid Kimi API key. Check KIMI_API_KEY in your .env file." });
     }
 
     res.status(500).json({ success: false, message: `AI Analysis Failed: ${error.message}` });
+  } finally {
+    // Always cleanup temp file
+    if (req.file && req.file.path) { try { fs.unlinkSync(req.file.path); } catch(e) {} }
   }
 });
 

@@ -22,7 +22,7 @@ function CustomSelect({ options, value, onChange, placeholder, disabled, id }) {
     setIsOpen(false)
   }
 
-  const selectedOption = options.find(opt => opt.value === value) || options[0]
+  const selectedOption = options.find(opt => opt.value === value)
 
   return (
     <div className={`custom-select ${disabled ? 'disabled' : ''}`} ref={selectRef} id={id}>
@@ -30,8 +30,8 @@ function CustomSelect({ options, value, onChange, placeholder, disabled, id }) {
         className={`select-trigger ${isOpen ? 'open' : ''}`} 
         onClick={() => !disabled && setIsOpen(!isOpen)}
       >
-        <span className="select-value">
-          {selectedOption ? selectedOption.label : placeholder}
+        <span className={`select-value ${!selectedOption ? 'placeholder' : ''}`}>
+          {selectedOption ? selectedOption.label : (placeholder || 'Select...')}
         </span>
         <ChevronDown size={16} strokeWidth={2} className="select-chevron" />
       </div>

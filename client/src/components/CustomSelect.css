@@ -75,3 +75,7 @@
   color: var(--color-orange);
   font-weight: 600;
 }
+
+.select-value.placeholder {
+  color: var(--color-text-muted);
+}
