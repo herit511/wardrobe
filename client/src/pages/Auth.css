@@ -5,8 +5,10 @@
 .auth-page {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
+  min-height: 117.65vh;
+  min-height: 117.65dvh;
   background: var(--color-bg);
+  width: 100%;
 }
 
 .auth-left {
@@ -44,7 +46,7 @@
 .auth-logo-img {
   width: 100%;
   height: auto;
-  max-height: 80vh;
+  max-height: 94vh;
   object-fit: contain;
   display: block;
   image-rendering: -webkit-optimize-contrast;
@@ -214,6 +216,7 @@
 @media (max-width: 768px) {
   .auth-page {
     grid-template-columns: 1fr;
+    min-height: auto;
   }
 
   .auth-left {
@@ -222,5 +225,6 @@
 
   .auth-right {
     padding: var(--space-lg);
+    min-height: 100dvh;
   }
 }

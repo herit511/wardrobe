@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { Sun, Sparkles, Shirt, Layers, Package, Shuffle, ArrowRight } from 'lucide-react'
 import { api } from '../api'
 import { getColorName, getOptimizedUrl } from '../utils'
+import { useAuth } from '../context/AuthContext'
+import { buildWeeklyWardrobeTips } from '../utils/wardrobeTips'
 import SkeletonCard from '../components/SkeletonCard'
 import './Dashboard.css'
 
 function Dashboard() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [items, setItems] = useState([])
   const [allOutfits, setAllOutfits] = useState([])
   const [todaysOutfit, setTodaysOutfit] = useState(null)
@@ -18,11 +21,48 @@ function Dashboard() {
   const [outfitError, setOutfitError] = useState('')
   const [fetchError, setFetchError] = useState(null)
   const [weatherData, setWeatherData] = useState({ temp: '22', desc: 'Sunny', city: 'your location' })
+  const [userPreferences, setUserPreferences] = useState({
+    dailySuggestion: true,
+    weeklyTips: true,
+    trendAlerts: false,
+  })
+  const [trendTips, setTrendTips] = useState([])
+  const [trendTipsLoading, setTrendTipsLoading] = useState(false)
 
   useEffect(() => {
     fetchDashboardData();
     fetchLiveWeather();
   }, [])
+
+  useEffect(() => {
+    const prefs = user?.preferences || {}
+    setUserPreferences({
+      dailySuggestion: prefs.dailySuggestion ?? true,
+      weeklyTips: prefs.weeklyTips ?? true,
+      trendAlerts: prefs.trendAlerts ?? false,
+    })
+  }, [user])
+
+  useEffect(() => {
+    if (userPreferences.trendAlerts) {
+      fetchTrendTips()
+    }
+  }, [userPreferences.trendAlerts])
+
+  const fetchTrendTips = async () => {
+    setTrendTipsLoading(true)
+    try {
+      const res = await api.get('/stats/trend-tips')
+      if (res.success) {
+        setTrendTips(Array.isArray(res.data) ? res.data : [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch trend tips:', err)
+      setTrendTips([])
+    } finally {
+      setTrendTipsLoading(false)
+    }
+  }
 
   const fetchLiveWeather = async () => {
     try {
@@ -135,6 +175,7 @@ function Dashboard() {
 
   const addedThisMonth = stats?.addedThisMonth || 0
   const recentItems = items // Already limited by API query
+  const weeklyTips = buildWeeklyWardrobeTips({ stats, weatherData })
 
   return (
     <div className="dashboard-page" id="dashboard-page">
@@ -187,56 +228,109 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* Today's Suggestion */}
-        <section className="suggestion-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <h2 className="section-title heading-italic">Today's Suggestion</h2>
-          <div className="outfit-preview card" style={{ 
-              opacity: outfitLoading ? 0.6 : 1, 
-              transition: 'opacity 0.3s ease',
-              minHeight: '200px'
-          }}>
-            {outfitLoading && !todaysOutfit ? (
-               <div style={{ padding: '40px', textAlign: 'center', color: '#6B7B8D' }}>Loading suggestion...</div>
-            ) : todaysOutfit ? (
-              <>
-                <div className="outfit-items">
-                  {todaysOutfit.items.map((item, index) => (
-                    <div key={item._id || index} style={{ display: 'flex', alignItems: 'center' }}>
-                      <div className="outfit-item">
-                        <div className="outfit-item-img" style={{ 
-                            backgroundImage: `url(${getOptimizedUrl(item.imageUrl, 400)})`, 
-                            backgroundSize: 'cover', 
-                            backgroundPosition: 'center',
-                            backgroundColor: '#F5E6D3' 
-                        }}>
+        {/* Daily Outfit Suggestion */}
+        {userPreferences.dailySuggestion && (
+          <section className="suggestion-section animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <h2 className="section-title heading-italic">Daily Outfit Suggestion</h2>
+            <p style={{ color: '#6B7B8D', marginBottom: '10px' }}>Get a fresh outfit idea every morning.</p>
+            <div className="outfit-preview card" style={{
+                opacity: outfitLoading ? 0.6 : 1,
+                transition: 'opacity 0.3s ease',
+                minHeight: '200px'
+            }}>
+              {outfitLoading && !todaysOutfit ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#6B7B8D' }}>Loading suggestion...</div>
+              ) : todaysOutfit ? (
+                <>
+                  <div className="outfit-items">
+                    {todaysOutfit.items.map((item, index) => (
+                      <div key={item._id || index} style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="outfit-item">
+                          <div className="outfit-item-img" style={{
+                              backgroundImage: `url(${getOptimizedUrl(item.imageUrl, 400)})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              backgroundColor: '#F5E6D3'
+                          }}>
+                          </div>
+                          <div className="outfit-item-info">
+                            <h3 style={{ textTransform: 'capitalize' }}>{item.name}</h3>
+                            <span className="badge badge-amber">{item.type}</span>
+                          </div>
                         </div>
-                        <div className="outfit-item-info">
-                          <h3 style={{ textTransform: 'capitalize' }}>{item.name}</h3>
-                          <span className="badge badge-amber">{item.type}</span>
-                        </div>
+                        {index < todaysOutfit.items.length - 1 && <div className="outfit-connector">+</div>}
                       </div>
-                      {index < todaysOutfit.items.length - 1 && <div className="outfit-connector">+</div>}
+                    ))}
+                  </div>
+                  {outfitError && <p style={{ color: '#E74C3C', fontSize: '0.9rem', marginBottom: '10px' }}>{outfitError}</p>}
+                  <div className="outfit-actions">
+                    <button className="btn btn-primary" id="wear-this-btn" onClick={handleWearThis} disabled={savingAction || outfitLoading}>
+                      {savingAction ? 'Logging...' : 'Wear This'}
+                    </button>
+                    <button className="shuffle-btn" onClick={handleShuffle} disabled={outfitLoading || savingAction || allOutfits.length <= 1}>
+                      <Shuffle size={16} strokeWidth={1.5} /> Shuffle
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div style={{ padding: '30px', textAlign: 'center', color: '#6B7B8D' }}>
+                  <p>Add at least 1 Top, 1 Bottom, and 1 Footwear to see daily suggestions!</p>
+                  <button className="btn btn-primary" style={{ marginTop: '15px' }} onClick={() => navigate('/add-item')}>Add Items</button>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Weekly Wardrobe Tips */}
+        {userPreferences.weeklyTips && (
+          <section className="insights-section animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+            <h2 className="section-title heading-italic">Weekly Wardrobe Tips</h2>
+            <p className="insights-subtitle">Style tips based on your wardrobe analysis.</p>
+            <div className="card insights-panel">
+              <div className="tips-list">
+                {weeklyTips.map((tip, idx) => (
+                  <div key={idx} className="tip-card">
+                    <div className={`tip-priority ${tip.priority}`}>
+                      {tip.priority} priority
                     </div>
+                    <div className="tip-title">{tip.title}</div>
+                    <div className="tip-detail">{tip.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Trend Alerts */}
+        {userPreferences.trendAlerts && (
+          <section className="insights-section animate-fade-in-up" style={{ animationDelay: '0.38s' }}>
+            <h2 className="section-title heading-italic">Trend Alerts</h2>
+            <p className="insights-subtitle">Get notified about new fashion trends.</p>
+            <div className="card insights-panel">
+              {trendTipsLoading ? (
+                <div className="trend-loading">Fetching latest trend insights...</div>
+              ) : (
+                <div className="trend-grid">
+                  {trendTips.map((tip, idx) => (
+                    <a
+                      key={`${tip.title}-${idx}`}
+                      href={tip.link || '#'}
+                      target={tip.link ? '_blank' : undefined}
+                      rel={tip.link ? 'noreferrer' : undefined}
+                      className="trend-card"
+                    >
+                      <div className="trend-source">{tip.source || `Trend #${idx + 1}`}</div>
+                      <div className="trend-title">{tip.title}</div>
+                      <div className="trend-insight">{tip.insight}</div>
+                    </a>
                   ))}
                 </div>
-                {outfitError && <p style={{ color: '#E74C3C', fontSize: '0.9rem', marginBottom: '10px' }}>{outfitError}</p>}
-                <div className="outfit-actions">
-                  <button className="btn btn-primary" id="wear-this-btn" onClick={handleWearThis} disabled={savingAction || outfitLoading}>
-                    {savingAction ? 'Logging...' : 'Wear This'}
-                  </button>
-                  <button className="shuffle-btn" onClick={handleShuffle} disabled={outfitLoading || savingAction || allOutfits.length <= 1}>
-                    <Shuffle size={16} strokeWidth={1.5} /> Shuffle
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div style={{ padding: '30px', textAlign: 'center', color: '#6B7B8D' }}>
-                <p>Add at least 1 Top, 1 Bottom, and 1 Footwear to see daily suggestions!</p>
-                <button className="btn btn-primary" style={{ marginTop: '15px' }} onClick={() => navigate('/add-item')}>Add Items</button>
-              </div>
-            )}
-          </div>
-        </section>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Recently Added */}
         <section className="recent-section animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
@@ -253,7 +347,7 @@ function Dashboard() {
                 <Shirt size={48} strokeWidth={1} style={{ marginBottom: '16px', color: '#1B2A4A', opacity: 0.3 }} />
                 <h3 style={{ marginBottom: '8px', color: '#1B2A4A' }}>Your wardrobe is empty</h3>
                 <p style={{ marginBottom: '20px', fontSize: '0.95rem', color: '#6B7B8D' }}>Start digitizing your clothes to get personalized AI suggestions.</p>
-                <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add Your First Item</button>
+                <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Start Bulk Setup</button>
               </div>
             )}
             {!loading && recentItems.map((item, i) => (

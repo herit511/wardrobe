@@ -23,6 +23,7 @@ function Outfits() {
   const [selectedOccasion, setSelectedOccasion] = useState('casual')
   const [temperature, setTemperature] = useState('mild')
   const [preferredSubCategories, setPreferredSubCategories] = useState([])
+  const [selectedSpecificCategory, setSelectedSpecificCategory] = useState('all')
   const [closetItems, setClosetItems] = useState([])
   const [savedOutfits, setSavedOutfits] = useState([])
   const [savedLoading, setSavedLoading] = useState(false)
@@ -58,8 +59,18 @@ function Outfits() {
     }
   }
 
-  // Derive unique subcategories from what the user actually owns
-  const uniqueSubCategories = Array.from(new Set(closetItems.filter(i => i.subCategory).map(i => i.subCategory))).sort();
+  // Derive categories and subcategories from what the user actually owns
+  const specificCategories = Array.from(
+    new Set(closetItems.filter(i => i.category).map(i => i.category.toLowerCase()))
+  ).sort();
+
+  const uniqueSubCategories = Array.from(
+    new Set(
+      closetItems
+        .filter(i => i.subCategory && (selectedSpecificCategory === 'all' || i.category?.toLowerCase() === selectedSpecificCategory))
+        .map(i => i.subCategory)
+    )
+  ).sort();
 
   const fetchSavedOutfits = async () => {
     setSavedLoading(true)
@@ -191,6 +202,27 @@ function Outfits() {
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '8px', color: '#1B2A4A', fontWeight: 500 }}>
                     Specific Pieces (Optional)
                   </label>
+                  {specificCategories.length > 0 && (
+                    <div className="occasion-chips" style={{ marginBottom: '10px' }}>
+                      <button
+                        className={`chip ${selectedSpecificCategory === 'all' ? 'active' : ''}`}
+                        onClick={() => setSelectedSpecificCategory('all')}
+                        style={{ padding: '6px 14px', fontSize: '0.82rem' }}
+                      >
+                        All Categories
+                      </button>
+                      {specificCategories.map((category) => (
+                        <button
+                          key={category}
+                          className={`chip ${selectedSpecificCategory === category ? 'active' : ''}`}
+                          onClick={() => setSelectedSpecificCategory(category)}
+                          style={{ padding: '6px 14px', fontSize: '0.82rem', textTransform: 'capitalize' }}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <div className="occasion-chips" style={{ marginBottom: '10px' }}>
                     {uniqueSubCategories.length === 0 ? (
                       <p style={{ fontSize: '0.85rem', color: '#6B7B8D', margin: 0 }}>Add items to your closet first to select preferences.</p>
@@ -208,6 +240,16 @@ function Outfits() {
                       ))
                     )}
                   </div>
+                  {preferredSubCategories.length > 0 && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                      onClick={() => setPreferredSubCategories([])}
+                    >
+                      Clear selected pieces
+                    </button>
+                  )}
                   <p style={{ fontSize: '0.8rem', color: '#6B7B8D', marginTop: '8px', marginBottom: 0 }}>Select specific styles you want to wear (e.g. Jeans, Chain), and AI will build an outfit containing all of them.</p>
                 </div>
               </div>

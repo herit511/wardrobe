@@ -8,7 +8,7 @@ import './Profile.css'
 
 function Profile() {
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user, logout, refreshUser } = useAuth()
   
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -85,13 +85,22 @@ function Profile() {
   }
 
   const handleTogglePreference = async (key) => {
-    const newPrefs = { ...preferences, [key]: !preferences[key] }
+    const previousPrefs = { ...preferences }
+    const newPrefs = { ...previousPrefs, [key]: !previousPrefs[key] }
     setPreferences(newPrefs)
     try {
-      await api.put('/auth/preferences', { preferences: newPrefs })
+      const res = await api.put('/auth/preferences', { preferences: newPrefs })
+      if (res.success && res.data?.preferences) {
+        setPreferences({
+          dailySuggestion: res.data.preferences.dailySuggestion ?? true,
+          weeklyTips: res.data.preferences.weeklyTips ?? true,
+          trendAlerts: res.data.preferences.trendAlerts ?? false
+        })
+      }
+      await refreshUser()
     } catch (err) {
       // revert on failure
-      setPreferences(preferences)
+      setPreferences(previousPrefs)
       console.error('Failed to update preferences:', err)
     }
   }

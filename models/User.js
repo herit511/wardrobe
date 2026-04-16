@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     styleDna: {
+        gender: { type: String, enum: ['Man', 'Woman', 'Other'], default: 'Woman' },
         archetypes: [String],
         preferredColors: [String],
         preferredFit: String,

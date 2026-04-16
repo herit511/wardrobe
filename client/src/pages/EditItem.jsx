@@ -252,7 +252,7 @@ function EditItem() {
                 <div className="form-group">
                   <label>Color</label>
                   <div className="color-picker-row" style={{ flexWrap: 'wrap' }}>
-                    {colorMap.filter(c => ['#000000', '#FFFFFF', '#1B2A4A', '#808080', '#D2B48C', '#E87040'].includes(c.hex)).map(c => (
+                    {colorMap.filter(c => ['#000000', '#FFFFFF', '#1B2A4A', '#808080', '#D2B48C', '#E87040', '#ffd700'].includes(c.hex.toLowerCase())).map(c => (
                       <button
                         key={c.hex}
                         type="button"

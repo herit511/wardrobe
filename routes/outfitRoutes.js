@@ -62,7 +62,8 @@ router.get('/generate', auth, async (req, res, next) => {
 
         // Convert UI string to engine scale ('Hot' -> 'hot', etc)
         const tempToWeather = { 'hot': 'hot', 'mild': 'mid', 'cold': 'cold' };
-        const weather = tempToWeather[temperature.toLowerCase()] || 'mid';
+        const normalizedTemperature = String(temperature || '').toLowerCase().trim();
+        const weather = tempToWeather[normalizedTemperature] || 'mid';
 
         // Map occasion string to fashionEngine v2 key
         const occasionMap = {
@@ -73,7 +74,8 @@ router.get('/generate', auth, async (req, res, next) => {
             'business formal': 'business formal', 'wedding guest': 'wedding guest', 
             'pooja / puja': 'pooja / puja', 'festival': 'festival'
         };
-        const engineOccasion = occasionMap[occasion.toLowerCase()] || 'casual';
+        const normalizedOccasion = String(occasion || '').toLowerCase().trim();
+        const engineOccasion = occasionMap[normalizedOccasion] || 'casual';
 
         const user = await User.findById(req.user.id);
         const userProfile = user?.styleDna || {};
@@ -196,31 +198,63 @@ router.get('/generate', auth, async (req, res, next) => {
         // Call the fashionEngine (NOT Gemini)
         console.log(`\n[fashionEngine] Calling suggestOutfits() with ${finalWardrobeForEngine.length} items, occasion=${engineOccasion}, weather=${weather}`);
         console.log(`[fashionEngine] Wardrobe items:`, finalWardrobeForEngine.map(i => ({ name: i.name, color: i.color, pattern: i.pattern })));
-        const engineResults = suggestOutfits(finalWardrobeForEngine, engineOccasion, weather, userProfile);
+        const raw = suggestOutfits(finalWardrobeForEngine, engineOccasion, weather, userProfile);
         
         // Handle Error / No Outfits pass
-        if (engineResults.success === false) {
+        if (!raw || raw.success === false || raw.error) {
             console.log(`[fashionEngine] suggestOutfits failed to find matches. Advisor mode enabled.`);
+            const advisorFeedback = raw?.advisorFeedback || {
+                message: raw?.message || raw?.error || 'No outfits found.',
+                topRecommendation: 'Try a different occasion/weather or add a few versatile basics.',
+                reasonCodes: raw?.code ? [raw.code] : []
+            };
             return res.status(200).json({
                 success: false,
-                advisorFeedback: engineResults.advisorFeedback,
-                message: engineResults.advisorFeedback?.message || 'No outfits found.'
+                advisorFeedback,
+                message: advisorFeedback.message
             });
         }
 
-        const outfitsToStyle = engineResults.data || [];
+        const outfitsToStyle = Array.isArray(raw) ? raw : (raw.data || []);
         console.log(`[fashionEngine] suggestOutfits returned ${outfitsToStyle.length} outfit(s)`);
 
-        if (outfitsToStyle.length === 0) {
+        // Apply styling intelligence
+        const styledOutfits = applyStyleIntelligence(outfitsToStyle, engineOccasion, weather, userProfile);
+        console.log("Styled outfit card:", 
+          JSON.stringify(styledOutfits[0]?.card, null, 2));
+
+        if (styledOutfits.length === 0) {
+            const emptyGaps = analyzeWardrobeGaps(finalWardrobeForEngine, engineOccasion, weather, userProfile);
             return res.status(200).json({
                 success: false,
                 message: 'Empty wardrobe results.',
-                advisorFeedback: { message: 'Add more items to unlock combinations.' }
+                advisorFeedback: {
+                    message: 'Add more items to unlock combinations.',
+                    missingCategories: emptyGaps.gaps,
+                    topRecommendation: emptyGaps.topRecommendation,
+                    reasonCodes: emptyGaps.reasonCodes,
+                    suggestedItems: emptyGaps.gaps.map((gap) => ({
+                        tip: gap.split(' — ')[0],
+                        reason: gap.includes(' — ') ? gap.split(' — ')[1] : 'This will open up new outfit possibilities.'
+                    }))
+                }
             });
         }
 
         // Map fashionEngine output → frontend expected format
-        const styledOutfits = applyStyleIntelligence(outfitsToStyle, engineOccasion, weather, userProfile);
+        const buildDisplayName = (color, name) => {
+            const rawColor = String(color || '').trim();
+            const rawName = String(name || '').trim();
+            if (!rawName) return rawColor;
+
+            const colorLower = rawColor.toLowerCase();
+            const nameLower = rawName.toLowerCase();
+            if (colorLower && (nameLower === colorLower || nameLower.startsWith(`${colorLower} `))) {
+                return rawName;
+            }
+            return [rawColor, rawName].filter(Boolean).join(' ');
+        };
+
         const generatedOutfits = styledOutfits.map((outfit, index) => {
             const outfitItems = outfit.items.map(item => {
                 const dbItem = item._dbItem;
@@ -233,7 +267,7 @@ router.get('/generate', auth, async (req, res, next) => {
                 }
                 return {
                     type: typeStr,
-                    name: `${item.color} ${item.name}`,
+                    name: buildDisplayName(item.color, item.name),
                     color: dbItem ? dbItem.color : '#000000',
                     imageUrl: dbItem ? dbItem.imageUrl : '',
                     _id: dbItem ? dbItem._id : null,
@@ -245,7 +279,7 @@ router.get('/generate', auth, async (req, res, next) => {
                 preferredAccessoryItems.forEach(accItem => {
                     outfitItems.push({
                         type: 'Accessory',
-                        name: `${accItem.color} ${accItem.name}`,
+                        name: buildDisplayName(accItem.color, accItem.name),
                         color: accItem._dbItem ? accItem._dbItem.color : '#000000',
                         imageUrl: accItem._dbItem ? accItem._dbItem.imageUrl : '',
                         _id: accItem._dbItem ? accItem._dbItem._id : null,
@@ -261,7 +295,7 @@ router.get('/generate', auth, async (req, res, next) => {
                     if (matchingWardrobeItem) {
                         outfitItems.push({
                             type: 'Accessory',
-                            name: `${matchingWardrobeItem.color} ${matchingWardrobeItem.name}`,
+                            name: buildDisplayName(matchingWardrobeItem.color, matchingWardrobeItem.name),
                             color: matchingWardrobeItem._dbItem ? matchingWardrobeItem._dbItem.color : '#000000',
                             imageUrl: matchingWardrobeItem._dbItem ? matchingWardrobeItem._dbItem.imageUrl : '',
                             _id: matchingWardrobeItem._dbItem ? matchingWardrobeItem._dbItem._id : null,
@@ -299,7 +333,7 @@ router.get('/generate', auth, async (req, res, next) => {
             };
         });
 
-        const engineGaps = analyzeWardrobeGaps(finalWardrobeForEngine, engineOccasion, weather);
+        const engineGaps = analyzeWardrobeGaps(finalWardrobeForEngine, engineOccasion, weather, userProfile);
         const engineVersatility = scoreWardrobeVersatility(finalWardrobeForEngine);
         
         let culturalContext = null;

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { Sparkles, AlertTriangle, Shirt, Save } from 'lucide-react'
 import { api } from '../api'
+import { applyStyleIntelligence } from './fashionStylingEngine'
 import { getColorName, getOptimizedUrl } from '../utils'
 import './Outfits.css'
 
@@ -16,22 +17,24 @@ function Suggestions() {
   const bodyType = searchParams.get('bodyType') || ''
   const archetype = searchParams.get('archetype') || ''
   const preferredSubCategory = searchParams.get('preferredSubCategory') || ''
-  
+
   const [outfits, setOutfits] = useState([])
-  const [gaps, setGaps] = useState(null)
   const [versatility, setVersatility] = useState(null)
   const [culturalContext, setCulturalContext] = useState(null)
   const [loading, setLoading] = useState(true)
   const [savingAction, setSavingAction] = useState(null)
   const [error, setError] = useState('')
+  const [outfitError, setOutfitError] = useState('')
   const [advisorFeedback, setAdvisorFeedback] = useState(null)
+
+
 
   useEffect(() => { 
     generateOutfits()
   }, [occasion, temperature, preferredSubCategory])
 
   const generateOutfits = async () => {
-    setLoading(true); setError('')
+    setLoading(true); setError(''); setOutfitError('')
     try {
       const params = new URLSearchParams({ occasion, temperature })
       if (undertone) params.append('undertone', undertone)
@@ -41,25 +44,26 @@ function Suggestions() {
       if (preferredSubCategory) params.append('preferredSubCategory', preferredSubCategory)
       
       const res = await api.get(`/outfits/generate?${params.toString()}`)
-      if (res.success) {
-        setOutfits(res.data)
-        setGaps(res.gaps)
-        setVersatility(res.versatility)
-        setCulturalContext(res.culturalContext)
-        setAdvisorFeedback(null)
-      } else { 
-        setAdvisorFeedback(res.advisorFeedback)
-        
-        if (res.code === "NO_TOPS") setError("None of your tops suit this occasion. Try switching to Casual or add appropriate tops.");
-        else if (res.code === "NO_BOTTOMS") setError("None of your bottoms suit this occasion. Try switching the occasion or add appropriate bottoms.");
-        else if (res.code === "NO_GYM_TOPS") setError("Add athletic tops (t-shirt, tank top) for gym outfit suggestions.");
-        else if (!res.advisorFeedback) setError(res.message);
-        
+      const raw = res?.success
+        ? res.data
+        : { success: false, advisorFeedback: res?.advisorFeedback }
+
+      if (!raw || raw.success === false) {
+        setAdvisorFeedback(raw?.advisorFeedback || null)
+        setOutfitError(raw?.advisorFeedback?.message || "No outfits found.")
         setOutfits([])
-        setGaps(null)
         setVersatility(null)
         setCulturalContext(null)
+        return
       }
+
+      const outfitsArray = Array.isArray(raw) ? raw : (raw.data || [])
+      const styledOutfits = applyStyleIntelligence(outfitsArray, occasion, temperature)
+
+      setOutfits(styledOutfits)
+      setVersatility(res.versatility)
+      setCulturalContext(res.culturalContext)
+      setAdvisorFeedback(null)
     } catch (err) {
       if (err.name === 'TypeError' || err.message.includes('fetch')) {
         setError('Network connection lost. Please check your internet and try again.');
@@ -67,7 +71,6 @@ function Suggestions() {
         setError(err.message || 'Failed to generate outfits'); 
       }
       setOutfits([])
-      setGaps(null)
       setVersatility(null)
       setCulturalContext(null)
     } finally { setLoading(false) }
@@ -96,10 +99,19 @@ function Suggestions() {
         items: itemIds,
         // Pass all styling metadata for persistence
         personality: outfit.personality,
+        outfitName: outfit.outfitName,
         signatureMove: outfit.signatureMove,
+        antiTip: outfit.antiTip,
+        culturalRef: outfit.culturalRef,
+        youllBeRememberedFor: outfit.youllBeRememberedFor,
+        threeSecond: outfit.threeSecond,
         feelLine: outfit.feelLine,
         colorStory: outfit.colorStory,
         microStyling: outfit.microStyling,
+        upgradePath: outfit.upgradePath,
+        wearThreeWays: outfit.wearThreeWays,
+        photographersNote: outfit.photographersNote,
+        occasionTransition: outfit.occasionTransition,
         finishingMove: outfit.finishingMove,
         wowReason: outfit.wowReason,
         // Context
@@ -140,6 +152,19 @@ function Suggestions() {
         {error && (
           <div style={{ background: '#FDECEA', color: '#E74C3C', padding: '15px 20px', borderRadius: '8px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <AlertTriangle size={18} strokeWidth={1.5} /> {error}
+          </div>
+        )}
+
+        {outfitError && (
+          <div style={{ background: '#FFF8E7', color: '#8A5A00', padding: '15px 20px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #F5DEC0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+              <AlertTriangle size={18} strokeWidth={1.5} /> {outfitError}
+            </div>
+            {advisorFeedback?.topRecommendation && (
+              <p style={{ margin: '10px 0 0 26px', color: '#6B7B8D' }}>
+                Suggestion: {advisorFeedback.topRecommendation}
+              </p>
+            )}
           </div>
         )}
         
@@ -199,23 +224,9 @@ function Suggestions() {
                       {advisorFeedback?.message || "A few more items will unlock new outfit combinations for this look."}
                     </p>
 
-                    {advisorFeedback?.missingCategories?.length > 0 ? (
-                      <div style={{ marginBottom: '30px' }}>
-                        <h3 style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', color: '#94A3B8', marginBottom: '15px' }}>What To Add Next</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          {advisorFeedback.missingCategories.map((gap, idx) => (
-                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: '#FDF8F5', borderRadius: '8px', borderLeft: '4px solid #E67E22' }}>
-                              <Shirt size={18} color="#E67E22" />
-                              <span style={{ fontWeight: 500, color: '#1B2A4A' }}>{gap}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ marginBottom: '30px', padding: '20px', background: '#FAFAF8', borderRadius: '8px', borderLeft: '4px solid #94A3B8' }}>
-                        <p style={{ margin: 0, color: '#6B7B8D', fontSize: '0.9rem' }}>Your basics are covered — adding variety in colours and styles will unlock new looks.</p>
-                      </div>
-                    )}
+                    <div style={{ marginBottom: "30px", padding: "20px", background: "#FAFAF8", borderRadius: "8px", borderLeft: "4px solid #94A3B8" }}>
+<p style={{ margin: 0, color: "#6B7B8D", fontSize: "0.9rem" }}>Your basics are covered ? adding variety in colours and styles will unlock new looks.</p>
+</div>
 
                     <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add Items to Closet</button>
                   </div>
@@ -245,156 +256,109 @@ function Suggestions() {
 
             {outfits.map((outfit, i) => {
               try {
-                const breakdown = outfit.breakdown || {};
-                const personalColor = breakdown['Personal color'];
-                const shoePairing = breakdown['Shoe pairing'];
+                const card = outfit.card || {}
+                const vibe = card.vibe || 'Styled Outfit'
+                const oneLine = card.oneLine || ''
+                const feelLine = card.feelLine || ''
+                const theMove = card.theMove || 'Keep the proportions clean and intentional.'
+                const howToWear = Array.isArray(card.howToWear) ? card.howToWear : []
+                const dont = card.dont || 'Do not over-style this look.'
+                const grade = String(outfit?.score?.grade || 'B').toUpperCase()
+                const totalScore = typeof outfit?.score?.totalScore === 'number'
+                  ? outfit.score.totalScore.toFixed(1).replace(/\.0$/, '')
+                  : '0'
+
+                const gradeClass =
+                  grade === 'A' ? 'grade-a' :
+                  grade === 'B' ? 'grade-b' :
+                  grade === 'C' ? 'grade-c' : 'grade-d'
+
+                const itemSummary = (outfit.items || [])
+                  .map((item) => {
+                    const itemName = item.subCategory
+                      ? item.subCategory.replace('_', ' ')
+                      : (item.name || item.type || 'item')
+                    return `${getColorName(item.color)} ${itemName}`
+                  })
+                  .join(', ')
+
+                const accessorySummary = Array.isArray(outfit.accessories) && outfit.accessories.length > 0
+                  ? outfit.accessories
+                      .map((acc) => (typeof acc === 'string' ? acc : (acc.name || acc.item || '')))
+                      .filter(Boolean)
+                      .join(', ')
+                  : ''
 
                 return (
-                <div key={outfit.id || i} className="outfit-card card animate-fade-in-up" style={{ animationDelay: `${0.2 + i * 0.15}s` }}>
-                  {personalColor && (
-                    <div style={{ background: '#FDF8F5', color: '#8B5A2B', padding: '10px 15px', borderRadius: '8px', marginBottom: '15px', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '1.2rem' }}>◉</span> {personalColor.reason}
-                    </div>
-                  )}
-                  
-                  <div className="outfit-card-header">
-                    <div>
-                      <h2 className="outfit-card-title heading-italic" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                        <Sparkles size={16} strokeWidth={1.5} className="sparkle-sm sparkle" /> {outfit.title}
-                      </h2>
-                      {outfit.description && (
-                        <p style={{ fontStyle: 'italic', color: '#6B7B8D', fontSize: '0.9rem', marginBottom: '8px' }}>
-                          {outfit.description}
-                        </p>
-                      )}
-                      <div className="outfit-tags">
-                        {outfit.tags && outfit.tags.map(tag => <span key={tag} className="badge badge-amber">{tag}</span>)}
-                        {outfit.moodBoard && outfit.moodBoard.map((mood, idx) => (
-                          <span key={idx} style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: '400' }}>· {mood}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="match-score">
-                      <div className="match-circle" style={{ background: (outfit.confidence || outfit.match) < 70 ? '#94A3B8' : 'linear-gradient(135deg, var(--color-orange), var(--color-amber))' }}>
-                        <span className="match-value">{outfit.confidence || outfit.match}%</span>
-                      </div>
-                      <span className="match-label">Match Trust</span>
-                    </div>
+                <div key={outfit.id || i} className="outfit-card outfit-card-redesign card animate-fade-in-up" style={{ animationDelay: `${0.2 + i * 0.15}s` }}>
+                  <div className="outfit-hero-row">
+                    <h2 className="outfit-vibe-name">{vibe}</h2>
+                    <span className={`outfit-grade-badge ${gradeClass}`}>{grade}</span>
                   </div>
 
-                  {outfit.relaxedMatch && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#FFF7ED', color: '#C2410C', padding: '4px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, border: '1px solid #FFEDD5', marginBottom: '10px' }}>
-                      <AlertTriangle size={12} /> Best possible match from your wardrobe
-                      {outfit.relaxationReasons && (
-                        <span style={{ fontWeight: 400, opacity: 0.7 }} title={outfit.relaxationReasons.join(', ')}> (diversity relaxed)</span>
-                      )}
-                    </div>
-                  )}
+                  {oneLine && <p className="outfit-one-line">{oneLine}</p>}
+                  {feelLine && <p className="outfit-feel-line">"{feelLine}"</p>}
 
-                  {outfit.feelLine && (
-                    <div style={{ margin: '12px 0', padding: '6px 12px', background: '#FFF7ED', borderLeft: '3px solid #F97316', borderRadius: '4px', fontSize: '0.85rem', color: '#9A3412', fontWeight: '500' }}>
-                      {outfit.feelLine}
-                    </div>
-                  )}
+                  <section className="outfit-block outfit-block-move">
+                    <h3 className="outfit-block-title">✦ THE MOVE</h3>
+                    <p className="outfit-block-text">{theMove}</p>
+                  </section>
 
-                  <div className="outfit-card-items" style={{ margin: '15px 0' }}>
-                    {outfit.items && outfit.items.map((item, j) => (
-                      <div key={j} className="outfit-card-item">
-                        <div className="outfit-card-item-img" style={{ backgroundImage: item.imageUrl ? `url(${getOptimizedUrl(item.imageUrl, 400)})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: '#F5E6D3' }}></div>
-                        <div className="outfit-card-item-type" style={{ textTransform: 'capitalize' }}>{item.category || item.type}</div>
-                        <div className="outfit-card-item-name" style={{ textTransform: 'capitalize', fontSize: '14px' }}>
-                          {getColorName(item.color)} {item.subCategory ? item.subCategory.replace('_', ' ') : item.name?.replace(`${item.color} `, '') || ''}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {outfit.signatureMove && (
-                    <div style={{ 
-                      margin: '20px 0', 
-                      padding: '18px', 
-                      background: 'linear-gradient(135deg, #1B2A4A 0%, #2D3E5E 100%)', 
-                      borderRadius: '12px', 
-                      color: '#FFFFFF',
-                      boxShadow: '0 4px 12px rgba(27, 42, 74, 0.15)',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}>
-                      <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.1, transform: 'scale(2)' }}>
-                        <Sparkles size={64} />
-                      </div>
-                      <h3 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8 }}>Signature Move</h3>
-                      <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: '500', fontStyle: 'italic', lineHeight: 1.4 }}>"{outfit.signatureMove}"</p>
-                    </div>
-                  )}
-
-                  <div className="outfit-card-reason" style={{ marginBottom: '15px' }}>
-                    <p>"{outfit.explanation}"</p>
-                    {outfit.wowReason && (
-                      <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#1B2A4A', fontWeight: '500' }}>
-                        ✨ <span style={{ textDecoration: 'underline dotted', cursor: 'help' }} title={outfit.wowReason}>Why heads turn</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {outfit.colorStory && (
-                    <div style={{ marginBottom: '15px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#1B2A4A' }}>Color Story</h4>
-                        {outfit.colorStory.emotion && (
-                          <span className="badge badge-amber" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>{outfit.colorStory.emotion}</span>
-                        )}
-                      </div>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#6B7B8D' }}>{outfit.colorStory.story}</p>
-                    </div>
-                  )}
-
-                  {outfit.microStyling && outfit.microStyling.length > 0 && (
-                    <div style={{ marginBottom: '15px', padding: '12px', background: '#F8F9FA', borderRadius: '8px', border: '1px solid #EBE4DD' }}>
-                      <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#1B2A4A', fontWeight: '600' }}>How to wear it</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {outfit.microStyling.map((style, idx) => (
-                          <div key={idx} style={{ fontSize: '0.85rem', display: 'flex', gap: '6px' }}>
-                            <span style={{ fontWeight: '600', color: '#1B2A4A', whiteSpace: 'nowrap' }}>{style.item}:</span>
-                            <span style={{ color: '#6B7B8D' }}>{style.tip}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {outfit.finishingMove && (
-                    <div style={{ marginBottom: '15px' }}>
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '0.9rem', color: '#1B2A4A' }}>Finishing Move</h4>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#6B7B8D' }}>{outfit.finishingMove.primary}</p>
-                    </div>
-                  )}
-
-                  {shoePairing && (
-                    <div style={{ marginBottom: '15px', padding: '10px 15px', borderRadius: '8px', fontSize: '0.9rem', background: shoePairing.score < 7 ? '#FDECEA' : shoePairing.score >= 8 ? '#EAFaf1' : '#F8F9FA', color: shoePairing.score < 7 ? '#E74C3C' : shoePairing.score >= 8 ? '#27AE60' : '#1B2A4A' }}>
-                      {shoePairing.score < 7 ? `⚠ ${shoePairing.reason}` : shoePairing.score >= 8 ? `✓ ${shoePairing.reason}` : shoePairing.reason}
-                    </div>
-                  )}
-
-                  {outfit.warnings && outfit.warnings.length > 0 && (
-                    <div style={{ marginBottom: '15px', padding: '10px 15px', borderRadius: '8px', fontSize: '0.9rem', background: '#FFF8E7', border: '1px solid #F5DEC0', color: '#D35400' }}>
-                      <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        {outfit.warnings.map((w, idx) => (
-                          <li key={idx}>⚠ {w}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {outfit.trends && outfit.trends.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
-                      {outfit.trends.map((trend, idx) => (
-                        <span key={idx} style={{ fontSize: '0.75rem', padding: '4px 10px', background: '#F1F5F9', color: '#475569', borderRadius: '100px', fontWeight: '500' }}>
-                          ◉ {trend.name || trend}
-                        </span>
+                  <section className="outfit-block">
+                    <h3 className="outfit-block-title">HOW TO WEAR IT</h3>
+                    <ul className="outfit-wear-list">
+                      {howToWear.slice(0, 3).map((entry, idx) => (
+                        <li key={`${entry.item || 'item'}-${idx}`} className="outfit-wear-item">
+                          <span className="outfit-wear-bullet">•</span>
+                          <span>
+                            <span className="outfit-wear-item-name">{entry.item || 'item'}</span>
+                            <span>: {entry.tip || ''}</span>
+                          </span>
+                        </li>
                       ))}
+                    </ul>
+                  </section>
+
+                  <section className="outfit-block outfit-block-dont">
+                    <h3 className="outfit-block-title">⚠ DON'T</h3>
+                    <p className="outfit-block-text">{dont}</p>
+                  </section>
+
+                  <section className="outfit-block outfit-block-items">
+                    <div className="outfit-card-items outfit-card-items-compact">
+                      {(outfit.items || []).map((item, idx) => {
+                        const itemName = item.subCategory
+                          ? item.subCategory.replace('_', ' ')
+                          : (item.name || item.type || 'item')
+
+                        return (
+                          <div key={`${itemName}-${idx}`} className="outfit-card-item">
+                            <div
+                              className="outfit-card-item-img outfit-card-item-img-compact"
+                              style={{
+                                backgroundImage: item.imageUrl ? `url(${getOptimizedUrl(item.imageUrl, 400)})` : 'none',
+                                backgroundColor: '#F5E6D3'
+                              }}
+                            ></div>
+                            <div className="outfit-card-item-type" style={{ textTransform: 'capitalize' }}>
+                              {item.category || item.type || 'Item'}
+                            </div>
+                            <div className="outfit-card-item-name" style={{ textTransform: 'capitalize', fontSize: '13px' }}>
+                              {getColorName(item.color)} {itemName}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
-                  )}
+                  </section>
+
+                  <section className="outfit-block outfit-block-meta">
+                    <p className="outfit-meta-line"><strong>Items:</strong> {itemSummary}</p>
+                    <p className="outfit-meta-line"><strong>Score:</strong> {totalScore}/10</p>
+                    {accessorySummary && (
+                      <p className="outfit-meta-accessories">Accessories: {accessorySummary}</p>
+                    )}
+                  </section>
 
                   <div className="outfit-card-actions">
                     <button className="btn btn-primary outfit-wear-btn" onClick={() => handleWearThis(outfit)} disabled={savingAction?.id === outfit.id} title="Log as worn today and save">
@@ -420,29 +384,6 @@ function Suggestions() {
                 );
               }
             })}
-            
-            {/* WARDROBE GAP ANALYSIS */}
-            {outfits.length > 0 && gaps && (
-              <div className="gap-analysis-card" style={{ marginTop: '20px', padding: '25px', background: '#F8F9FA', borderRadius: '12px', border: '1px solid #EBE4DD' }}>
-                <h2 className="heading-italic" style={{ marginBottom: '15px', color: '#1B2A4A' }}>Wardrobe Gap Analysis</h2>
-                <div style={{ marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '1.2rem', color: '#1B2A4A', marginBottom: '5px' }}>{gaps.topRecommendation}</h3>
-                  <p style={{ fontSize: '0.9rem', color: '#6B7B8D' }}>{gaps.reason}</p>
-                </div>
-                <p style={{ marginBottom: '15px', fontWeight: '500', color: '#1B2A4A' }}>Your wardrobe currently unlocks ~{gaps.currentOutfitCount} outfit combinations.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {gaps.gaps.map((gapStr, i) => {
-                    const isWarning = gapStr.toLowerCase().includes('no') || gapStr.toLowerCase().includes('missing');
-                    return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem', color: '#1B2A4A' }}>
-                        <span style={{ fontSize: '1.2rem' }}>{isWarning ? '⚠' : 'ℹ'}</span>
-                        <span>{gapStr}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
             
             {/* WARDROBE VERSATILITY */}
             {versatility && (
@@ -481,3 +422,5 @@ function Suggestions() {
 }
 
 export default Suggestions
+
+

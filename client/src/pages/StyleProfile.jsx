@@ -23,7 +23,8 @@ const colorPalette = [
   { name: 'Light Blue', hex: '#ADD8E6' },
   { name: 'Red', hex: '#E32636' },
   { name: 'Green', hex: '#228B22' },
-  { name: 'Yellow', hex: '#FFD700' },
+  { name: 'Gold', hex: '#FFD700' },
+  { name: 'Yellow', hex: '#FFFF00' },
   { name: 'Pink', hex: '#FFC0CB' },
   { name: 'Brown', hex: '#8B4513' },
   
@@ -38,7 +39,12 @@ const colorPalette = [
 ]
 
 const fitOptions = ['Slim', 'Regular', 'Relaxed', 'Oversized', 'Boxy']
-const brandOptions = ['Zara', 'H&M', 'Nike', 'Uniqlo', 'Gucci', 'Vintage/Thrift', 'Lululemon', 'ASOS']
+const brandOptions = [
+  'Zara', 'H&M', 'Westside', 'Uniqlo', 
+  'FabIndia', 'Manyavar', 'Biba', 
+  'Allen Solly', 'Louis Philippe', 
+  'Nike', 'Puma'
+]
 
 const undertoneOptions = [
   { value: 'warm', label: 'Warm', hex: '#F4C4A0' },
@@ -77,6 +83,7 @@ function StyleProfile() {
   const [undertone, setUndertone] = useState('')
   const [skinDepth, setSkinDepth] = useState('')
   const [bodyType, setBodyType] = useState('')
+  const [gender, setGender] = useState('')
   const [saving, setSaving] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -97,6 +104,7 @@ function StyleProfile() {
       if (user.styleDna.undertone) setUndertone(user.styleDna.undertone)
       if (user.styleDna.skinDepth) setSkinDepth(user.styleDna.skinDepth)
       if (user.styleDna.bodyType) setBodyType(user.styleDna.bodyType)
+      if (user.styleDna.gender) setGender(user.styleDna.gender)
     } else {
       setSelectedStyles(['Minimalist'])
       setSelectedColors(['#1A1A1A', '#F5F5F5', '#1B2A4A'])
@@ -125,6 +133,7 @@ function StyleProfile() {
 
   const calculateCompletion = () => {
     let completed = 0;
+    if (gender) completed++;
     if (selectedStyles.length > 0) completed++;
     if (bodyType) completed++;
     if (undertone) completed++;
@@ -132,7 +141,7 @@ function StyleProfile() {
     if (selectedColors.length > 0) completed++;
     if (selectedFit) completed++;
     if (selectedBrands.length > 0) completed++;
-    return Math.round((completed / 7) * 100);
+    return Math.round((completed / 8) * 100);
   }
 
   const completionPercent = calculateCompletion()
@@ -143,6 +152,7 @@ function StyleProfile() {
     setErrorMsg('')
     try {
       const styleDna = {
+        gender,
         archetypes: selectedStyles,
         preferredColors: selectedColors,
         preferredFit: selectedFit,
@@ -186,6 +196,25 @@ function StyleProfile() {
         )}
 
         <form onSubmit={handleSubmit}>
+
+          {/* Gender Preference */}
+          <section className="style-section animate-fade-in-up" style={{ animationDelay: '0.02s' }}>
+            <h2 className="section-title heading-italic">Whose Closet is this?</h2>
+            <p className="section-desc">Select the styling direction for your wardrobe.</p>
+            <div className="archetype-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
+              {['Woman', 'Man', 'Other'].map(opt => (
+                <div
+                  key={opt}
+                  className={`archetype-card card ${gender === opt ? 'selected' : ''}`}
+                  onClick={() => setGender(opt)}
+                  style={{ textAlign: 'center', padding: '15px', cursor: 'pointer' }}
+                >
+                  <h3 className="archetype-title heading-italic" style={{ marginBottom: 0 }}>{opt}</h3>
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* Style Personality */}
           <section className="style-section animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
             <h2 className="section-title heading-italic">Style Personality</h2>

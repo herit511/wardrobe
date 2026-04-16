@@ -34,6 +34,19 @@ CLOUDINARY_API_SECRET=your_secret
 
 # NVIDIA NIM Vision API - Used in /api/items/analyze for auto-detecting item details
 KIMI_API_KEY=nvapi-your-nvidia-nim-token
+
+# OTP Email (Forgot Password)
+# Production: RESEND_API_KEY + RESEND_FROM or RESEND_FROM_EMAIL
+# Fallback SMTP: SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_SERVICE, SMTP_FROM
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxx
+RESEND_FROM="Wardrobe AI <no-reply@yourdomain.com>"
+RESEND_FROM_EMAIL="Wardrobe AI <no-reply@yourdomain.com>"
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_username
+SMTP_PASS=your_smtp_password_or_app_password
+SMTP_FROM="Wardrobe AI <your_smtp_username>"
 ```
 *(Note: We originally explored Gemini and local Python ML scripts, but transitioned exclusively to NVIDIA NIM for speed and accuracy. The local `ml_service` python backend has been completely decommissioned and deleted).*
 

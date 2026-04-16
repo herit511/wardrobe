@@ -4,6 +4,92 @@ const Item = require('../models/items');
 const Outfit = require('../models/Outfit');
 const auth = require('../middleware/auth');
 
+const TREND_FEEDS = [
+    { source: 'Vogue', url: 'https://www.vogue.com/feed/rss' },
+    { source: 'GQ', url: 'https://www.gq.com/feed/rss' },
+    { source: 'Who What Wear', url: 'https://www.whowhatwear.com/rss.xml' }
+];
+
+function stripHtml(value = '') {
+    return String(value).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function decodeEntities(value = '') {
+    return String(value)
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+}
+
+function extractTag(block, tag) {
+    const match = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+    if (!match) return '';
+    return decodeEntities(stripHtml(match[1].replace(/<!\[CDATA\[|\]\]>/g, '')));
+}
+
+function parseRssItems(xml = '', source = 'Unknown') {
+    const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/gi) || [];
+    return itemMatches.slice(0, 8).map((item) => {
+        const title = extractTag(item, 'title');
+        const description = extractTag(item, 'description');
+        const link = extractTag(item, 'link');
+        const pubDate = extractTag(item, 'pubDate');
+        return {
+            title,
+            description,
+            link,
+            source,
+            publishedAt: pubDate ? new Date(pubDate).toISOString() : null,
+        };
+    }).filter((entry) => entry.title);
+}
+
+function generateTrendInsight(title = '', description = '') {
+    const text = `${title} ${description}`.toLowerCase();
+
+    if (text.includes('tailor') || text.includes('structured') || text.includes('blazer')) {
+        return 'Add one structured piece to elevate everyday combinations.';
+    }
+    if (text.includes('neutral') || text.includes('beige') || text.includes('monochrome')) {
+        return 'Neutral layering is rising; build depth using texture contrast.';
+    }
+    if (text.includes('denim') || text.includes('jeans')) {
+        return 'Denim remains strong; pair with refined footwear for balance.';
+    }
+    if (text.includes('color') || text.includes('bold') || text.includes('statement')) {
+        return 'Use one statement color with grounded basics for controlled impact.';
+    }
+    return 'Track this movement and test it with one adaptable piece first.';
+}
+
+function getFallbackTrendTips() {
+    return [
+        {
+            title: 'Monochrome Layering Momentum',
+            source: 'Wardrobe AI',
+            link: '',
+            publishedAt: new Date().toISOString(),
+            insight: 'Build tonal outfits using one color family and varied textures.',
+        },
+        {
+            title: 'Relaxed Tailoring Continues',
+            source: 'Wardrobe AI',
+            link: '',
+            publishedAt: new Date().toISOString(),
+            insight: 'Combine loose tailoring with minimal accessories for modern polish.',
+        },
+        {
+            title: 'Quiet Luxury Neutrals Persist',
+            source: 'Wardrobe AI',
+            link: '',
+            publishedAt: new Date().toISOString(),
+            insight: 'Focus on fit quality and subtle color harmony over loud branding.',
+        },
+    ];
+}
+
 // ============================================
 // GET /api/stats — Aggregated user statistics
 // ============================================
@@ -79,6 +165,65 @@ router.get('/', auth, async (req, res, next) => {
         });
     } catch (error) {
         next(error);
+    }
+});
+
+// ============================================
+// GET /api/stats/trend-tips — Live fashion trend tips
+// ============================================
+router.get('/trend-tips', auth, async (req, res, next) => {
+    try {
+        const feedResponses = await Promise.allSettled(
+            TREND_FEEDS.map(async (feed) => {
+                const response = await fetch(feed.url, {
+                    headers: {
+                        'User-Agent': 'WardrobeAI/1.0',
+                        'Accept': 'application/rss+xml, application/xml, text/xml'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed feed: ${feed.source}`);
+                }
+
+                const xml = await response.text();
+                return parseRssItems(xml, feed.source);
+            })
+        );
+
+        const merged = feedResponses
+            .filter((result) => result.status === 'fulfilled')
+            .flatMap((result) => result.value);
+
+        const filtered = merged
+            .filter((item) => {
+                const text = `${item.title} ${item.description}`.toLowerCase();
+                return /(trend|style|fashion|wardrobe|outfit|runway|tailor|color|denim)/.test(text);
+            })
+            .map((item) => ({
+                title: item.title,
+                source: item.source,
+                link: item.link,
+                publishedAt: item.publishedAt,
+                insight: generateTrendInsight(item.title, item.description),
+            }))
+            .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0))
+            .slice(0, 6);
+
+        const data = filtered.length > 0 ? filtered : getFallbackTrendTips();
+
+        res.json({
+            success: true,
+            updatedAt: new Date().toISOString(),
+            data,
+        });
+    } catch (error) {
+        const fallback = getFallbackTrendTips();
+        res.json({
+            success: true,
+            updatedAt: new Date().toISOString(),
+            data: fallback,
+        });
     }
 });
 

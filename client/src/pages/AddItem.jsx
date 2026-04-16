@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Camera, Sparkles, Pipette } from 'lucide-react'
 import CustomSelect from '../components/CustomSelect'
@@ -34,11 +34,22 @@ const conditions = ['new', 'good', 'worn']
 function AddItem() {
   const navigate = useNavigate()
   const fileRef = useRef(null)
+  const bulkFileRef = useRef(null)
   const [preview, setPreview] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [scanned, setScanned] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [mode, setMode] = useState('single')
+  const [hasExistingItems, setHasExistingItems] = useState(true)
+  const [bulkFiles, setBulkFiles] = useState([])
+  const [bulkPreviewUrls, setBulkPreviewUrls] = useState([])
+  const [bulkDrafts, setBulkDrafts] = useState([])
+  const [bulkImporting, setBulkImporting] = useState(false)
+  const [bulkSaving, setBulkSaving] = useState(false)
+  const [bulkMessage, setBulkMessage] = useState('')
+  const [bulkStep, setBulkStep] = useState('select')
+  const [bulkEditingId, setBulkEditingId] = useState(null)
 
   const [form, setForm] = useState({
     category: '',
@@ -50,6 +61,49 @@ function AddItem() {
     weather: [],
     condition: 'good',
   })
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadClosetState = async () => {
+      try {
+        const res = await api.get('/items?limit=1&page=1')
+        if (!isActive) return
+
+        const totalItems = res.pagination?.total || 0
+        const hasItems = totalItems > 0
+        setHasExistingItems(hasItems)
+
+        if (!hasItems) {
+          setMode('bulk')
+        }
+      } catch (err) {
+        if (isActive) {
+          setHasExistingItems(true)
+        }
+      }
+    }
+
+    loadClosetState()
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      bulkPreviewUrls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [bulkPreviewUrls])
+
+  const resetMode = (nextMode) => {
+    setMode(nextMode)
+    setError('')
+    setBulkMessage('')
+    setBulkStep('select')
+    setBulkEditingId(null)
+  }
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0]
@@ -86,6 +140,9 @@ function AddItem() {
                 'bomber jacket': ['outerwear', 'jacket'], 'trench coat': ['outerwear', 'coat'],
                 'overcoat': ['outerwear', 'coat'], 'parka': ['outerwear', 'coat'],
                 'cardigan': ['outerwear', 'sweater'], 'vest': ['top', 'vest'],
+                'ring': ['accessories', 'ring'], 'chain': ['accessories', 'chain'],
+                'watch': ['accessories', 'watch'], 'belt': ['accessories', 'belt'],
+                'cap': ['accessories', 'cap'],
                 'sneakers': ['footwear', 'sneakers'], 'white sneakers': ['footwear', 'sneakers'],
                 'chunky sneakers': ['footwear', 'sneakers'], 'loafers': ['footwear', 'formal_shoes'],
                 'oxford shoes': ['footwear', 'formal_shoes'], 'derby shoes': ['footwear', 'formal_shoes'],
@@ -150,6 +207,139 @@ function AddItem() {
         analyzeImage(file);
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  const handleBulkFileChange = (e) => {
+    const files = Array.from(e.target.files || []).slice(0, 20)
+
+    setError('')
+    setBulkMessage('')
+    setBulkDrafts([])
+    setBulkStep('select')
+    setBulkEditingId(null)
+    bulkPreviewUrls.forEach((url) => URL.revokeObjectURL(url))
+    setBulkFiles(files)
+    setBulkPreviewUrls(files.map((file) => URL.createObjectURL(file)))
+  }
+
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!bulkFiles.length) {
+      setError('Please choose at least one image to import.')
+      return
+    }
+
+    setBulkImporting(true)
+    setError('')
+    setBulkMessage('')
+
+    const formData = new FormData()
+    bulkFiles.forEach((file) => {
+      formData.append('images', file)
+    })
+
+    try {
+      const res = await api.post('/items/bulk-preview', formData)
+      if (res.success) {
+        setBulkDrafts(res.data || [])
+        setBulkStep('review')
+        setBulkEditingId(null)
+        setBulkMessage(`Reviewed ${res.summary?.analyzed ?? res.data?.length ?? 0} item${(res.summary?.analyzed ?? res.data?.length ?? 0) === 1 ? '' : 's'}. Remove anything you do not want to save.`)
+      } else {
+        setError(res.message || 'Failed to import your items.')
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to import your items.')
+    } finally {
+      setBulkImporting(false)
+    }
+  }
+
+  const removeBulkDraft = (clientId) => {
+    const index = bulkDrafts.findIndex((draft) => draft.clientId === clientId)
+    if (index < 0) return
+
+    if (bulkEditingId === clientId) {
+      setBulkEditingId(null)
+    }
+
+    setBulkDrafts((prev) => prev.filter((draft) => draft.clientId !== clientId))
+
+    setBulkFiles((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+    setBulkPreviewUrls((prev) => {
+      const next = prev.filter((_, itemIndex) => itemIndex !== index)
+      return next
+    })
+  }
+
+  const openBulkEditor = (clientId) => {
+    setBulkEditingId((prev) => (prev === clientId ? null : clientId))
+  }
+
+  const updateBulkDraft = (clientId, updates) => {
+    setBulkDrafts((prev) => prev.map((draft) => {
+      if (draft.clientId !== clientId) return draft
+
+      const nextDraft = { ...draft, ...updates }
+
+      if (Object.prototype.hasOwnProperty.call(updates, 'category')) {
+        nextDraft.subCategory = subCategories[updates.category]?.[0] || nextDraft.subCategory
+      }
+
+      return nextDraft
+    }))
+  }
+
+  const toggleBulkDraftMultiSelect = (clientId, field, value) => {
+    setBulkDrafts((prev) => prev.map((draft) => {
+      if (draft.clientId !== clientId) return draft
+
+      const currentValues = Array.isArray(draft[field]) ? draft[field] : []
+      const nextValues = currentValues.includes(value)
+        ? currentValues.filter((entry) => entry !== value)
+        : [...currentValues, value]
+
+      return { ...draft, [field]: nextValues }
+    }))
+  }
+
+  const handleBulkSave = async () => {
+    if (!bulkDrafts.length) {
+      setError('Add at least one reviewed item before saving.')
+      return
+    }
+
+    setBulkSaving(true)
+    setError('')
+    setBulkMessage('')
+
+    const formData = new FormData()
+    bulkFiles.forEach((file) => {
+      formData.append('images', file)
+    })
+    formData.append('items', JSON.stringify(bulkDrafts))
+
+    try {
+      const res = await api.post('/items/bulk-save', formData)
+      if (res.success) {
+        setBulkMessage(res.message || 'Saved your reviewed items.')
+        setBulkFiles([])
+        setBulkPreviewUrls([])
+        setBulkDrafts([])
+        setBulkStep('select')
+        if (bulkFileRef.current) {
+          bulkFileRef.current.value = ''
+        }
+        navigate('/closet')
+      } else {
+        setError(res.message || 'Failed to save your reviewed items.')
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to save your reviewed items.')
+    } finally {
+      setBulkSaving(false)
     }
   }
 
@@ -218,11 +408,320 @@ function AddItem() {
     <div className="additem-page" id="add-item-page">
       <div className="container">
         <div className="page-header animate-fade-in-up">
-          <h1 className="page-title heading-italic">Curate Your Style</h1>
-          <p className="page-subtitle">Upload a piece and let our AI handle the cataloging for you.</p>
+          <h1 className="page-title heading-italic">
+            {mode === 'bulk' ? 'Set Up Your Closet Fast' : 'Curate Your Style'}
+          </h1>
+          <p className="page-subtitle">
+            {mode === 'bulk'
+              ? 'Upload multiple clothing photos once and let AI catalog them automatically.'
+              : 'Upload a piece and let our AI handle the cataloging for you.'}
+          </p>
+          <div className="setup-toggle" role="tablist" aria-label="Add item mode">
+            <button
+              type="button"
+              className={`setup-toggle-btn ${mode === 'bulk' ? 'active' : ''}`}
+              onClick={() => resetMode('bulk')}
+            >
+              Bulk setup
+            </button>
+            <button
+              type="button"
+              className={`setup-toggle-btn ${mode === 'single' ? 'active' : ''}`}
+              onClick={() => resetMode('single')}
+            >
+              Single item
+            </button>
+          </div>
+          {!hasExistingItems && (
+            <div className="first-run-banner">
+              <strong>New account setup:</strong> import a few pieces at once so your closet is ready faster.
+            </div>
+          )}
         </div>
 
-        <form className="additem-layout" onSubmit={handleSubmit}>
+        {mode === 'bulk' ? (
+          <form className="bulk-import-layout" onSubmit={handleBulkSubmit}>
+            <div className="bulk-import-card card animate-fade-in-up">
+              <div className="details-header">
+                <h2 className="heading-italic" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={24} strokeWidth={1.5} className="sparkle" />
+                  Bulk Closet Setup
+                </h2>
+                <span className="badge badge-orange">One-time setup</span>
+              </div>
+              {bulkStep === 'select' ? (
+                <>
+                  <p className="bulk-copy">
+                    Drop multiple images, let the AI detect each item, then review them before saving.
+                  </p>
+                  <div
+                    className="bulk-upload-zone"
+                    onClick={() => bulkFileRef.current?.click()}
+                  >
+                    <Camera size={44} strokeWidth={1.5} />
+                    <h3>Choose several wardrobe photos</h3>
+                    <p>Supports JPG, PNG, and JPEG. You can add up to 20 images at once.</p>
+                    <span className="upload-formats">Minimal work, auto-detected by AI</span>
+                    <input
+                      type="file"
+                      ref={bulkFileRef}
+                      accept="image/jpeg,image/png,image/jpg"
+                      multiple
+                      onChange={handleBulkFileChange}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+
+                  {bulkPreviewUrls.length > 0 && (
+                    <div className="bulk-preview-section">
+                      <div className="bulk-preview-header">
+                        <h3>Selected photos</h3>
+                        <span>{bulkPreviewUrls.length} item{bulkPreviewUrls.length === 1 ? '' : 's'}</span>
+                      </div>
+                      <div className="bulk-preview-grid">
+                        {bulkPreviewUrls.map((url, index) => (
+                          <div className="bulk-preview-item" key={`${url}-${index}`}>
+                            <img src={url} alt={`Selected upload ${index + 1}`} />
+                            <span>{bulkFiles[index]?.name || `Item ${index + 1}`}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {error && <div className="error-message" style={{ color: '#E87040', marginTop: '1rem' }}>{error}</div>}
+                  {bulkMessage && <div className="success-message">{bulkMessage}</div>}
+
+                  <div className="details-actions">
+                    <button
+                      type={bulkFiles.length > 0 ? 'submit' : 'button'}
+                      className="btn btn-primary"
+                      disabled={bulkImporting}
+                      onClick={() => {
+                        if (!bulkFiles.length) {
+                          bulkFileRef.current?.click()
+                        }
+                      }}
+                    >
+                      {bulkImporting
+                        ? 'Reviewing...'
+                        : bulkFiles.length > 0
+                          ? `Review ${bulkFiles.length} Item${bulkFiles.length === 1 ? '' : 's'}`
+                          : 'Choose Files'}
+                    </button>
+                    <button type="button" className="btn btn-ghost" onClick={() => navigate('/closet')}>
+                      Go to Closet
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="bulk-copy">
+                    Review the AI-detected details below. Remove anything you do not want before saving.
+                  </p>
+
+                  {bulkMessage && <div className="success-message">{bulkMessage}</div>}
+                  {error && <div className="error-message" style={{ color: '#E87040', marginTop: '1rem' }}>{error}</div>}
+
+                  <div className="bulk-review-grid">
+                    {bulkDrafts.map((draft) => {
+                      const itemIndex = bulkDrafts.findIndex((candidate) => candidate.clientId === draft.clientId)
+                      const isEditing = bulkEditingId === draft.clientId
+                      return (
+                        <div className={`bulk-review-card ${isEditing ? 'editing' : ''}`} key={draft.clientId}>
+                          <div className="bulk-review-image-wrap">
+                            <img src={bulkPreviewUrls[itemIndex]} alt={draft.fileName} />
+                            <div className="bulk-card-actions">
+                              <button
+                                type="button"
+                                className="bulk-edit-btn"
+                                onClick={() => openBulkEditor(draft.clientId)}
+                                title="Edit this item"
+                              >
+                                {isEditing ? 'Close' : 'Edit'}
+                              </button>
+                              <button
+                                type="button"
+                                className="bulk-remove-btn"
+                                onClick={() => removeBulkDraft(draft.clientId)}
+                                title="Remove this item"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                          <div className="bulk-review-body">
+                            <strong className="bulk-review-title">{draft.fileName}</strong>
+                            <div className="bulk-review-meta">
+                              <span className="badge badge-orange">{draft.category}</span>
+                              <span>{draft.subCategory.replace('_', ' ')}</span>
+                            </div>
+                            <div className="bulk-review-swatches">
+                              <span className="bulk-color-swatch" style={{ backgroundColor: draft.color }} />
+                              <span>{draft.color}</span>
+                            </div>
+                            <div className="bulk-review-tags">
+                              <span>{draft.fit || 'regular'} fit</span>
+                              <span>{(draft.pattern || 'solid').replace('_', ' ')}</span>
+                            </div>
+                            <p className="bulk-review-small">Occasion: {draft.occasion.join(', ')}</p>
+                            <p className="bulk-review-small">Weather: {draft.weather.join(', ')}</p>
+
+                            {isEditing && (
+                              <div className="bulk-edit-panel">
+                                <div className="bulk-edit-panel-header">
+                                  <h4>Edit Item</h4>
+                                  <button 
+                                    type="button" 
+                                    className="btn btn-ghost" 
+                                    style={{ padding: '6px 12px', fontSize: '0.85rem' }} 
+                                    onClick={() => setBulkEditingId(null)}
+                                  >
+                                    Done
+                                  </button>
+                                </div>
+
+                                <div className="bulk-edit-grid">
+                                  <div className="form-group">
+                                    <label>Category</label>
+                                    <CustomSelect
+                                      options={categories.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))}
+                                      value={draft.category}
+                                      onChange={(val) => updateBulkDraft(draft.clientId, { category: val })}
+                                      id={`bulk-category-${draft.clientId}`}
+                                    />
+                                  </div>
+
+                                  <div className="form-group">
+                                    <label>Sub-Category</label>
+                                    <CustomSelect
+                                      options={(subCategories[draft.category] || []).map((sc) => ({ value: sc, label: sc.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase()) }))}
+                                      value={draft.subCategory}
+                                      onChange={(val) => updateBulkDraft(draft.clientId, { subCategory: val })}
+                                      id={`bulk-subcategory-${draft.clientId}`}
+                                    />
+                                  </div>
+
+                                  <div className="form-group">
+                                    <label>Color</label>
+                                    <div className="bulk-edit-color-row">
+                                      <input
+                                        type="color"
+                                        value={draft.color}
+                                        onChange={(e) => updateBulkDraft(draft.clientId, { color: e.target.value })}
+                                        className="custom-color-picker"
+                                      />
+                                      <span className="bulk-edit-color-value">{draft.color}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="form-group">
+                                    <label>Fit</label>
+                                    <CustomSelect
+                                      options={fits.map((f) => ({ value: f, label: f.charAt(0).toUpperCase() + f.slice(1) }))}
+                                      value={draft.fit || ''}
+                                      onChange={(val) => updateBulkDraft(draft.clientId, { fit: val })}
+                                      id={`bulk-fit-${draft.clientId}`}
+                                    />
+                                  </div>
+
+                                  <div className="form-group">
+                                    <label>Pattern</label>
+                                    <CustomSelect
+                                      options={patterns.map((p) => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) }))}
+                                      value={draft.pattern || 'solid'}
+                                      onChange={(val) => updateBulkDraft(draft.clientId, { pattern: val })}
+                                      id={`bulk-pattern-${draft.clientId}`}
+                                    />
+                                  </div>
+
+                                  <div className="form-group">
+                                    <label>Condition</label>
+                                    <div className="bulk-edit-chip-row">
+                                      {conditions.map((condition) => (
+                                        <button
+                                          key={condition}
+                                          type="button"
+                                          className={`chip ${draft.condition === condition ? 'active' : ''}`}
+                                          onClick={() => updateBulkDraft(draft.clientId, { condition })}
+                                        >
+                                          {condition.charAt(0).toUpperCase() + condition.slice(1)}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="form-group bulk-edit-section">
+                                  <label>Occasion</label>
+                                  <div className="bulk-edit-chip-row">
+                                    {occasionOptions.map((occ) => (
+                                      <button
+                                        key={occ.value}
+                                        type="button"
+                                        className={`chip ${(draft.occasion || []).includes(occ.value) ? 'active' : ''}`}
+                                        onClick={() => toggleBulkDraftMultiSelect(draft.clientId, 'occasion', occ.value)}
+                                      >
+                                        {occ.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="form-group bulk-edit-section">
+                                  <label>Weather</label>
+                                  <div className="bulk-edit-chip-row">
+                                    <button
+                                      type="button"
+                                      className={`chip ${(draft.weather || []).length === 3 ? 'active' : ''}`}
+                                      onClick={() => updateBulkDraft(draft.clientId, { weather: (draft.weather || []).length === 3 ? [] : ['hot', 'mild', 'cold'] })}
+                                    >
+                                      All Season
+                                    </button>
+                                    {weatherOptions.map((weather) => (
+                                      <button
+                                        key={weather}
+                                        type="button"
+                                        className={`chip ${(draft.weather || []).includes(weather) && (draft.weather || []).length < 3 ? 'active' : ''}`}
+                                        onClick={() => toggleBulkDraftMultiSelect(draft.clientId, 'weather', weather)}
+                                      >
+                                        {weather.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  <div className="details-actions">
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => setBulkStep('select')}
+                      disabled={bulkSaving}
+                    >
+                      Back to upload
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleBulkSave}
+                      disabled={bulkSaving || bulkDrafts.length === 0}
+                    >
+                      {bulkSaving ? 'Saving...' : `Save ${bulkDrafts.length} Item${bulkDrafts.length === 1 ? '' : 's'}`}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </form>
+        ) : (
+          <form className="additem-layout" onSubmit={handleSubmit}>
           {/* Left: Upload Area */}
           <div className="upload-area animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             <div
@@ -319,7 +818,7 @@ function AddItem() {
                     {scanned && <span className="ai-badge">AI Suggested</span>}
                   </label>
                   <div className="color-picker-row" style={{ flexWrap: 'wrap' }}>
-                    {colorMap.filter(c => ['#000000', '#FFFFFF', '#1B2A4A', '#808080', '#D2B48C', '#E87040'].includes(c.hex)).map(c => (
+                    {colorMap.filter(c => ['#000000', '#FFFFFF', '#1B2A4A', '#808080', '#D2B48C', '#E87040', '#ffd700'].includes(c.hex.toLowerCase())).map(c => (
                       <button
                         key={c.hex}
                         type="button"
@@ -459,6 +958,7 @@ function AddItem() {
             </div>
           </div>
         </form>
+        )}
       </div>
     </div>
   )

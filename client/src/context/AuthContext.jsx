@@ -10,6 +10,23 @@ export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(localStorage.getItem('token') || null);
     const [loading, setLoading] = useState(true);
 
+    const refreshUser = async () => {
+        if (!token) {
+            setUser(null);
+            return { success: false };
+        }
+        try {
+            const res = await api.get('/auth/me');
+            if (res.success) {
+                setUser(res.data);
+                return { success: true, data: res.data };
+            }
+            return { success: false };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    };
+
     // Initial load: verify token
     useEffect(() => {
         const loadUser = async () => {
@@ -71,7 +88,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, loading, register, login, logout }}>
+        <AuthContext.Provider value={{ user, token, loading, register, login, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

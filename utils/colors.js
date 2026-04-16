@@ -22,6 +22,7 @@ const colorMap = [
   { name: 'Dark Green', hex: '#006400' },
   { name: 'Green', hex: '#008000' },
   { name: 'Olive', hex: '#808000' },
+    { name: 'Gold', hex: '#ffd700' },
   { name: 'Yellow', hex: '#ffff00' },
   { name: 'Orange', hex: '#ffa500' },
   { name: 'Purple', hex: '#800080' },

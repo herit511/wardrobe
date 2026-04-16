@@ -31,7 +31,7 @@ function ForgotPassword() {
         // Send OTP
         const res = await api.post('/auth/forgot-password', { email })
         if (!res.success) throw new Error(res.message)
-        alert('If this email is registered, a 4-digit code will be sent to you (Logging to server console for MVP setup).')
+        alert('If this email is registered, a 4-digit OTP has been sent to your inbox.')
         setStep(2)
       } else if (step === 2) {
         // Just move to step 3, OTP is verified on final submit

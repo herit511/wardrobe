@@ -152,7 +152,7 @@
 }
 
 .outfit-card {
-  padding: var(--space-xl);
+  padding: 20px;
   background: rgba(255, 255, 255, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
@@ -168,15 +168,166 @@
   background: rgba(255, 255, 255, 0.85);
 }
 
+.outfit-card-redesign {
+  overflow: visible;
+}
+
+.outfit-hero-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding-bottom: 8px;
+}
+
+.outfit-vibe-name {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+}
+
+.outfit-grade-badge {
+  min-width: 32px;
+  text-align: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.outfit-grade-badge.grade-a {
+  background: var(--color-background-success, #EAFaf1);
+}
+
+.outfit-grade-badge.grade-b {
+  background: var(--color-background-warning, #FFF8E7);
+}
+
+.outfit-grade-badge.grade-c {
+  background: var(--color-background-warning, #FFEBD6);
+}
+
+.outfit-grade-badge.grade-d {
+  background: var(--color-background-danger, #FDECEA);
+}
+
+.outfit-one-line {
+  margin: 0 0 10px;
+  color: var(--color-text-primary);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.outfit-feel-line {
+  margin: 0 0 12px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.outfit-block {
+  border-top: 1px solid var(--color-border);
+  padding: 12px 0;
+}
+
+.outfit-block-move {
+  background: var(--color-background-secondary, #F8F9FA);
+  padding: 12px;
+}
+
+.outfit-block-dont {
+  border-left: 3px solid var(--color-border-danger, var(--color-danger));
+  padding-left: 12px;
+}
+
+.outfit-block-title {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.outfit-block-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.outfit-wear-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.outfit-wear-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.outfit-wear-bullet {
+  line-height: 1.4;
+}
+
+.outfit-wear-item-name {
+  font-weight: 500;
+}
+
+.outfit-block-items {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.outfit-card-items-compact {
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 0;
+}
+
+.outfit-card-item-img-compact {
+  width: 90px;
+  height: 112px;
+  margin-bottom: 6px;
+}
+
+.outfit-block-meta {
+  padding-bottom: 0;
+}
+
+.outfit-meta-line {
+  margin: 0 0 5px;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.outfit-meta-accessories {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
 .outfit-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: var(--space-xl);
+  margin-bottom: 20px;
 }
 
 .outfit-card-title {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   margin-bottom: var(--space-sm);
 }
 
@@ -194,8 +345,8 @@
 }
 
 .match-circle {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--color-orange), var(--color-amber));
   display: flex;
@@ -207,7 +358,7 @@
 .match-value {
   color: white;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .match-label {
@@ -277,8 +428,8 @@
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: var(--space-xl);
-  padding: var(--space-xl) 0;
+  gap: 20px;
+  padding: 18px 0;
 }
 
 .outfit-card-item {
@@ -286,8 +437,8 @@
 }
 
 .outfit-card-item-img {
-  width: 160px;
-  height: 200px;
+  width: 140px;
+  height: 176px;
   border-radius: var(--radius-md);
   background-size: cover;
   background-position: center;

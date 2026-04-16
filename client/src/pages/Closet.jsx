@@ -209,8 +209,8 @@ function Closet() {
               <Shirt size={48} strokeWidth={1.5} style={{ color: '#1B2A4A' }} />
             </div>
             <h2 className="heading-italic">No items found</h2>
-            <p>Try changing your filters or add new items to your closet.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Add First Item</button>
+            <p>Try changing your filters or start with a bulk closet setup.</p>
+            <button className="btn btn-primary" onClick={() => navigate('/add-item')}>Start Bulk Setup</button>
           </div>
         )}
 
