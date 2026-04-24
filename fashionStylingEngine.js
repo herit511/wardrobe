@@ -1337,6 +1337,86 @@ function applyStyleIntelligence(rawOutfits, occasion, weather, userProfile = {})
   );
 }
 
+// Shared occasion-to-vibe anchors used by generation and styling.
+const OCCASION_VIBES = {
+  casual: ["Effortless Cool", "Off-Duty Creative", "Clean Confidence"],
+  office: ["Quiet Authority", "Clean Confidence", "Board Meeting Energy"],
+  "business formal": ["Board Meeting Energy", "Quiet Authority", "Stealth Wealth"],
+  party: ["Urban Edge", "Dark Romanticism", "Effortless Cool"],
+  "date night": ["Date Night Precision", "Dark Romanticism", "Clean Confidence"],
+  gym: ["Gym Main Character", "Athleisure Architect"],
+  "wedding guest": ["Wedding House Energy", "Quiet Luxury India", "Cultural Power"],
+  ethnic: ["Cultural Power", "Indo Western Architect", "Quiet Luxury India"],
+  "pooja / puja": ["Cultural Power", "Quiet Luxury India"],
+  festival: ["Festive Fire", "Cultural Power", "Wedding House Energy"],
+};
+
+// Canonical taxonomy bridge for ingestion and scraper alignment.
+// Values are canonical keys, not display names.
+const ITEM_FUZZY_MAP = {
+  // TOPS
+  "compression": "tshirt",
+  "body fit": "tshirt",
+  "polo shirt": "polo",
+  "button down": "shirt",
+  "button-down": "shirt",
+  "button up": "shirt",
+  "button-up": "shirt",
+  "formal shirt": "shirt",
+  "casual shirt": "shirt",
+  "crewneck": "tshirt",
+  "tee": "tshirt",
+  "t shirt": "tshirt",
+  "hooded": "hoodie",
+
+  // BOTTOMS
+  "sweatpants": "joggers",
+  "slacks": "trousers",
+  "denim": "jeans",
+  "denim pants": "jeans",
+  "dress pants": "trousers",
+  "formal pants": "trousers",
+  "chino pants": "chinos",
+  "cords": "chinos",
+
+  // OUTERWEAR
+  "camel coat": "overcoat",
+  "coat": "overcoat",
+  "long coat": "overcoat",
+  "puffer": "puffer_jacket",
+  "down jacket": "puffer_jacket",
+  "windcheater": "windbreaker",
+
+  // FOOTWEAR
+  "dress shoes": "oxford_shoes",
+  "trainers": "sneakers",
+  "tennis shoes": "sneakers",
+  "athletic shoes": "sneakers",
+  "sport shoes": "sneakers",
+  "formal shoes": "derby_shoes",
+  "flip-flops": "slides",
+  "slippers": "slides",
+};
+
+// Converts canonical scraper tokens to fashionEngineV3 CLOTHING_ITEMS keys.
+const CANONICAL_TO_ENGINE_ITEM = {
+  tshirt: "t-shirt",
+  polo: "polo shirt",
+  shirt: "shirt",
+  hoodie: "hoodie",
+  joggers: "joggers",
+  trousers: "trousers",
+  jeans: "jeans",
+  chinos: "chinos",
+  slides: "slides",
+  overcoat: "overcoat",
+  puffer_jacket: "puffer jacket",
+  windbreaker: "windbreaker",
+  oxford_shoes: "oxford shoes",
+  sneakers: "sneakers",
+  derby_shoes: "derby shoes",
+};
+
 
 // ─────────────────────────────────────────────
 // EXPORTS
@@ -1345,6 +1425,9 @@ function applyStyleIntelligence(rawOutfits, occasion, weather, userProfile = {})
 module.exports = {
   applyStyleIntelligence,
   styleOutfit,
+  OCCASION_VIBES,
+  ITEM_FUZZY_MAP,
+  CANONICAL_TO_ENGINE_ITEM,
   detectOutfitPersonality,
   getThreeSecondBreakdown,
   getMicroStyling,

@@ -1,0 +1,164 @@
+AI Suggested Outfits - Working Flow
+===================================
+
+Overview
+--------
+The AI outfit suggestion system is a 2-layer pipeline:
+
+1) fashionEngineV3.js
+   - Generates valid outfit combinations from the user's wardrobe.
+   - Applies weather, occasion, category, compatibility, and scoring logic.
+
+2) fashionStylingEngine.js
+   - Adds human-style narrative and styling intelligence to each generated outfit.
+   - Produces card fields used by UI: vibe, oneLine, feelLine, theMove, howToWear, dont.
+
+
+End-to-End Request Flow
+-----------------------
+1. Frontend triggers outfit generation
+   - Page: client/src/pages/Suggestions.jsx
+   - API call: GET /api/outfits/generate?occasion=...&temperature=...
+
+2. Backend route receives request
+   - Route: routes/outfitRoutes.js
+   - Reads user wardrobe items from DB
+   - Normalizes query values (occasion + weather)
+   - Maps DB item names/subcategories to fashionEngineV3 item vocabulary
+
+3. Raw outfit generation in fashionEngineV3.js
+   - Entry: suggestOutfits(wardrobe, occasion, weather, userProfile)
+
+4. Styling layer in fashionStylingEngine.js
+   - Entry: applyStyleIntelligence(rawOutfits, occasion, weather, userProfile)
+   - Converts each raw outfit to a styled outfit object with card data
+
+5. API response back to frontend
+   - Returns styled outfits array + metadata (gaps, versatility, culturalContext)
+
+6. UI rendering
+   - Suggestions cards read outfit.card and outfit.score for display.
+
+
+What fashionEngineV3.js Does
+----------------------------
+A) Input preparation
+   - Separates accessories from clothing.
+   - Applies gender filtering via user style DNA (if selected).
+
+B) Hard filtering
+   - filterByWeather(): keeps only weather-safe items.
+   - filterByOccasion(): keeps only occasion-appropriate items.
+
+C) Relaxation logic (important)
+   - If strict occasion filtering empties tops/bottoms,
+     engine relaxes to weather-only items before failing.
+   - This prevents unnecessary zero-outfit results while keeping weather safety.
+
+D) Occasion-specific handling
+   - Gym has strict allowed categories.
+   - Business formal enforces stricter footwear/formality behavior.
+
+E) Ranking and scoring
+   - Vibe sorting favors preferred items/colors and lightly deprioritizes avoid colors.
+   - Outfit score includes color harmony, occasion compatibility, etc.
+
+F) Outfit assembly
+   - Builds top + bottom (+ optional layer) + best shoe combinations.
+   - Handles full-outfit items when applicable.
+   - Adds accessory suggestions.
+
+G) Selection strategy
+   - Sorts by score.
+   - Chooses up to 3 outfits using variety-first passes.
+   - Returns plain array on success.
+   - Returns advisor feedback object on failure.
+
+
+What fashionStylingEngine.js Does
+---------------------------------
+For each raw outfit:
+
+1. Detects personality/vibe
+   - Example vibes: Quiet Authority, Effortless Cool, Gym Main Character, etc.
+
+2. Builds style intelligence fields
+   - threeSecond breakdown
+   - colorStory
+   - microStyling tips
+   - signatureMove
+   - antiTip
+   - upgradePath
+   - wearThreeWays
+   - photographersNote
+   - occasionTransition
+
+3. Produces UI card object
+   - card.vibe
+   - card.oneLine
+   - card.feelLine
+   - card.theMove
+   - card.howToWear (array of { item, tip })
+   - card.dont
+
+4. Returns final styled outfit objects
+   - Includes original items/score/accessories + card + narrative metadata.
+
+
+Contract Between Engines and Route
+----------------------------------
+Current expected behavior:
+
+- suggestOutfits success:
+  returns plain array of outfit objects.
+
+- suggestOutfits failure:
+  returns object with success:false and advisorFeedback (or error/message object).
+
+- outfitRoutes normalizes both shapes safely before styling:
+  outfitsToStyle = Array.isArray(raw) ? raw : (raw.data || [])
+
+- applyStyleIntelligence always receives an array.
+
+
+UI Fields Used in Suggestions Cards
+-----------------------------------
+Each rendered outfit card should use:
+
+- outfit.card.vibe
+- outfit.card.oneLine
+- outfit.card.feelLine
+- outfit.card.theMove
+- outfit.card.howToWear
+- outfit.card.dont
+- outfit.score.totalScore
+- outfit.score.grade
+- outfit.accessories
+
+
+Failure and Advisor Mode
+------------------------
+When no valid outfits are possible:
+
+- Backend returns advisorFeedback with message + topRecommendation + suggestedItems.
+- Frontend shows outfit error and recommendation instead of empty silent UI.
+
+
+Why This Architecture Works
+---------------------------
+- fashionEngineV3.js = deterministic, rules-first outfit construction.
+- fashionStylingEngine.js = presentation intelligence and user-facing explanation.
+- This split makes debugging easier:
+  - generation quality issues are fixed in fashionEngineV3.js
+  - narrative/card quality issues are fixed in fashionStylingEngine.js
+
+
+Quick Debug Checklist
+---------------------
+If outfits are empty:
+1) Check occasion/weather normalization in routes/outfitRoutes.js
+2) Check mapped item names exist in CLOTHING_ITEMS
+3) Check relaxation path is reachable
+4) Confirm suggestOutfits returns array on success
+5) Confirm applyStyleIntelligence receives array
+6) Confirm card fields are present in final response

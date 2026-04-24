@@ -1,4 +1,6 @@
 // ============================================================
+
+const { OCCASION_VIBES: STYLING_OCCASION_VIBES } = require('./fashionStylingEngine');
 //  fashionEngine.js — v3 — Professional Fashion Logic Engine
 //  Built for startup-grade outfit intelligence.
 //
@@ -1118,18 +1120,12 @@ const OCCASIONS = {
  * not just narration. Each vibe carries preferred colors and items
  * that get priority during combination generation.
  */
-const OCCASION_VIBES = {
-  party:             ["urban edge", "dark romanticism"],
-  "date night":      ["date night precision", "dark romanticism"],
-  office:            ["clean confidence", "quiet authority"],
-  casual:            ["effortless cool", "off-duty creative"],
-  gym:               ["athletic edge"],
-  "wedding guest":   ["cultural power", "festive fire", "stealth wealth"],
-  ethnic:            ["cultural power"],
-  "pooja / puja":    ["cultural power"],
-  festival:          ["festive fire", "cultural power"],
-  "business formal": ["quiet authority", "stealth wealth"],
-};
+const OCCASION_VIBES = Object.fromEntries(
+  Object.entries(STYLING_OCCASION_VIBES || {}).map(([occasion, vibes]) => [
+    String(occasion || '').toLowerCase().trim(),
+    Array.isArray(vibes) ? vibes.map(v => String(v || '').toLowerCase().trim()) : [],
+  ])
+);
 
 /**
  * Vibe preferences — what each vibe needs in terms of colors and items.
@@ -2242,99 +2238,117 @@ function scoreVibeAlignment(items, vibeKey) {
  * @returns {Array<OutfitSuggestion>} top 3 diverse outfit suggestions
  */
 function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile={}) {
+  const strictOccasion = String(occasion || "casual").toLowerCase().trim();
+  const strictWeather = String(weather || "mid").toLowerCase().trim();
+  const qualityFloor = 8.5;
+
+  const buildAdvisorResponse = (message, code, extra = {}) => {
+    const gapsInfo = analyzeWardrobeGaps(wardrobe, strictOccasion, strictWeather, userProfile);
+    const actionableGaps = (gapsInfo.gaps || []).filter(g => g !== "Wardrobe is well-rounded for this occasion.");
+    const structuredSuggestions = Array.isArray(gapsInfo.suggestedItems) && gapsInfo.suggestedItems.length > 0
+      ? gapsInfo.suggestedItems
+      : actionableGaps.map(g => ({
+          tip: g.split(" — ")[0],
+          reason: g.includes(" — ") ? g.split(" — ")[1] : "This will open up new outfit possibilities."
+        }));
+    return {
+      success: false,
+      code,
+      advisorFeedback: {
+        message,
+        missingCategories: actionableGaps.map(g => g.split(" — ")[0]),
+        reasonCodes: [...new Set([...(gapsInfo.reasonCodes || []), code].filter(Boolean))],
+        suggestedItems: structuredSuggestions.length > 0
+          ? structuredSuggestions
+          : [{
+              tip: "Add pieces aligned to the target vibe and occasion.",
+              reason: "Strict Excellence mode rejects low-confidence and flat combinations."
+            }],
+        topRecommendation: gapsInfo.topRecommendation || "Add one elevated top, one occasion-correct bottom, and one statement-capable layer.",
+        ...extra,
+      }
+    };
+  };
+
   const genderPref = userProfile?.gender || "Other";
   const genderFilteredWardrobe = filterByGender(wardrobe, genderPref);
 
-  const accessories  = genderFilteredWardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role==="accessory");
-  const clothingOnly = genderFilteredWardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role!=="accessory");
+  const accessories  = genderFilteredWardrobe.filter(i => CLOTHING_ITEMS[i.name]?.role === "accessory");
+  const clothingOnly = genderFilteredWardrobe.filter(i => CLOTHING_ITEMS[i.name]?.role !== "accessory");
 
-  // ── TIER 1: Hard weather filter ──
-  const weatherFiltered = filterByWeather(clothingOnly, weather);
-  const occasionFiltered = filterByOccasion(weatherFiltered, occasion);
+  const weatherFiltered = filterByWeather(clothingOnly, strictWeather);
+  const occasionFiltered = filterByOccasion(weatherFiltered, strictOccasion);
+  const filteredAccessories = filterByOccasion(accessories, strictOccasion);
 
-  const filteredAccessories = filterByOccasion(accessories, occasion);
-
-  // ── GYM STRICT FILTER ──
   let tops, bottoms, layers, shoes, fulls;
-  if (occasion === "gym") {
-    tops    = occasionFiltered.filter(i => GYM_ALLOWED.tops.includes(i.name));
+  if (strictOccasion === "gym") {
+    tops = occasionFiltered.filter(i => GYM_ALLOWED.tops.includes(i.name));
     bottoms = occasionFiltered.filter(i => GYM_ALLOWED.bottoms.includes(i.name));
-    shoes   = occasionFiltered.filter(i => GYM_ALLOWED.shoes.includes(i.name));
-    // Allow athletic layers (hoodies) if cold
-    layers  = weather === "cold" ? occasionFiltered.filter(i => ["hoodie", "sweatshirt", "zip hoodie"].includes(i.name)) : [];
-    fulls   = [];
-  } else if (occasion === "business formal") {
-    tops    = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="top");
-    bottoms = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="bottom");
-    layers  = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="layer");
-    shoes   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.category==="footwear" && (CLOTHING_ITEMS[i.name]?.formality || 0) >= 4);
-    fulls   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="full");
+    shoes = occasionFiltered.filter(i => GYM_ALLOWED.shoes.includes(i.name));
+    layers = strictWeather === "cold"
+      ? occasionFiltered.filter(i => ["hoodie", "sweatshirt", "zip hoodie"].includes(i.name))
+      : [];
+    fulls = [];
+  } else if (strictOccasion === "business formal") {
+    tops = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "top");
+    bottoms = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "bottom");
+    layers = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "layer");
+    shoes = occasionFiltered.filter(i =>
+      CLOTHING_ITEMS[i.name]?.category === "footwear" && (CLOTHING_ITEMS[i.name]?.formality || 0) >= 4
+    );
+    fulls = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "full");
   } else {
-    tops    = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="top" || CLOTHING_ITEMS[i.name]?.role==="full");
-    bottoms = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="bottom");
-    layers  = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="layer");
-    shoes   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.category==="footwear");
-    fulls   = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role==="full");
+    tops = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "top");
+    bottoms = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "bottom");
+    layers = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "layer");
+    shoes = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.category === "footwear");
+    fulls = occasionFiltered.filter(i => CLOTHING_ITEMS[i.name]?.role === "full");
   }
 
-  // If tops or bottoms are empty after strict filtering,
-  // try progressively relaxing before giving up.
   if (tops.length === 0 || (bottoms.length === 0 && fulls.length === 0)) {
-    // Relaxation attempt 1: ignore occasionOk, keep weather filter.
-    const weatherOnlyItems = filterByWeather(clothingOnly, weather);
-    const relaxedTops = weatherOnlyItems.filter(i =>
-      CLOTHING_ITEMS[i.name]?.role === "top"
+    return buildAdvisorResponse(
+      `Strict Excellence: no ${strictOccasion} outfits meet both ${strictWeather} weather and occasion rules with your current wardrobe.`,
+      "NO_STRICT_MATCH"
     );
-    const relaxedBottoms = weatherOnlyItems.filter(i =>
-      CLOTHING_ITEMS[i.name]?.role === "bottom"
-    );
-    const relaxedShoes = weatherOnlyItems.filter(i =>
-      CLOTHING_ITEMS[i.name]?.category === "footwear"
-    );
-
-    if (relaxedTops.length > 0 && relaxedBottoms.length > 0) {
-      // Use relaxed items but keep weather safety.
-      tops = relaxedTops;
-      bottoms = relaxedBottoms;
-      shoes = relaxedShoes.length > 0 ? relaxedShoes : shoes;
-    }
-    // If still empty, let the existing empty-state handler run.
   }
 
-  // ── TIER 3: Select vibe ──
-  const occasionVibes = OCCASION_VIBES[occasion] || [];
-  const selectedVibe = occasionVibes.length > 0 ? occasionVibes[0] : null; // Batch diversity can rotate this
-  const vibePref = selectedVibe ? getVibePreferences(selectedVibe) : null;
+  const targetVibes = (OCCASION_VIBES[strictOccasion] || []).filter(Boolean);
+  if (targetVibes.length === 0) {
+    return buildAdvisorResponse(
+      `No vibe profile configured for ${strictOccasion}. Add occasion-to-vibe anchors before generating suggestions.`,
+      "NO_VIBE_PROFILE"
+    );
+  }
 
-  // TIERED VIBE PENALTIES (-20 hard, -8 to -12 soft)
-  function vibeSort(itemsArr) {
+  const feasibleVibes = targetVibes.filter(vibeKey => {
+    const pref = getVibePreferences(vibeKey);
+    if (!pref) return false;
+    const hasPreferredItem = occasionFiltered.some(i => pref.preferItems.includes(i.name));
+    const hasPreferredColor = occasionFiltered.some(i => i.color && pref.preferColors.includes(i.color));
+    return hasPreferredItem && hasPreferredColor;
+  });
+
+  if (feasibleVibes.length === 0) {
+    return buildAdvisorResponse(
+      `Strict Excellence: your wardrobe cannot satisfy the target ${strictOccasion} vibe anchors (${targetVibes.join(", ")}).`,
+      "VIBE_GAP",
+      { targetVibes }
+    );
+  }
+
+  const rankByVibe = (itemsArr, vibePref) => {
     if (!vibePref) return itemsArr;
     return [...itemsArr].sort((a, b) => {
-      const getScore = (item) => {
-        let sc = 0;
-        if (vibePref.preferItems.includes(item.name)) sc += 5;
-        if (item.color && vibePref.preferColors.includes(item.color)) sc += 4;
-        if (item.color && vibePref.avoidColors.includes(item.color)) sc -= 3;
-        return sc;
+      const scoreItem = (item) => {
+        let score = 0;
+        if (vibePref.preferItems.includes(item.name)) score += 6;
+        if (item.color && vibePref.preferColors.includes(item.color)) score += 5;
+        if (item.color && vibePref.avoidColors.includes(item.color)) score -= 4;
+        return score;
       };
-      return getScore(b) - getScore(a);
+      return scoreItem(b) - scoreItem(a);
     });
-  }
-
-  const sortedTops    = vibeSort(tops.filter(t => CLOTHING_ITEMS[t.name]?.role==="top"));
-  const sortedBottoms = vibeSort(bottoms);
-  const sortedShoes   = vibeSort(shoes);
-  const sortedLayers  = vibeSort(layers);
-
-  if (tops.length === 0) {
-    return { error: "No tops available for this occasion and weather.", code: "NO_TOPS" };
-  }
-  if (bottoms.length === 0 && fulls.length === 0) {
-    return { error: "No bottoms available for this occasion.", code: "NO_BOTTOMS" };
-  }
-
-  let allCombos = [];
-  const relaxationReasons = [];
+  };
 
   const isSameGarment = (a, b) => {
     if (!a || !b) return false;
@@ -2344,162 +2358,158 @@ function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile=
     return a.name === b.name && (a.color || "") === (b.color || "");
   };
 
-  // ── Generation Loop ──
-  sortedTops.forEach(top => {
-    sortedBottoms.forEach(bottom => {
-      const w = (weather || "mid").toLowerCase().trim();
-      const usableLayers = sortedLayers.filter(layer => !isSameGarment(layer, top));
-      let layerOptions = w === "hot"
-                       ? [null]
-                       : usableLayers.length > 0 ? [null, ...usableLayers] : [null];
+  const allCombos = [];
+  feasibleVibes.forEach(vibeKey => {
+    const vibePref = getVibePreferences(vibeKey);
+    const sortedTops = rankByVibe(tops, vibePref);
+    const sortedBottoms = rankByVibe(bottoms, vibePref);
+    const sortedShoes = rankByVibe(shoes, vibePref);
+    const sortedLayers = rankByVibe(layers, vibePref);
 
-      layerOptions.forEach(layer => {
-        try {
+    sortedTops.forEach(top => {
+      sortedBottoms.forEach(bottom => {
+        const usableLayers = strictWeather === "hot"
+          ? [null]
+          : [null, ...sortedLayers.filter(layer => !isSameGarment(layer, top))];
+
+        usableLayers.forEach(layer => {
           const base = layer ? [top, bottom, layer] : [top, bottom];
-          let bestShoe = null, bestShoeScore = -Infinity;
-
           const shoePairing = SHOE_PAIRING[bottom.name];
           const avoidSet = new Set(Array.isArray(shoePairing?.avoid) ? shoePairing.avoid : []);
-          let shoeCandidates = sortedShoes;
+          const shoeCandidates = shoePairing
+            ? sortedShoes.filter(shoe => !avoidSet.has(shoe.name))
+            : sortedShoes;
 
-          if (shoePairing) {
-            const filteredShoes = sortedShoes.filter(shoe => !avoidSet.has(shoe.name));
-            if (filteredShoes.length > 0 || sortedShoes.length === 0) {
-              shoeCandidates = filteredShoes;
-            }
-          }
-
+          let bestCandidate = null;
           shoeCandidates.forEach(shoe => {
-            const sc = scoreOutfit([...base, shoe], occasion, weather, userProfile).totalScore;
-            if (sc > bestShoeScore) { bestShoeScore = sc; bestShoe = shoe; }
-          });
-          const finalItems = bestShoe ? [...base, bestShoe] : base;
-          const finalScore = scoreOutfit(finalItems, occasion, weather, userProfile);
-          const templateId = detectOutfitTemplate(finalItems, occasion);
+            const finalItems = [...base, shoe];
+            const gate = validateOutfitConstraints(finalItems, strictOccasion, strictWeather);
+            if (!gate.valid) return;
+            const occasionGate = validateOccasionConstraints(finalItems, strictOccasion);
+            if (!occasionGate.valid) return;
+            if (strictOccasion !== "gym" && !hasStatementElement(finalItems)) return;
 
-          allCombos.push({
-            items: finalItems,
-            score: finalScore,
-            accessories: suggestAccessories(finalItems, filteredAccessories, occasion, weather),
-            selectedVibe,
-            templateId,
-            signature: getOutfitSignature(finalItems),
-            vibeAlignment: selectedVibe ? scoreVibeAlignment(finalItems, selectedVibe) : 0
+            const scored = scoreOutfit(finalItems, strictOccasion, strictWeather, userProfile);
+            if (scored.totalScore < qualityFloor) return;
+
+            const vibeAlignment = scoreVibeAlignment(finalItems, vibeKey);
+            if (vibeAlignment <= 0) return;
+
+            const templateId = detectOutfitTemplate(finalItems, strictOccasion);
+            if (templateId === "unknown") return;
+
+            const rank = scored.totalScore + vibeAlignment * 0.35;
+            if (!bestCandidate || rank > bestCandidate.rank) {
+              bestCandidate = {
+                items: finalItems,
+                score: scored,
+                accessories: suggestAccessories(finalItems, filteredAccessories, strictOccasion, strictWeather),
+                selectedVibe: vibeKey,
+                templateId,
+                signature: getOutfitSignature(finalItems),
+                vibeAlignment,
+                rank,
+              };
+            }
           });
-        } catch (err) {
-          console.error("Combo generation error:", err.message, err.stack);
-        }
+
+          if (bestCandidate) allCombos.push(bestCandidate);
+        });
+      });
+    });
+
+    fulls.forEach(full => {
+      const layerOptions = strictWeather === "hot" ? [null] : [null, ...sortedLayers];
+      layerOptions.forEach(layer => {
+        const base = layer ? [full, layer] : [full];
+        let bestCandidate = null;
+
+        sortedShoes.forEach(shoe => {
+          const finalItems = [...base, shoe];
+          const gate = validateOutfitConstraints(finalItems, strictOccasion, strictWeather);
+          if (!gate.valid) return;
+          const occasionGate = validateOccasionConstraints(finalItems, strictOccasion);
+          if (!occasionGate.valid) return;
+          if (strictOccasion !== "gym" && !hasStatementElement(finalItems)) return;
+
+          const scored = scoreOutfit(finalItems, strictOccasion, strictWeather, userProfile);
+          if (scored.totalScore < qualityFloor) return;
+
+          const vibeAlignment = scoreVibeAlignment(finalItems, vibeKey);
+          if (vibeAlignment <= 0) return;
+
+          const templateId = detectOutfitTemplate(finalItems, strictOccasion);
+          if (templateId === "unknown") return;
+
+          const rank = scored.totalScore + vibeAlignment * 0.35;
+          if (!bestCandidate || rank > bestCandidate.rank) {
+            bestCandidate = {
+              items: finalItems,
+              score: scored,
+              accessories: suggestAccessories(finalItems, filteredAccessories, strictOccasion, strictWeather),
+              selectedVibe: vibeKey,
+              templateId,
+              signature: getOutfitSignature(finalItems),
+              vibeAlignment,
+              rank,
+            };
+          }
+        });
+
+        if (bestCandidate) allCombos.push(bestCandidate);
       });
     });
   });
 
-  // Full outfit generation
-  fulls.forEach(full => {
-    let layerOptions = (weather === "hot") ? [null] : (sortedLayers.length > 0 ? [null, ...sortedLayers] : [null]);
-    layerOptions.forEach(layer => {
-      const base = layer ? [full, layer] : [full];
-      let bestShoe = null, bestShoeScore = -Infinity;
-      sortedShoes.forEach(shoe => {
-        const sc = scoreOutfit([...base, shoe], occasion, weather, userProfile).totalScore;
-        if (sc > bestShoeScore) { bestShoeScore = sc; bestShoe = shoe; }
-      });
-      const finalItems = bestShoe ? [...base, bestShoe] : base;
-      
-      allCombos.push({
-        items: finalItems,
-        score: scoreOutfit(finalItems, occasion, weather, userProfile),
-        accessories: suggestAccessories(finalItems, filteredAccessories, occasion, weather),
-        selectedVibe,
-        templateId: detectOutfitTemplate(finalItems, occasion),
-        signature: getOutfitSignature(finalItems),
-        vibeAlignment: selectedVibe ? scoreVibeAlignment(finalItems, selectedVibe) : 0
-      });
-    });
+  if (allCombos.length === 0) {
+    return buildAdvisorResponse(
+      `Strict Excellence rejected all combinations for ${strictOccasion} in ${strictWeather} weather (score floor ${qualityFloor}, statement and vibe gates enforced).`,
+      "STRICT_QUALITY_REJECTION",
+      { targetVibes: feasibleVibes }
+    );
+  }
+
+  const bySignature = new Map();
+  allCombos.forEach(combo => {
+    const current = bySignature.get(combo.signature);
+    if (!current || combo.rank > current.rank) bySignature.set(combo.signature, combo);
   });
 
-  allCombos = allCombos.filter(c => c.score.totalScore >= 3.5);
-  if (allCombos.length === 0) {
-    return {
-      error: "No good combinations found for this occasion and weather. Try adding more items.",
-      code: "NO_GOOD_COMBOS"
-    };
-  }
-
-  // Handle Empty
-  if (allCombos.length === 0) {
-    const gapsInfo = analyzeWardrobeGaps(wardrobe, occasion, weather, userProfile);
-    
-    const actionableGaps = gapsInfo.gaps.filter(g => g !== "Wardrobe is well-rounded for this occasion.");
-    const hasRealGaps = actionableGaps.length > 0;
-
-    // Occasion-specific friendly messages
-    const occasionTips = {
-      casual:          { msg: `Your closet needs a few more casual basics to mix and match for ${weather} weather.`, quickWin: "A white tee and beige chinos go with almost everything." },
-      office:          { msg: `We need some smarter pieces to put together a polished office look for ${weather} weather.`, quickWin: "A light blue shirt and brown loafers will open up many office outfits." },
-      "business formal":{ msg: `Formal occasions need structured pieces — your closet is missing a few key items.`, quickWin: "A white dress shirt, dark trousers, and oxford shoes are the foundation." },
-      party:           { msg: `Party outfits need a bit more flair — let's add some statement pieces.`, quickWin: "A navy or burgundy shirt with slim dark jeans is a great party starting point." },
-      "date night":    { msg: `Date night calls for something a bit special — your closet needs a couple more refined options.`, quickWin: "An olive henley or textured sweater adds the right amount of effort." },
-      gym:             { msg: `We need athletic basics to build a proper gym outfit for ${weather} weather.`, quickWin: "A comfortable tee, joggers, and clean sneakers are all you need." },
-      "wedding guest": { msg: `Wedding outfits need a level of dressiness your closet doesn't quite have yet.`, quickWin: "A blazer with chinos and loafers creates an elegant guest look." },
-      ethnic:          { msg: `Traditional outfits need specific ethnic pieces that aren't in your closet yet.`, quickWin: "Start with a classic kurta and churidar — they work for most ethnic occasions." },
-      "pooja / puja":  { msg: `Puja outfits favour light, auspicious colours — your current pieces may not fit the mood.`, quickWin: "A white or cream kurta with light pants is perfect for puja." },
-      festival:        { msg: `Festival looks need vibrant or traditional pieces your closet is currently missing.`, quickWin: "A rich-coloured kurta or sherwani will make your festival wardrobe complete." },
-    };
-    const tip = occasionTips[occasion] || { msg: `Your closet needs a few more items for ${occasion} in ${weather} weather.`, quickWin: "Start with versatile neutrals — they pair with everything." };
-
-    return {
-      success: false,
-      advisorFeedback: {
-        message: tip.msg,
-        missingCategories: hasRealGaps ? actionableGaps.map(g => g.split(" — ")[0]) : [],
-        reasonCodes: gapsInfo.reasonCodes,
-        suggestedItems: hasRealGaps
-          ? actionableGaps.map(g => ({
-              tip: g.split(" — ")[0],
-              reason: g.includes(" — ") ? g.split(" — ")[1] : "This will open up new outfit possibilities."
-            }))
-          : [{ tip: "Your basics are covered but the colours, formality, or weather don't align for this specific look.", reason: "Try a different occasion or weather — or add items in new colours." }],
-        topRecommendation: tip.quickWin
-      }
-    };
-  }
-
-  // Diversity & Selection
-  allCombos.sort((a, b) => (b.score.totalScore + a.vibeAlignment * 0.2) - (a.score.totalScore + b.vibeAlignment * 0.2));
-
+  const deduped = [...bySignature.values()].sort((a, b) => b.rank - a.rank);
   const result = [];
   const usedTemplates = new Set();
-  const usedTopColors = new Set();
-  const usedTops = new Set();
 
-  for (const combo of allCombos) {
+  for (const combo of deduped) {
     if (result.length >= 3) break;
-    // Diversity penalties/filters
-    const isTemplateRepeat = usedTemplates.has(combo.templateId);
-    let relaxedThis = false;
-    if (isTemplateRepeat && result.length < 3) {
-      if (allCombos.length > 5 && result.length > 0) continue; // Try for better template if pool allows
-      relaxationReasons.push("Best possible match from your wardrobe (Structural diversity relaxed)");
-      relaxedThis = true;
-    }
-    
-    // Calculate Confidence
-    let confidence = 100;
-    if (relaxedThis || relaxationReasons.length > 0) confidence -= 15;
-    if (combo.vibeAlignment < 5) confidence -= (5 - combo.vibeAlignment) * 5;
-    if (combo.score.totalScore < 8) confidence -= (8 - combo.score.totalScore) * 5;
-    confidence = Math.max(40, Math.min(100, confidence));
+    if (usedTemplates.has(combo.templateId)) continue;
 
+    const confidence = Math.max(85, Math.min(99, Math.round(combo.score.totalScore * 10)));
     result.push({
       ...combo,
-      confidence: Math.round(confidence),
-      relaxedMatch: relaxedThis || relaxationReasons.length > 0,
-      relaxationReasons: [...new Set(relaxationReasons)]
+      confidence,
+      relaxedMatch: false,
+      relaxationReasons: [],
     });
-
     usedTemplates.add(combo.templateId);
-    usedTopColors.add(combo.items[0].color);
-    usedTops.add(combo.items[0].name);
+  }
+
+  if (result.length < 3) {
+    return buildAdvisorResponse(
+      `Strict Excellence requires three distinct template outcomes. Only ${result.length} template-diverse outfit(s) were possible for ${strictOccasion}.`,
+      "NO_TEMPLATE_DIVERSITY",
+      {
+        targetVibes: feasibleVibes,
+        availableTemplates: [...new Set(deduped.map(c => c.templateId).filter(Boolean))],
+      }
+    );
+  }
+
+  if (result.length === 0) {
+    return buildAdvisorResponse(
+      `Strict Excellence could not produce template-diverse outfits for ${strictOccasion}. Add sharper category coverage to your wardrobe.`,
+      "NO_TEMPLATE_DIVERSITY",
+      { targetVibes: feasibleVibes }
+    );
   }
 
   return result;
@@ -2556,7 +2566,11 @@ function filterByWeather(items, weather) {
 function filterByOccasion(items, occasion) {
   return items.filter(item => {
     const ci = CLOTHING_ITEMS[item.name];
+    const perItemOccasion = Array.isArray(item.occasionOk) ? item.occasionOk : null;
     if (!ci) return true; // unknown item, keep it
+    if (perItemOccasion) {
+      return perItemOccasion.includes((occasion || "casual").toLowerCase().trim());
+    }
     if (!ci.occasionOk) return true; // no rule defined, keep it
     return ci.occasionOk.includes((occasion || "casual").toLowerCase().trim());
   });
@@ -2598,7 +2612,11 @@ function generateOutfitName(items, occasion) {
 function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userProfile={}) {
   const genderPref = userProfile?.gender || "Other";
   const genderFilteredWardrobe = filterByGender(wardrobe, genderPref);
-  const clothingOnly = filterByWeather(genderFilteredWardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role!=="accessory"), weather);
+  const strictOccasion = String(occasion || "casual").toLowerCase().trim();
+  const strictWeather = String(weather || "mid").toLowerCase().trim();
+  const qualityFloor = 8.5;
+
+  const clothingOnly = filterByWeather(genderFilteredWardrobe.filter(i=>CLOTHING_ITEMS[i.name]?.role!=="accessory"), strictWeather);
   const tops    = clothingOnly.filter(i=>CLOTHING_ITEMS[i.name]?.role==="top");
   const bottoms = clothingOnly.filter(i=>CLOTHING_ITEMS[i.name]?.role==="bottom");
   const shoes   = clothingOnly.filter(i=>CLOTHING_ITEMS[i.name]?.category==="footwear");
@@ -2606,22 +2624,32 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
 
   const gaps = [];
   const reasonCodes = [];
-  const occasionData = OCCASIONS[occasion];
+  const occasionData = OCCASIONS[strictOccasion];
   const formalityMin = occasionData?.formalityRange?.[0] || 1;
   const formalityMax = occasionData?.formalityRange?.[1] || 5;
+  const suggestedItems = [];
+
+  const formalFootwearNames = ["oxford shoes", "derby shoes", "monk straps", "loafers"];
+  const hasFormalFootwear = shoes.some(s => {
+    const f = CLOTHING_ITEMS[s.name]?.formality || 0;
+    return f >= 4 || formalFootwearNames.includes(s.name);
+  });
 
   // 1. Missing categories check
   if (tops.length === 0) {
     gaps.push("No tops — add a white tee or light shirt to start");
     reasonCodes.push("missing_required_category");
+    suggestedItems.push({ tip: "Crisp White Shirt", reason: "A white shirt unlocks office, business formal, and date-night combinations." });
   }
   if (bottoms.length === 0) {
     gaps.push("No bottoms — jeans or chinos will pair with most tops");
     reasonCodes.push("missing_required_category");
+    suggestedItems.push({ tip: "Charcoal Trousers", reason: "A formal-ready bottom is needed to clear strict scoring and formality gates." });
   }
   if (shoes.length === 0) {
     gaps.push("No shoes — white sneakers are the most versatile pick");
     reasonCodes.push("missing_required_category");
+    suggestedItems.push({ tip: "White Leather Sneakers", reason: "Improves casual and smart-casual coverage with immediate versatility." });
   }
 
   // 2. Specific occasion gaps
@@ -2633,14 +2661,17 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
     const rec = occasionData?.preferredItems?.find(i => CLOTHING_ITEMS[i]?.role === "top");
     if (rec) gaps.push(`Need a dressier top — try adding a ${rec}`);
     reasonCodes.push("insufficient_formality_match");
+    if (rec) {
+      suggestedItems.push({ tip: rec, reason: `Current tops are below the required formality floor (${formalityMin}-${formalityMax}).` });
+    }
   }
 
   // 3. Formal shoes check
   if (shoes.length > 0 && formalityMax >= 4) {
-    const hasFormalShoe = shoes.some(s => CLOTHING_ITEMS[s.name]?.formality >= 4);
-    if (!hasFormalShoe) {
+    if (!hasFormalFootwear) {
       gaps.push("No formal shoes — loafers or oxfords needed for this occasion");
       reasonCodes.push("missing_required_category");
+      suggestedItems.push({ tip: "oxford shoes / derby shoes", reason: "Without formal footwear, strict office/business-formal scores cannot cross 8.5." });
     }
   }
 
@@ -2648,20 +2679,136 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
   if (occasionData?.bannedColors && wardrobe.length > 0) {
     const hasOnlyBanned = wardrobe.every(i => i.color && i.role !== "accessory" && occasionData.bannedColors.includes(i.color));
     if (hasOnlyBanned) {
-      gaps.push(`Only ${occasionData.bannedColors.join(", ")} in closet — ${occasion} looks better in lighter or brighter colours`);
+      gaps.push(`Only ${occasionData.bannedColors.join(", ")} in closet — ${strictOccasion} looks better in lighter or brighter colours`);
       reasonCodes.push("color_constraint_violation");
     }
   }
 
   // 5. Missing layer for cold weather
-  if (weather === "cold" && layers.length === 0) {
+  if (strictWeather === "cold" && layers.length === 0) {
     gaps.push("No jacket or coat — add an overcoat or blazer for cold weather");
+    suggestedItems.push({ tip: "Navy Blazer", reason: "Adds structure and statement depth for cold-weather scoring." });
   }
+
+  // Strict Excellence Expert Critique: identify why 8.5 floor fails.
+  let bestScore = -Infinity;
+  let bestCombo = null;
+  const scoredOccasionItems = filterByOccasion(clothingOnly, strictOccasion);
+  const scoredTops = scoredOccasionItems.filter(i => CLOTHING_ITEMS[i.name]?.role === "top");
+  const scoredBottoms = scoredOccasionItems.filter(i => CLOTHING_ITEMS[i.name]?.role === "bottom");
+  const scoredShoes = scoredOccasionItems.filter(i => CLOTHING_ITEMS[i.name]?.category === "footwear");
+  const scoredLayers = scoredOccasionItems.filter(i => CLOTHING_ITEMS[i.name]?.role === "layer");
+
+  const topPool = scoredTops.slice(0, 15);
+  const bottomPool = scoredBottoms.slice(0, 15);
+  const shoePool = scoredShoes.slice(0, 10);
+  const layerPool = [null, ...scoredLayers.slice(0, 8)];
+
+  topPool.forEach(top => {
+    bottomPool.forEach(bottom => {
+      shoePool.forEach(shoe => {
+        layerPool.forEach(layer => {
+          const items = layer ? [top, bottom, layer, shoe] : [top, bottom, shoe];
+          const gate = validateOutfitConstraints(items, strictOccasion, strictWeather);
+          if (!gate.valid) return;
+          const occGate = validateOccasionConstraints(items, strictOccasion);
+          if (!occGate.valid) return;
+          const sc = scoreOutfit(items, strictOccasion, strictWeather, userProfile).totalScore;
+          if (sc > bestScore) {
+            bestScore = sc;
+            bestCombo = items;
+          }
+        });
+      });
+    });
+  });
+
+  if (bestScore > -Infinity && bestScore < qualityFloor) {
+    reasonCodes.push("strict_quality_failure");
+
+    const hasFoundationShirt = tops.some(t => ["shirt", "dress shirt", "oxford shirt", "t-shirt"].includes(t.name));
+    const hasFoundationTrouser = bottoms.some(b => ["trousers", "dress trousers", "chinos"].includes(b.name));
+    const hasBlazer = [...tops, ...layers].some(i => i.name === "blazer");
+
+    let missingPiece = "a stronger statement piece";
+    let missingReason = `Best available combination scores ${bestScore.toFixed(1)}, below the strict ${qualityFloor} floor.`;
+    let weakLink = "statement depth";
+
+    if (formalityMin >= 4 && !hasFormalFootwear) {
+      missingPiece = "oxford shoes / derby shoes";
+      missingReason = "Without formal footwear, the look remains incomplete for strict business/formal scoring.";
+      weakLink = "footwear formality";
+      if (!suggestedItems.some(s => s.tip.includes("oxford shoes") || s.tip.includes("derby shoes"))) {
+        suggestedItems.push({ tip: "oxford shoes / derby shoes", reason: "Mandatory for an 8.5+ office/business formal outcome." });
+      }
+    } else if ((strictOccasion === "office" || strictOccasion === "business formal") && !hasBlazer) {
+      missingPiece = "Structured Layer (Navy Blazer)";
+      missingReason = "A blazer is required to push authority and statement scores above the strict floor.";
+      weakLink = "silhouette structure";
+      if (!suggestedItems.some(s => s.tip.toLowerCase().includes("blazer"))) {
+        suggestedItems.push({ tip: "Navy Blazer", reason: "Creates a sharp template and unlocks higher-formality combinations." });
+      }
+    } else if (strictOccasion === "gym" && !shoePool.some(s => ["running shoes", "sneakers", "white sneakers"].includes(s.name))) {
+      missingPiece = "Performance Sneakers";
+      missingReason = "Gym scoring penalizes non-performance footwear heavily.";
+      weakLink = "athletic footwear";
+      if (!suggestedItems.some(s => s.tip.toLowerCase().includes("sneaker"))) {
+        suggestedItems.push({ tip: "White Leather Sneakers", reason: "Improves both gym and casual strict-score combinations." });
+      }
+    }
+
+    const foundationBits = [];
+    if (hasFoundationTrouser) foundationBits.push("Trousers");
+    if (hasFoundationShirt) foundationBits.push("Shirt");
+    const foundationLabel = foundationBits.length > 0 ? foundationBits.join(" & ") : "the foundation";
+
+    let expertCritique = `Weak Link: ${weakLink}. You have the ${foundationLabel}, but to reach a 10/10 ${occasionData?.label || strictOccasion} look, you are missing ${missingPiece}. ${missingReason}`;
+    if (formalityMin >= 4 && !hasFormalFootwear) {
+      expertCritique = `You have the ${foundationLabel}, but your footwear is too casual for a 10/10 ${occasionData?.label || strictOccasion} look. Add ${missingPiece} to unlock this vibe.`;
+    }
+    gaps.unshift(`Missing: ${missingPiece}`);
+    gaps.unshift(expertCritique);
+  }
+
+  const occasionDepthRules = {
+    gym: ["top", "bottom", "shoes"],
+    office: ["top", "bottom", "shoes", "layer"],
+    "business formal": ["top", "bottom", "shoes", "layer"],
+    "date night": ["top", "bottom", "shoes"],
+    party: ["top", "bottom", "shoes"],
+    casual: ["top", "bottom", "shoes"],
+    ethnic: ["top", "bottom", "shoes"],
+    "pooja / puja": ["top", "bottom", "shoes"],
+    festival: ["top", "bottom", "shoes"],
+    "wedding guest": ["top", "bottom", "shoes", "layer"],
+  };
+  const requiredRoles = occasionDepthRules[strictOccasion] || ["top", "bottom", "shoes"];
+  const roleCount = {
+    top: 0,
+    bottom: 0,
+    shoes: 0,
+    layer: 0,
+  };
+
+  scoredOccasionItems.forEach(item => {
+    const meta = CLOTHING_ITEMS[item.name] || {};
+    const role = meta.category === "footwear" ? "shoes" : meta.role;
+    if (!["top", "bottom", "shoes", "layer"].includes(role)) return;
+    const formality = meta.formality || 0;
+    const inRange = formality >= Math.max(1, formalityMin - 1) && formality <= Math.min(5, formalityMax + 1);
+    if (inRange) roleCount[role] += 1;
+  });
+
+  const hasThreeHighQualityEach = requiredRoles.every(role => (roleCount[role] || 0) >= 3);
 
   // Summary logic
   if (gaps.length === 0) {
-    gaps.push("Wardrobe is well-rounded for this occasion.");
-    reasonCodes.push("insufficient_diversity_pool");
+    if (hasThreeHighQualityEach) {
+      gaps.push("Wardrobe is well-rounded for this occasion.");
+    } else {
+      gaps.push("Need deeper options in core categories to unlock consistently elite looks.");
+      reasonCodes.push("insufficient_depth_per_subcategory");
+    }
   }
 
   const currentCombos = tops.length * bottoms.length * Math.max(1, shoes.length);
@@ -2670,8 +2817,12 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
   return {
     gaps: gaps.length > 0 ? gaps : ["Wardrobe is well-rounded for this occasion."],
     topRecommendation: topRec,
+    suggestedItems,
     reasonCodes: [...new Set(reasonCodes)],
-    currentOutfitCount: currentCombos
+    currentOutfitCount: currentCombos,
+    strictBestScore: bestScore > -Infinity ? Number(bestScore.toFixed(1)) : null,
+    strictFloor: qualityFloor,
+    bestCombo: bestCombo ? bestCombo.map(i => i.name) : [],
   };
 }
 
@@ -2778,6 +2929,11 @@ const ITEM_FUZZY_MAP = {
   "palazzo pants":    "maxi skirt",
   "ethnic top":       "kurta",
   "indian top":       "kurta",
+  "black body fit synthetic tee": "t-shirt",
+  "grey sweatpants": "joggers",
+  "gray sweatpants": "joggers",
+  "camel coat": "overcoat",
+  "maroon sweater": "sweater",
 };
 
 /**

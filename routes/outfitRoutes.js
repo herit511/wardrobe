@@ -5,11 +5,11 @@ const Outfit = require('../models/Outfit');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { getColorName } = require('../utils/colors');
-const { suggestOutfits, scoreOutfit, analyzeWardrobeGaps, scoreWardrobeVersatility, detectColorSeason, parseCLIPLabel, suggestFromCLIP, CLOTHING_ITEMS, INDIAN_FASHION, OCCASIONS } = require('../fashionEngineV3');
-const { applyStyleIntelligence } = require('../fashionStylingEngine');
+const { suggestOutfits, scoreOutfit, analyzeWardrobeGaps, scoreWardrobeVersatility, detectColorSeason, parseCLIPLabel, suggestFromCLIP, CLOTHING_ITEMS, INDIAN_FASHION, OCCASIONS, ITEM_FUZZY_MAP: ENGINE_ITEM_FUZZY_MAP } = require('../fashionEngineV3');
+const { styleOutfit, ITEM_FUZZY_MAP: STYLE_ITEM_FUZZY_MAP, CANONICAL_TO_ENGINE_ITEM } = require('../fashionStylingEngine');
 
-// Fuzzy-match mapping for common Gemini mismatches
-const FUZZY_NAME_MAP = {
+// Legacy route-level fuzzy map kept for backward compatibility.
+const LEGACY_FUZZY_NAME_MAP = {
     'denim pants': 'jeans',
     'pants': 'trousers',
     'tennis shoes': 'sneakers',
@@ -19,19 +19,84 @@ const FUZZY_NAME_MAP = {
     'pullover': 'sweater',
     'coat': 'overcoat',
     'flip-flops': 'flip flops',
+    'grey sweatpants': 'joggers',
+    'gray sweatpants': 'joggers',
+    'camel coat': 'overcoat',
+    'maroon sweater': 'sweater',
+    'black body fit synthetic tee': 't-shirt',
 };
+
+function normalizeToken(value) {
+    return String(value || '').toLowerCase().trim();
+}
+
+function toEngineKey(rawValue) {
+    const raw = normalizeToken(rawValue);
+    if (!raw) return '';
+
+    if (CLOTHING_ITEMS[raw]) return raw;
+
+    const asSpaced = raw.replace(/[_-]+/g, ' ');
+    if (CLOTHING_ITEMS[asSpaced]) return asSpaced;
+
+    const asHyphen = raw.replace(/_/g, '-');
+    if (CLOTHING_ITEMS[asHyphen]) return asHyphen;
+
+    const canonicalMapped = CANONICAL_TO_ENGINE_ITEM[raw] || CANONICAL_TO_ENGINE_ITEM[raw.replace(/[\s-]+/g, '_')];
+    if (canonicalMapped && CLOTHING_ITEMS[canonicalMapped]) return canonicalMapped;
+
+    const legacyMapped = LEGACY_FUZZY_NAME_MAP[raw];
+    if (legacyMapped && CLOTHING_ITEMS[legacyMapped]) return legacyMapped;
+
+    const styleFuzzyKey = Object.keys(STYLE_ITEM_FUZZY_MAP || {}).find(k => raw.includes(k) || k.includes(raw));
+    if (styleFuzzyKey) {
+        const canonical = STYLE_ITEM_FUZZY_MAP[styleFuzzyKey];
+        const fromCanonical = CANONICAL_TO_ENGINE_ITEM[canonical] || canonical;
+        const bridged = toEngineKey(fromCanonical);
+        if (bridged && CLOTHING_ITEMS[bridged]) return bridged;
+    }
+
+    const engineFuzzyKey = Object.keys(ENGINE_ITEM_FUZZY_MAP || {}).find(k => raw.includes(k) || k.includes(raw));
+    if (engineFuzzyKey) {
+        const mapped = ENGINE_ITEM_FUZZY_MAP[engineFuzzyKey];
+        if (mapped && CLOTHING_ITEMS[mapped]) return mapped;
+    }
+
+    const partialMatch = Object.keys(CLOTHING_ITEMS).find(key => raw.includes(key) || key.includes(raw));
+    return partialMatch || '';
+}
 
 /**
  * Resolve a clothing name to a valid fashionEngine CLOTHING_ITEMS key.
  * Tries: exact match → fuzzy map → subCat map → raw name.
  */
-function resolveEngineName(rawName) {
-    if (CLOTHING_ITEMS[rawName]) return rawName;
-    if (FUZZY_NAME_MAP[rawName]) return FUZZY_NAME_MAP[rawName];
-    // Try partial match against CLOTHING_ITEMS keys
-    const lower = rawName.toLowerCase();
-    const partialMatch = Object.keys(CLOTHING_ITEMS).find(key => lower.includes(key) || key.includes(lower));
-    return partialMatch || rawName;
+function resolveEngineName(rawName, descriptor = '') {
+    const primary = toEngineKey(rawName);
+    if (primary) return primary;
+
+    const secondary = toEngineKey(descriptor);
+    if (secondary) return secondary;
+
+    return '';
+}
+
+function getHardMappedItem(rawDescriptor, fallbackName, colorName) {
+    const descriptor = String(rawDescriptor || '').toLowerCase().trim();
+    const color = String(colorName || '').toLowerCase().trim();
+
+    if (descriptor.includes('black body fit synthetic tee')) {
+        return { name: 't-shirt', fabric: 'jersey', occasionOk: ['gym'] };
+    }
+    if (descriptor.includes('grey sweatpants') || descriptor.includes('gray sweatpants')) {
+        return { name: 'joggers' };
+    }
+    if (descriptor.includes('camel coat') || (fallbackName === 'overcoat' && color === 'camel')) {
+        return { name: 'overcoat' };
+    }
+    if (descriptor.includes('maroon sweater') || (fallbackName === 'sweater' && color === 'maroon')) {
+        return { name: 'sweater', fabricWeight: 'medium' };
+    }
+    return null;
 }
 
 // ============================================
@@ -115,21 +180,59 @@ router.get('/generate', auth, async (req, res, next) => {
             return name ? name.toLowerCase() : 'black';
         };
 
+        const incompatibleItems = [];
         const wardrobeForEngine = userItems.map(item => {
-            const rawName = subCatToEngineName[item.subCategory] || item.subCategory.replace('_', ' ');
-            const resolvedName = resolveEngineName(rawName);
-            // Diagnostic: log any item whose name didn't resolve to a known CLOTHING_ITEMS key
-            if (!CLOTHING_ITEMS[resolvedName]) {
-                console.warn(`[fashionEngine] Unresolved item name: "${rawName}" → "${resolvedName}" (subCategory: ${item.subCategory}) — not found in CLOTHING_ITEMS`);
+            const rawSubCategory = item.subCategory || item.sub_category || '';
+            const rawName = subCatToEngineName[rawSubCategory] || String(rawSubCategory || '').replace('_', ' ');
+            const colorName = hexToColorName(item.color);
+
+            const descriptorCandidates = [
+                rawName,
+                `${colorName} ${rawName}`,
+                rawSubCategory,
+                `${colorName} ${rawSubCategory || ''}`,
+                item.name,
+                item.title,
+                item.label,
+                item.detectedLabel,
+                item.aiLabel,
+            ].filter(Boolean).join(' ');
+
+            const baseResolved = resolveEngineName(rawName, descriptorCandidates);
+            const hardMapped = getHardMappedItem(descriptorCandidates, baseResolved, colorName);
+            const resolvedName = hardMapped?.name || baseResolved || '';
+
+            // Integrity gate: every item must resolve into engine taxonomy before suggestOutfits.
+            if (!resolvedName || !CLOTHING_ITEMS[resolvedName]) {
+                const incompatibleName = item.name || item.title || rawSubCategory || 'unknown';
+                console.error(`CRITICAL ERROR: Incompatible Item: ${incompatibleName}. Sync Required.`);
+                incompatibleItems.push({
+                    itemId: item._id,
+                    original: incompatibleName,
+                    subCategory: rawSubCategory,
+                });
             }
+
             return {
                 name: resolvedName,
-                color: hexToColorName(item.color),
+                color: colorName,
                 pattern: item.pattern || 'solid',
+                fabric: hardMapped?.fabric,
+                fabricWeight: hardMapped?.fabricWeight,
+                occasionOk: hardMapped?.occasionOk,
                 userPreferenceScore: item.userPreferenceScore || 0,
                 _dbItem: item,
             };
         });
+
+        if (incompatibleItems.length > 0) {
+            return res.status(422).json({
+                success: false,
+                code: 'taxonomy_sync_required',
+                message: 'Taxonomy integrity check failed. Incompatible wardrobe items detected.',
+                incompatibleItems,
+            });
+        }
 
         // Safety check 1: Must have at least one top and one bottom
         const hasTops = wardrobeForEngine.some(i => CLOTHING_ITEMS[i.name]?.role === 'top');
@@ -210,6 +313,7 @@ router.get('/generate', auth, async (req, res, next) => {
             };
             return res.status(200).json({
                 success: false,
+                mode: 'advisor',
                 advisorFeedback,
                 message: advisorFeedback.message
             });
@@ -219,7 +323,7 @@ router.get('/generate', auth, async (req, res, next) => {
         console.log(`[fashionEngine] suggestOutfits returned ${outfitsToStyle.length} outfit(s)`);
 
         // Apply styling intelligence
-        const styledOutfits = applyStyleIntelligence(outfitsToStyle, engineOccasion, weather, userProfile);
+        const styledOutfits = outfitsToStyle.map(outfit => styleOutfit(outfit, engineOccasion, weather, userProfile));
         console.log("Styled outfit card:", 
           JSON.stringify(styledOutfits[0]?.card, null, 2));
 
@@ -227,16 +331,19 @@ router.get('/generate', auth, async (req, res, next) => {
             const emptyGaps = analyzeWardrobeGaps(finalWardrobeForEngine, engineOccasion, weather, userProfile);
             return res.status(200).json({
                 success: false,
+                mode: 'advisor',
                 message: 'Empty wardrobe results.',
                 advisorFeedback: {
                     message: 'Add more items to unlock combinations.',
                     missingCategories: emptyGaps.gaps,
                     topRecommendation: emptyGaps.topRecommendation,
                     reasonCodes: emptyGaps.reasonCodes,
-                    suggestedItems: emptyGaps.gaps.map((gap) => ({
-                        tip: gap.split(' — ')[0],
-                        reason: gap.includes(' — ') ? gap.split(' — ')[1] : 'This will open up new outfit possibilities.'
-                    }))
+                    suggestedItems: Array.isArray(emptyGaps.suggestedItems) && emptyGaps.suggestedItems.length > 0
+                        ? emptyGaps.suggestedItems
+                        : emptyGaps.gaps.map((gap) => ({
+                            tip: gap.split(' — ')[0],
+                            reason: gap.includes(' — ') ? gap.split(' — ')[1] : 'This will open up new outfit possibilities.'
+                        }))
                 }
             });
         }
@@ -327,9 +434,12 @@ router.get('/generate', auth, async (req, res, next) => {
                 trends: outfit.trends,
                 wowReason: outfit.wowReason,
                 moodBoard: outfit.moodBoard,
+                card: outfit.card,
+                threeSecond: outfit.threeSecond,
                 relaxedMatch: outfit.relaxedMatch,
                 relaxationReasons: outfit.relaxationReasons,
-                confidence: outfit.confidence
+                confidence: outfit.confidence,
+                accessories: outfit.accessories || []
             };
         });
 
