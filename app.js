@@ -36,6 +36,11 @@ const path = require("path");
 // Serve frontend static files in production or if client/dist exists
 app.use(express.static(path.join(__dirname, "client/dist")));
 
+// Health check for deployment platforms (Render, Heroku, etc.)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // API 404 handler for unknown API routes
 app.use("/api", (req, res) => {
   res.status(404).json({ success: false, message: `API Route ${req.method} ${req.originalUrl} not found` });
