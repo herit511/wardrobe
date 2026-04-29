@@ -1,0 +1,330 @@
+{
+  "generatedAt": "2026-04-29T03:56:11.817Z",
+  "engineKeys": [
+    "achkan",
+    "ankle boots",
+    "backpack",
+    "bag",
+    "bandhgala",
+    "bandhgala jacket",
+    "beanie",
+    "belt",
+    "blazer",
+    "block heels",
+    "blouse",
+    "bodysuit",
+    "bomber jacket",
+    "bootcut jeans",
+    "boots",
+    "bow tie",
+    "bracelet",
+    "brogues",
+    "cap",
+    "cardigan",
+    "cargo pants",
+    "cargo shorts",
+    "chain",
+    "chains",
+    "chelsea boots",
+    "chinos",
+    "chunky knit",
+    "chunky sneakers",
+    "churidar",
+    "clutch",
+    "co-ord set",
+    "combat boots",
+    "crop top",
+    "crossbody bag",
+    "denim jacket",
+    "denim vest",
+    "derby shoes",
+    "dhoti",
+    "dress",
+    "dress shirt",
+    "dress trousers",
+    "dupatta",
+    "earrings",
+    "espadrilles",
+    "faux leather jacket",
+    "flannel shirt",
+    "flare jeans",
+    "flip flops",
+    "formal dress",
+    "formal jumpsuit",
+    "gold chain",
+    "gold ring",
+    "gold watch",
+    "graphic tee",
+    "hat",
+    "heels",
+    "henley",
+    "high top sneakers",
+    "hoodie",
+    "jacket",
+    "jeans",
+    "joggers",
+    "jumpsuit",
+    "jutti",
+    "kitten heels",
+    "knee-high boots",
+    "kolhapuri",
+    "kurta",
+    "kurti",
+    "leather bag",
+    "leather belt",
+    "leather jacket",
+    "leather sandals",
+    "leggings",
+    "linen shirt",
+    "linen trousers",
+    "loafers",
+    "longline cardigan",
+    "low top sneakers",
+    "maang tikka",
+    "mathapatti",
+    "maxi dress",
+    "maxi skirt",
+    "midi dress",
+    "midi skirt",
+    "mini dress",
+    "mini skirt",
+    "mock neck",
+    "mojari",
+    "monk straps",
+    "mules",
+    "necklace",
+    "nehru jacket",
+    "overcoat",
+    "oversized blazer",
+    "oversized tee",
+    "oxford shirt",
+    "oxford shoes",
+    "pagdi",
+    "parka",
+    "pathani suit top",
+    "pencil skirt",
+    "penny loafers",
+    "peplum top",
+    "pleated skirt",
+    "pleated trousers",
+    "pocket square",
+    "polo shirt",
+    "puffer jacket",
+    "ribbed knit",
+    "ring",
+    "rings",
+    "ripped jeans",
+    "running shoes",
+    "salwar",
+    "sandals",
+    "scarf",
+    "sherwani",
+    "shirt",
+    "shorts",
+    "silk blouse",
+    "silver chain",
+    "silver ring",
+    "silver watch",
+    "skirt",
+    "slides",
+    "slim jeans",
+    "sneakers",
+    "stilettos",
+    "stole",
+    "straight jeans",
+    "suit",
+    "suit jacket",
+    "sunglasses",
+    "sweater",
+    "sweatpants",
+    "sweatshirt",
+    "t-shirt",
+    "tank top",
+    "thermal leggings",
+    "tie",
+    "tote bag",
+    "track pants",
+    "trench coat",
+    "trousers",
+    "turtleneck",
+    "varsity jacket",
+    "vest",
+    "watch",
+    "white sneakers",
+    "wide leg jeans",
+    "wide leg trousers",
+    "windbreaker",
+    "wool coat",
+    "wrap top",
+    "zip hoodie"
+  ],
+  "canonicalBridge": {
+    "tshirt": "t-shirt",
+    "polo": "polo shirt",
+    "shirt": "shirt",
+    "hoodie": "hoodie",
+    "joggers": "joggers",
+    "trousers": "trousers",
+    "jeans": "jeans",
+    "chinos": "chinos",
+    "slides": "slides",
+    "overcoat": "overcoat",
+    "puffer_jacket": "puffer jacket",
+    "windbreaker": "windbreaker",
+    "oxford_shoes": "oxford shoes",
+    "sneakers": "sneakers",
+    "derby_shoes": "derby shoes"
+  },
+  "aliases": {
+    "t-shirt": [
+      "compression",
+      "body fit",
+      "crewneck",
+      "tee",
+      "t shirt",
+      "black body fit synthetic tee"
+    ],
+    "polo shirt": [
+      "polo shirt"
+    ],
+    "shirt": [
+      "button down",
+      "button-down",
+      "button up",
+      "button-up",
+      "formal shirt",
+      "casual shirt",
+      "button up",
+      "button-up",
+      "casual shirt"
+    ],
+    "hoodie": [
+      "hooded"
+    ],
+    "joggers": [
+      "sweatpants",
+      "grey sweatpants",
+      "gray sweatpants"
+    ],
+    "trousers": [
+      "slacks",
+      "dress pants",
+      "formal pants",
+      "pants",
+      "trousers"
+    ],
+    "jeans": [
+      "denim",
+      "denim pants",
+      "denim pants"
+    ],
+    "chinos": [
+      "chino pants",
+      "cords",
+      "cords"
+    ],
+    "overcoat": [
+      "camel coat",
+      "coat",
+      "long coat",
+      "coat",
+      "overcoat",
+      "long coat",
+      "camel coat"
+    ],
+    "puffer jacket": [
+      "puffer",
+      "down jacket",
+      "down jacket"
+    ],
+    "windbreaker": [
+      "windcheater"
+    ],
+    "oxford shoes": [
+      "dress shoes"
+    ],
+    "sneakers": [
+      "trainers",
+      "tennis shoes",
+      "athletic shoes",
+      "sport shoes",
+      "tennis shoes",
+      "trainers",
+      "green sneakers",
+      "blue sneakers",
+      "black sneakers",
+      "red sneakers",
+      "grey sneakers",
+      "gray sneakers"
+    ],
+    "derby shoes": [
+      "formal shoes"
+    ],
+    "slides": [
+      "flip-flops",
+      "slippers",
+      "slippers"
+    ],
+    "dress trousers": [
+      "dress pants",
+      "formal pants"
+    ],
+    "dress shirt": [
+      "button shirt",
+      "formal shirt"
+    ],
+    "sweater": [
+      "pullover",
+      "crewneck sweater",
+      "maroon sweater"
+    ],
+    "flip flops": [
+      "flip-flops"
+    ],
+    "running shoes": [
+      "sport shoes",
+      "athletic shoes"
+    ],
+    "ribbed knit": [
+      "knit top"
+    ],
+    "sweatshirt": [
+      "crewneck"
+    ],
+    "mock neck": [
+      "mock-neck"
+    ],
+    "jacket": [
+      "fleece jacket"
+    ],
+    "vest": [
+      "gilet",
+      "waistcoat"
+    ],
+    "cargo pants": [
+      "corduroy pants"
+    ],
+    "leggings": [
+      "yoga pants"
+    ],
+    "shorts": [
+      "athletic shorts",
+      "swim shorts"
+    ],
+    "dhoti": [
+      "dhoti pants"
+    ],
+    "wide leg jeans": [
+      "palazzo"
+    ],
+    "maxi skirt": [
+      "palazzo pants"
+    ],
+    "kurta": [
+      "ethnic top",
+      "indian top"
+    ]
+  },
+  "styleFuzzyCount": 35,
+  "engineFuzzyCount": 49
+}

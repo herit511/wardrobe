@@ -7,6 +7,8 @@ const auth = require('../middleware/auth');
 const { getColorName } = require('../utils/colors');
 const { suggestOutfits, scoreOutfit, analyzeWardrobeGaps, scoreWardrobeVersatility, detectColorSeason, parseCLIPLabel, suggestFromCLIP, CLOTHING_ITEMS, INDIAN_FASHION, OCCASIONS, ITEM_FUZZY_MAP: ENGINE_ITEM_FUZZY_MAP } = require('../fashionEngineV3');
 const { styleOutfit, ITEM_FUZZY_MAP: STYLE_ITEM_FUZZY_MAP, CANONICAL_TO_ENGINE_ITEM } = require('../fashionStylingEngine');
+const fs = require('fs');
+const path = require('path');
 
 // Legacy route-level fuzzy map kept for backward compatibility.
 const LEGACY_FUZZY_NAME_MAP = {
@@ -98,6 +100,48 @@ function getHardMappedItem(rawDescriptor, fallbackName, colorName) {
     }
     return null;
 }
+
+// ============================================
+// GET /api/outfits/taxonomy-audit — Report taxonomy synchronization status
+// Returns engine keys, fuzzy maps and writes a machine-readable report to repo root
+// ============================================
+router.get('/taxonomy-audit', auth, async (req, res, next) => {
+    try {
+        const engineKeys = Object.keys(CLOTHING_ITEMS || {}).sort();
+        const styleFuzzy = STYLE_ITEM_FUZZY_MAP || {};
+        const engineFuzzy = ENGINE_ITEM_FUZZY_MAP || {};
+        const canonical = CANONICAL_TO_ENGINE_ITEM || {};
+
+        // Build reverse index: engineKey -> aliases
+        const aliasIndex = {};
+        Object.entries(styleFuzzy).forEach(([k, v]) => {
+            const eng = canonical[v] || v;
+            if (!aliasIndex[eng]) aliasIndex[eng] = [];
+            aliasIndex[eng].push(k);
+        });
+        Object.entries(engineFuzzy).forEach(([k, v]) => {
+            const eng = v;
+            if (!aliasIndex[eng]) aliasIndex[eng] = [];
+            aliasIndex[eng].push(k);
+        });
+
+        const report = {
+            generatedAt: new Date().toISOString(),
+            engineKeys,
+            styleFuzzy,
+            engineFuzzy,
+            canonicalBridge: canonical,
+            aliases: aliasIndex,
+        };
+
+        const outPath = path.resolve(__dirname, '..', 'taxonomy_sync_report.json');
+        fs.writeFileSync(outPath, JSON.stringify(report, null, 2), 'utf8');
+
+        res.json({ success: true, path: outPath, reportSummary: { engineKeyCount: engineKeys.length } });
+    } catch (error) {
+        next(error);
+    }
+});
 
 // ============================================
 // GET /api/outfits — List saved outfits
