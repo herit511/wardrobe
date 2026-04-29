@@ -1224,6 +1224,7 @@ function detectOutfitPersonality(items, occasion, weather) {
  */
 function styleOutfit(rawOutfit, occasion = "casual", weather = "mid", userProfile = {}) {
   const { items, score, accessories } = rawOutfit;
+  const stylistRoadmapNote = rawOutfit.fallbackVibeNote || rawOutfit.stylistRoadmapNote || null;
 
   const personality      = detectOutfitPersonality(items, occasion, weather);
   const threeSecond      = getThreeSecondBreakdown(items, personality);
@@ -1292,6 +1293,7 @@ function styleOutfit(rawOutfit, occasion = "casual", weather = "mid", userProfil
     theMove: signatureMove,
     howToWear: normalizedHowToWear,
     dont: antiTip,
+    stylistRoadmapNote,
   };
 
   return {
@@ -1321,6 +1323,8 @@ function styleOutfit(rawOutfit, occasion = "casual", weather = "mid", userProfil
     upgradePath,
     wearThreeWays,
     card,
+    visualRating: rawOutfit.visualRating || null,
+    stylistRoadmapNote,
 
     // Validation
     wowReason: personality.wowReason,

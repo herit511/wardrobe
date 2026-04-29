@@ -2240,7 +2240,8 @@ function scoreVibeAlignment(items, vibeKey) {
 function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile={}) {
   const strictOccasion = String(occasion || "casual").toLowerCase().trim();
   const strictWeather = String(weather || "mid").toLowerCase().trim();
-  const qualityFloor = 8.5;
+  const strictFloor = 8.5;
+  const gradedFloor = 6.5;
 
   const buildAdvisorResponse = (message, code, extra = {}) => {
     const gapsInfo = analyzeWardrobeGaps(wardrobe, strictOccasion, strictWeather, userProfile);
@@ -2359,8 +2360,11 @@ function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile=
   };
 
   const allCombos = [];
-  feasibleVibes.forEach(vibeKey => {
-    const vibePref = getVibePreferences(vibeKey);
+  const gradedFallbackMode = feasibleVibes.length === 0;
+  const darkRomanticismFallback = targetVibes.includes("Dark Romanticism") && gradedFallbackMode;
+  const vibeSearchKeys = gradedFallbackMode ? [targetVibes[0] || "Clean Casual"] : feasibleVibes;
+  vibeSearchKeys.forEach(vibeKey => {
+    const vibePref = gradedFallbackMode ? null : getVibePreferences(vibeKey);
     const sortedTops = rankByVibe(tops, vibePref);
     const sortedBottoms = rankByVibe(bottoms, vibePref);
     const sortedShoes = rankByVibe(shoes, vibePref);
@@ -2387,28 +2391,31 @@ function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile=
             if (!gate.valid) return;
             const occasionGate = validateOccasionConstraints(finalItems, strictOccasion);
             if (!occasionGate.valid) return;
-            if (strictOccasion !== "gym" && !hasStatementElement(finalItems)) return;
+            if (!gradedFallbackMode && strictOccasion !== "gym" && !hasStatementElement(finalItems)) return;
 
             const scored = scoreOutfit(finalItems, strictOccasion, strictWeather, userProfile);
-            if (scored.totalScore < qualityFloor) return;
+            if (scored.totalScore < gradedFloor) return;
 
-            const vibeAlignment = scoreVibeAlignment(finalItems, vibeKey);
-            if (vibeAlignment <= 0) return;
+            const vibeAlignment = gradedFallbackMode ? 0 : scoreVibeAlignment(finalItems, vibeKey);
+            if (!gradedFallbackMode && vibeAlignment <= 0) return;
 
             const templateId = detectOutfitTemplate(finalItems, strictOccasion);
             if (templateId === "unknown") return;
 
-            const rank = scored.totalScore + vibeAlignment * 0.35;
+            const rank = scored.totalScore + (gradedFallbackMode ? 0 : vibeAlignment * 0.35);
             if (!bestCandidate || rank > bestCandidate.rank) {
               bestCandidate = {
                 items: finalItems,
                 score: scored,
                 accessories: suggestAccessories(finalItems, filteredAccessories, strictOccasion, strictWeather),
-                selectedVibe: vibeKey,
+                selectedVibe: gradedFallbackMode ? (targetVibes[0] || "Clean Casual") : vibeKey,
                 templateId,
                 signature: getOutfitSignature(finalItems),
                 vibeAlignment,
                 rank,
+                fallbackVibeNote: darkRomanticismFallback && vibeKey === (targetVibes[0] || "Clean Casual")
+                  ? "To unlock the 'Dark Romanticism' vibe for this occasion, add a 'burgundy sweater' or 'black blazer' to your closet."
+                  : null,
               };
             }
           });
@@ -2430,28 +2437,31 @@ function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile=
           if (!gate.valid) return;
           const occasionGate = validateOccasionConstraints(finalItems, strictOccasion);
           if (!occasionGate.valid) return;
-          if (strictOccasion !== "gym" && !hasStatementElement(finalItems)) return;
+          if (!gradedFallbackMode && strictOccasion !== "gym" && !hasStatementElement(finalItems)) return;
 
           const scored = scoreOutfit(finalItems, strictOccasion, strictWeather, userProfile);
-          if (scored.totalScore < qualityFloor) return;
+          if (scored.totalScore < gradedFloor) return;
 
-          const vibeAlignment = scoreVibeAlignment(finalItems, vibeKey);
-          if (vibeAlignment <= 0) return;
+          const vibeAlignment = gradedFallbackMode ? 0 : scoreVibeAlignment(finalItems, vibeKey);
+          if (!gradedFallbackMode && vibeAlignment <= 0) return;
 
           const templateId = detectOutfitTemplate(finalItems, strictOccasion);
           if (templateId === "unknown") return;
 
-          const rank = scored.totalScore + vibeAlignment * 0.35;
+          const rank = scored.totalScore + (gradedFallbackMode ? 0 : vibeAlignment * 0.35);
           if (!bestCandidate || rank > bestCandidate.rank) {
             bestCandidate = {
               items: finalItems,
               score: scored,
               accessories: suggestAccessories(finalItems, filteredAccessories, strictOccasion, strictWeather),
-              selectedVibe: vibeKey,
+              selectedVibe: gradedFallbackMode ? (targetVibes[0] || "Clean Casual") : vibeKey,
               templateId,
               signature: getOutfitSignature(finalItems),
               vibeAlignment,
               rank,
+              fallbackVibeNote: darkRomanticismFallback && vibeKey === (targetVibes[0] || "Clean Casual")
+                ? "To unlock the 'Dark Romanticism' vibe for this occasion, add a 'burgundy sweater' or 'black blazer' to your closet."
+                : null,
             };
           }
         });
@@ -2463,9 +2473,9 @@ function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile=
 
   if (allCombos.length === 0) {
     return buildAdvisorResponse(
-      `Strict Excellence rejected all combinations for ${strictOccasion} in ${strictWeather} weather (score floor ${qualityFloor}, statement and vibe gates enforced).`,
+      `No graded fits reached the 6.5 baseline for ${strictOccasion} in ${strictWeather} weather.`,
       "STRICT_QUALITY_REJECTION",
-      { targetVibes: feasibleVibes }
+      { targetVibes: gradedFallbackMode ? [targetVibes[0] || "Clean Casual"] : feasibleVibes }
     );
   }
 
@@ -2477,40 +2487,39 @@ function suggestOutfits(wardrobe, occasion="casual", weather="mid", userProfile=
 
   const deduped = [...bySignature.values()].sort((a, b) => b.rank - a.rank);
   const result = [];
-  const usedTemplates = new Set();
 
   for (const combo of deduped) {
     if (result.length >= 3) break;
-    if (usedTemplates.has(combo.templateId)) continue;
-
-    const confidence = Math.max(85, Math.min(99, Math.round(combo.score.totalScore * 10)));
+    const confidence = Math.max(60, Math.min(99, Math.round(combo.score.totalScore * 10)));
     result.push({
       ...combo,
       confidence,
+      visualRating: getVisualRating(combo.score.totalScore),
       relaxedMatch: false,
       relaxationReasons: [],
     });
-    usedTemplates.add(combo.templateId);
-  }
-
-  if (result.length < 3) {
-    return buildAdvisorResponse(
-      `Strict Excellence requires three distinct template outcomes. Only ${result.length} template-diverse outfit(s) were possible for ${strictOccasion}.`,
-      "NO_TEMPLATE_DIVERSITY",
-      {
-        targetVibes: feasibleVibes,
-        availableTemplates: [...new Set(deduped.map(c => c.templateId).filter(Boolean))],
-      }
-    );
   }
 
   if (result.length === 0) {
     return buildAdvisorResponse(
-      `Strict Excellence could not produce template-diverse outfits for ${strictOccasion}. Add sharper category coverage to your wardrobe.`,
-      "NO_TEMPLATE_DIVERSITY",
-      { targetVibes: feasibleVibes }
+      `No graded fits reached the 6.5 baseline for ${strictOccasion}.`,
+      "NO_GRADED_FITS",
+      { targetVibes: gradedFallbackMode ? [targetVibes[0] || "Clean Casual"] : feasibleVibes }
     );
   }
+
+  const roadmap = analyzeWardrobeGaps(wardrobe, strictOccasion, strictWeather, userProfile);
+  result.advisorFeedback = roadmap.advisorFeedback || {
+    message: roadmap.topRecommendation || "Stylist's Roadmap: sharpen the weakest category to raise the whole outfit tier.",
+    missingCategories: roadmap.gaps || [],
+    reasonCodes: roadmap.reasonCodes || [],
+    suggestedItems: roadmap.suggestedItems || [],
+    topRecommendation: roadmap.topRecommendation || "Add one elevated piece to move the outfit up a tier.",
+    targetVibes: gradedFallbackMode ? [targetVibes[0] || "Clean Casual"] : feasibleVibes,
+    bestScore: roadmap.strictBestScore,
+    visualRating: getVisualRating(roadmap.strictBestScore ?? result[0].score.totalScore),
+    bestCombo: roadmap.bestCombo || [],
+  };
 
   return result;
 }
@@ -2593,6 +2602,13 @@ function generateOutfitName(items, occasion) {
   return names[Math.floor(Math.random()*names.length)];
 }
 
+function getVisualRating(totalScore) {
+  if (totalScore >= 8.5) return "10/10 Masterpiece";
+  if (totalScore >= 7.5) return "8/10 Professional";
+  if (totalScore >= 6.5) return "6/10 Baseline";
+  return "Discard";
+}
+
 
 // ─────────────────────────────────────────────
 // SECTION 18: WARDROBE GAP ANALYSIS
@@ -2628,6 +2644,7 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
   const formalityMin = occasionData?.formalityRange?.[0] || 1;
   const formalityMax = occasionData?.formalityRange?.[1] || 5;
   const suggestedItems = [];
+  const targetVibes = OCCASIONS[strictOccasion]?.targetVibes || OCCASION_VIBES[strictOccasion] || [];
 
   const formalFootwearNames = ["oxford shoes", "derby shoes", "monk straps", "loafers"];
   const hasFormalFootwear = shoes.some(s => {
@@ -2693,6 +2710,7 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
   // Strict Excellence Expert Critique: identify why 8.5 floor fails.
   let bestScore = -Infinity;
   let bestCombo = null;
+  let bestScored = null;
   const scoredOccasionItems = filterByOccasion(clothingOnly, strictOccasion);
   const scoredTops = scoredOccasionItems.filter(i => CLOTHING_ITEMS[i.name]?.role === "top");
   const scoredBottoms = scoredOccasionItems.filter(i => CLOTHING_ITEMS[i.name]?.role === "bottom");
@@ -2717,6 +2735,7 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
           if (sc > bestScore) {
             bestScore = sc;
             bestCombo = items;
+            bestScored = scoreOutfit(items, strictOccasion, strictWeather, userProfile);
           }
         });
       });
@@ -2730,12 +2749,16 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
     const hasFoundationTrouser = bottoms.some(b => ["trousers", "dress trousers", "chinos"].includes(b.name));
     const hasBlazer = [...tops, ...layers].some(i => i.name === "blazer");
 
+    const visualRating = getVisualRating(bestScore);
     let missingPiece = "a stronger statement piece";
+    let missingCategory = "styling depth";
     let missingReason = `Best available combination scores ${bestScore.toFixed(1)}, below the strict ${qualityFloor} floor.`;
     let weakLink = "statement depth";
+    let targetVibe = targetVibes[0] || occasionData?.label || strictOccasion;
 
     if (formalityMin >= 4 && !hasFormalFootwear) {
       missingPiece = "oxford shoes / derby shoes";
+      missingCategory = "footwear";
       missingReason = "Without formal footwear, the look remains incomplete for strict business/formal scoring.";
       weakLink = "footwear formality";
       if (!suggestedItems.some(s => s.tip.includes("oxford shoes") || s.tip.includes("derby shoes"))) {
@@ -2743,6 +2766,7 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
       }
     } else if ((strictOccasion === "office" || strictOccasion === "business formal") && !hasBlazer) {
       missingPiece = "Structured Layer (Navy Blazer)";
+      missingCategory = "layer";
       missingReason = "A blazer is required to push authority and statement scores above the strict floor.";
       weakLink = "silhouette structure";
       if (!suggestedItems.some(s => s.tip.toLowerCase().includes("blazer"))) {
@@ -2750,6 +2774,7 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
       }
     } else if (strictOccasion === "gym" && !shoePool.some(s => ["running shoes", "sneakers", "white sneakers"].includes(s.name))) {
       missingPiece = "Performance Sneakers";
+      missingCategory = "footwear";
       missingReason = "Gym scoring penalizes non-performance footwear heavily.";
       weakLink = "athletic footwear";
       if (!suggestedItems.some(s => s.tip.toLowerCase().includes("sneaker"))) {
@@ -2762,9 +2787,14 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
     if (hasFoundationShirt) foundationBits.push("Shirt");
     const foundationLabel = foundationBits.length > 0 ? foundationBits.join(" & ") : "the foundation";
 
-    let expertCritique = `Weak Link: ${weakLink}. You have the ${foundationLabel}, but to reach a 10/10 ${occasionData?.label || strictOccasion} look, you are missing ${missingPiece}. ${missingReason}`;
+    let expertCritique = `This ${visualRating} outfit is a solid base, but it lacks '${missingPiece}' to reach the 10/10 '${targetVibe}' status. Your current ${missingCategory} is pulling the score down.`;
     if (formalityMin >= 4 && !hasFormalFootwear) {
-      expertCritique = `You have the ${foundationLabel}, but your footwear is too casual for a 10/10 ${occasionData?.label || strictOccasion} look. Add ${missingPiece} to unlock this vibe.`;
+      expertCritique = `This ${visualRating} outfit is a solid base, but it lacks '${missingPiece}' to reach the 10/10 '${targetVibe}' status. Your current footwear is pulling the formality score down.`;
+    } else if (bestScored?.breakdown?.length) {
+      const weakest = [...bestScored.breakdown].sort((a, b) => (a.score ?? 0) - (b.score ?? 0))[0];
+      if (weakest?.check && weakest?.items) {
+        expertCritique = `This ${visualRating} outfit is a solid base, but ${weakest.check.toLowerCase()} on '${weakest.items}' is limiting it from reaching 10/10 '${targetVibe}'. The ${weakest.check.toLowerCase()} score is the current weak link.`;
+      }
     }
     gaps.unshift(`Missing: ${missingPiece}`);
     gaps.unshift(expertCritique);
@@ -2801,21 +2831,36 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
 
   const hasThreeHighQualityEach = requiredRoles.every(role => (roleCount[role] || 0) >= 3);
 
-  // Summary logic
-  if (gaps.length === 0) {
-    if (hasThreeHighQualityEach) {
-      gaps.push("Wardrobe is well-rounded for this occasion.");
-    } else {
-      gaps.push("Need deeper options in core categories to unlock consistently elite looks.");
+  if (!hasThreeHighQualityEach) {
+    const missingDepth = requiredRoles.filter(role => (roleCount[role] || 0) < 3);
+    if (missingDepth.length > 0) {
+      gaps.push(`Depth gap: add ${missingDepth.join(" and ")} options to keep ${strictOccasion} looks consistently above the baseline.`);
       reasonCodes.push("insufficient_depth_per_subcategory");
     }
   }
 
+  if (gaps.length === 0 && bestScore > -Infinity) {
+    gaps.push(`Best current fit is ${getVisualRating(bestScore)}; no blocking gap detected, but the strongest available outfit still needs sharper formality or statement control to clear the 8.5 floor.`);
+  }
+
   const currentCombos = tops.length * bottoms.length * Math.max(1, shoes.length);
-  let topRec = gaps[0] || "Your wardrobe is well-balanced for this occasion.";
+  let topRec = gaps[0] || "No graded fit reached the current floor yet.";
+  const advisorFeedback = {
+    message: bestScore > -Infinity && bestScore < qualityFloor
+      ? gaps[0]
+      : `Stylist's Roadmap: ${topRec}`,
+    missingCategories: gaps.slice(0, 3),
+    reasonCodes: [...new Set(reasonCodes)],
+    suggestedItems,
+    topRecommendation: topRec,
+    targetVibes,
+    bestScore: bestScore > -Infinity ? Number(bestScore.toFixed(1)) : null,
+    visualRating: bestScore > -Infinity ? getVisualRating(bestScore) : null,
+    bestCombo: bestCombo ? bestCombo.map(i => i.name) : [],
+  };
 
   return {
-    gaps: gaps.length > 0 ? gaps : ["Wardrobe is well-rounded for this occasion."],
+    gaps: gaps.length > 0 ? gaps : [],
     topRecommendation: topRec,
     suggestedItems,
     reasonCodes: [...new Set(reasonCodes)],
@@ -2823,6 +2868,8 @@ function analyzeWardrobeGaps(wardrobe, occasion="casual", weather="mid", userPro
     strictBestScore: bestScore > -Infinity ? Number(bestScore.toFixed(1)) : null,
     strictFloor: qualityFloor,
     bestCombo: bestCombo ? bestCombo.map(i => i.name) : [],
+    advisorFeedback,
+    visualRating: bestScore > -Infinity ? getVisualRating(bestScore) : null,
   };
 }
 

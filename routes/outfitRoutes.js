@@ -462,12 +462,14 @@ router.get('/generate', auth, async (req, res, next) => {
                 id: `gen-engine-${Date.now()}-${index}`,
                 title: outfit.outfitName || outfit.score.outfitName || `${occasion} Style ${index + 1}`,
                 match: matchPercent,
+                visualRating: outfit.visualRating || outfit.score?.visualRating || null,
                 tags: [occasion, outfit.score.grade],
                 explanation: outfit.explanation || `Score: ${outfit.score.totalScore}/10. ${outfit.score.tips?.[0] || ''}`,
                 items: outfitItems,
                 warnings: outfit.warnings || [],
                 breakdown: outfit.score.breakdown || {},
                 tips: outfit.score.tips || [],
+                stylistRoadmapNote: outfit.stylistRoadmapNote || null,
                 // Styled attributes
                 description: outfit.description,
                 feelLine: outfit.feelLine,
@@ -497,7 +499,26 @@ router.get('/generate', auth, async (req, res, next) => {
             culturalContext = { type: 'ethnic', data: OCCASIONS[engineOccasion].keyRules };
         }
 
-        res.json({ success: true, count: generatedOutfits.length, data: generatedOutfits, gaps: engineGaps, versatility: engineVersatility, culturalContext });
+        const advisorFeedback = engineGaps?.advisorFeedback || raw?.advisorFeedback || {
+            message: engineGaps?.topRecommendation || 'Stylist\'s Roadmap: refine the weakest category to lift the score.',
+            missingCategories: engineGaps?.gaps || [],
+            reasonCodes: engineGaps?.reasonCodes || [],
+            suggestedItems: engineGaps?.suggestedItems || [],
+            topRecommendation: engineGaps?.topRecommendation || '',
+            visualRating: engineGaps?.visualRating || null,
+            bestScore: engineGaps?.strictBestScore || null,
+        };
+
+        res.json({
+            success: true,
+            count: generatedOutfits.length,
+            outfits: generatedOutfits,
+            data: generatedOutfits,
+            advisorFeedback,
+            gaps: engineGaps,
+            versatility: engineVersatility,
+            culturalContext,
+        });
     } catch (error) {
         next(error);
     }
